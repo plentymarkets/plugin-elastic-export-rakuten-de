@@ -1,0 +1,9 @@
+{
+  "name": "ElasticExportRakutenDE",
+  "description": "This plugin adds the format RakutenDE to the Elastic Export.",
+  "namespace": "ElasticExportRakutenDE",
+  "author": "plentymarkets",
+  "type": "export",
+  "serviceProvider": "ElasticExportRakutenDE\\ElasticExportRakutenDEServiceProvider",
+  "version": 0.1
+}
