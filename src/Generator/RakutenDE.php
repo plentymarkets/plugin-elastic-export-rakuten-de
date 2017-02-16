@@ -50,17 +50,14 @@ class RakutenDE extends CSVGenerator
 
     /**
      * RakutenDE constructor.
-     * @param ElasticExportCoreHelper $elasticExportHelper
      * @param ArrayHelper $arrayHelper
      * @param MarketPropertyHelperRepositoryContract $marketPropertyHelperRepository
      */
     public function __construct(
-        ElasticExportCoreHelper $elasticExportHelper,
         ArrayHelper $arrayHelper,
         MarketPropertyHelperRepositoryContract $marketPropertyHelperRepository
     )
     {
-        $this->elasticExportHelper = $elasticExportHelper;
         $this->arrayHelper = $arrayHelper;
         $this->marketPropertyHelperRepository = $marketPropertyHelperRepository;
     }
