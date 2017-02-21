@@ -8,7 +8,10 @@
   "pluginIcon": "icon_plugin_md.png",
   "price": 0.00,
   "description": "This plugin adds the format Rakuten.de to the Elastic Export.",
-  "shortDescription": "This plugin adds the format Rakuten.de to the Elastic Export.",
+  "shortDescription": {
+"de": "Das Plugin ElasticExportRakutenDE fügt das Datenformat RakutenDE zum Elastischen Export hinzu.",
+"en": "This plugin adds the format RakutenDE to the Elastic Export."
+},
   "categories": [
     "3523"
   ],
