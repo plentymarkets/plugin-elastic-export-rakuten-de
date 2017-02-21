@@ -8,7 +8,7 @@
 Auf dem Marktplatz Rakuten bieten Sie Ihre Artikel zum Verkauf an. Weitere Informationen zu diesem Marktplatz finden Sie auf der Handbuchseite [Rakuten einrichten](https://www.plentymarkets.eu/handbuch/multi-channel/rakuten/). Um das Plugin für RakutenDE einzurichten, registrieren Sie sich zunächst als Händler.
 
 
-## Elastic Export Google Shopping in plentymarkets einrichten
+## Elastic Export RakutenDE in plentymarkets einrichten
 
 Nachdem Sie das Elastic Export RakutenDE-Plugin im plentyMarketplace gekauft haben, richten Sie das Exportformat wie auf der Handbuchseite [Daten exportieren](https://www.plentymarkets.eu/handbuch/datenaustausch/daten-exportieren/#4) beschrieben ein.
 
