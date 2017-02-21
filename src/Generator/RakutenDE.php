@@ -65,8 +65,9 @@ class RakutenDE extends CSVGenerator
     /**
      * @param array $resultList
      * @param array $formatSettings
+     * @param array $filter
      */
-    protected function generateContent($resultList, array $formatSettings = [])
+    protected function generateContent($resultList, array $formatSettings = [], array $filter = [])
     {
         $this->elasticExportHelper = pluginApp(ElasticExportCoreHelper::class);
         if(is_array($resultList['documents']) && count($resultList['documents']) > 0)
@@ -154,7 +155,7 @@ class RakutenDE extends CSVGenerator
                  * @var \ElasticExportRakutenDE\IDL_ResultList\RakutenDE $idlResultList
                  */
                 $idlResultList = pluginApp(\ElasticExportRakutenDE\IDL_ResultList\RakutenDE::class);
-                $idlResultList = $idlResultList->getResultList($variationIdList, $settings);
+                $idlResultList = $idlResultList->getResultList($variationIdList, $settings, $filter);
             }
 
             //Creates an array with the variationId as key to surpass the sorting problem
@@ -165,6 +166,10 @@ class RakutenDE extends CSVGenerator
 
             foreach($resultList['documents'] as $variation)
             {
+                if(!array_key_exists($variation['id'], $this->idlVariations))
+                {
+                    continue;
+                }
                 // Case first variation
                 if ($currentItemId === null)
                 {
