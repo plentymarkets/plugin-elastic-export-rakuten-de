@@ -6,7 +6,6 @@ use Plenty\Modules\DataExchange\Contracts\FiltersForElasticSearchContract;
 
 use Plenty\Plugin\Application;
 
-
 class RakutenDE extends FiltersForElasticSearchContract
 {
     /**
