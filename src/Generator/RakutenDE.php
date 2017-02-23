@@ -3,7 +3,7 @@
 namespace ElasticExportRakutenDE\Generator;
 
 use ElasticExport\Helper\ElasticExportCoreHelper;
-use Plenty\Modules\DataExchange\Contracts\CSVGenerator;
+use Plenty\Modules\DataExchange\Contracts\CSVPluginGenerator;
 use Plenty\Modules\Helper\Services\ArrayHelper;
 use Plenty\Modules\Item\DataLayer\Models\Record;
 use Plenty\Modules\Item\DataLayer\Models\RecordList;
@@ -11,7 +11,7 @@ use Plenty\Modules\DataExchange\Models\FormatSetting;
 use Plenty\Modules\Helper\Models\KeyValue;
 use Plenty\Modules\Market\Helper\Contracts\MarketPropertyHelperRepositoryContract;
 
-class RakutenDE extends CSVGenerator
+class RakutenDE extends CSVPluginGenerator
 {
     const RAKUTEN_DE = 106.00;
     const PROPERTY_TYPE_ENERGY_CLASS       = 'energy_efficiency_class';
@@ -67,7 +67,7 @@ class RakutenDE extends CSVGenerator
      * @param array $formatSettings
      * @param array $filter
      */
-    protected function generateContent($resultList, array $formatSettings = [], array $filter = [])
+    protected function generatePluginContent($resultList, array $formatSettings = [], array $filter = [])
     {
         $this->elasticExportHelper = pluginApp(ElasticExportCoreHelper::class);
         if(is_array($resultList['documents']) && count($resultList['documents']) > 0)
