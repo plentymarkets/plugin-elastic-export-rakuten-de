@@ -1,5 +1,5 @@
 
-# User Guide für das Elastic Export RakutenDE-Plugin
+# User Guide für das Elastic Export Rakuten.de Plugin
 
 <div class="container-toc"></div>
 
