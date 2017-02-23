@@ -2,11 +2,11 @@
 
 namespace ElasticExportRakutenDE\Filter;
 
-use Plenty\Modules\DataExchange\Contracts\FiltersForElasticSearchContract;
+use Plenty\Modules\DataExchange\Contracts\FiltersForElasticSearch;
 
 use Plenty\Plugin\Application;
 
-class RakutenDE extends FiltersForElasticSearchContract
+class RakutenDE extends FiltersForElasticSearch
 {
     /**
      * @var Application $app
