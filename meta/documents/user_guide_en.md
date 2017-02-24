@@ -9,6 +9,8 @@ Items are sold on the market Rakuten.de. For further information about this mark
 
 ## Setting up the data format RakutenDE-Plugin in plentymarkets
 
+To use this format, you need the Elastic Export plugin.
+
 Follow the instructions given on the [Exporting data](https://www.plentymarkets.co.uk/manual/data-exchange/exporting-data/#4) page of the manual to set up Rakuten.de in plentymarkets.
 
 ## License
