@@ -3,7 +3,7 @@
   "namespace": "ElasticExportRakutenDE",
   "type": "export",
   "serviceProvider": "ElasticExportRakutenDE\\ElasticExportRakutenDEServiceProvider",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "license": "GNU AFFERO GENERAL PUBLIC LICENSE Version 3, 19 November 2007",
   "pluginIcon": "icon_plugin_md.png",
   "price": 0.00,
@@ -16,5 +16,9 @@
     "3523"
   ],
   "author": "plentymarkets GmbH",
-  "authorIcon": "icon_author_xs.png"
+  "authorIcon": "icon_author_xs.png",
+  "marketplaceName": {
+    "de":"Rakuten.de",
+    "en":"Rakuten.de"
+  }
 }
