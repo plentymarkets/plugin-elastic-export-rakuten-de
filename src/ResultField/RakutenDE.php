@@ -143,10 +143,12 @@ class RakutenDE extends ResultFields
                 'variation.isMain',
 
                 //images
-                'images.all.type',
+                'images.all.urlMiddle',
+                'images.all.urlPreview',
+                'images.all.urlSecondPreview',
+                'images.all.url',
                 'images.all.path',
                 'images.all.position',
-                'images.all.fileType',
 
                 //unit
                 'unit.content',
