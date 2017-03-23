@@ -139,15 +139,46 @@ class RakutenDE extends CSVPluginGenerator
             $previousItemId = null;
             $variations = array();
 
-            //Create a List of all VariationIds
-            $variationIdList = array();
             foreach($resultList['documents'] as $variation)
             {
-                $variationIdList[] = $variation['id'];
-            }
+                /**
+                 * If the stock filter is set, this will sort out all variations
+                 * not matching the filter.
+                 */
+                if(array_key_exists('variationStock.netPositive' ,$filter))
+                {
+                    $stockList = $this->getStockList($variation);
+                    if($stockList['stock'] <= 0)
+                    {
+                        continue;
+                    }
+                }
+                elseif(array_key_exists('variationStock.isSalable' ,$filter))
+                {
+                    if(count($filter['variationStock.isSalable']['stockLimitation']) == 2)
+                    {
+                        if($variation['data']['variation']['stockLimitation'] != 0 || $variation['data']['variation']['stockLimitation'] != 2)
+                        {
+                            $stockList = $this->getStockList($variation);
+                            if($stockList['stock'] <= 0)
+                            {
+                                continue;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if($variation['data']['variation']['stockLimitation'] != $filter['variationStock.isSalable']['stockLimitation'][0])
+                        {
+                            $stockList = $this->getStockList($variation);
+                            if($stockList['stock'] <= 0)
+                            {
+                                continue;
+                            }
+                        }
+                    }
+                }
 
-            foreach($resultList['documents'] as $variation)
-            {
                 // Case first variation
                 if ($currentItemId === null)
                 {
