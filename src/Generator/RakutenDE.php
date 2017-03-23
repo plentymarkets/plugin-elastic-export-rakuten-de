@@ -3,13 +3,14 @@
 namespace ElasticExportRakutenDE\Generator;
 
 use ElasticExport\Helper\ElasticExportCoreHelper;
+use Plenty\Legacy\Repositories\Item\SalesPrice\SalesPriceSearchRepository;
 use Plenty\Modules\DataExchange\Contracts\CSVPluginGenerator;
 use Plenty\Modules\Helper\Services\ArrayHelper;
-use Plenty\Modules\Item\DataLayer\Models\Record;
-use Plenty\Modules\Item\DataLayer\Models\RecordList;
 use Plenty\Modules\DataExchange\Models\FormatSetting;
 use Plenty\Modules\Helper\Models\KeyValue;
+use Plenty\Modules\Item\SalesPrice\Models\SalesPriceSearchRequest;
 use Plenty\Modules\Market\Helper\Contracts\MarketPropertyHelperRepositoryContract;
+use Plenty\Modules\StockManagement\Stock\Contracts\StockRepositoryContract;
 
 class RakutenDE extends CSVPluginGenerator
 {
@@ -17,6 +18,8 @@ class RakutenDE extends CSVPluginGenerator
     const PROPERTY_TYPE_ENERGY_CLASS       = 'energy_efficiency_class';
     const PROPERTY_TYPE_ENERGY_CLASS_GROUP = 'energy_efficiency_class_group';
     const PROPERTY_TYPE_ENERGY_CLASS_UNTIL = 'energy_efficiency_class_until';
+    const TRANSFER_RRP_YES = 1;
+    const TRANSFER_OFFER_PRICE_YES = 1;
 
     /**
      * @var ElasticExportCoreHelper
@@ -42,11 +45,6 @@ class RakutenDE extends CSVPluginGenerator
      * MarketPropertyHelperRepositoryContract $marketPropertyHelperRepository
      */
     private $marketPropertyHelperRepository;
-
-    /**
-     * @var array $idlVariations
-     */
-    private $idlVariations = array();
 
     /**
      * RakutenDE constructor.
@@ -141,35 +139,46 @@ class RakutenDE extends CSVPluginGenerator
             $previousItemId = null;
             $variations = array();
 
-            //Create a List of all VariationIds
-            $variationIdList = array();
             foreach($resultList['documents'] as $variation)
-            {
-                $variationIdList[] = $variation['id'];
-            }
-
-            //Get the missing fields in ES from IDL
-            if(is_array($variationIdList) && count($variationIdList) > 0)
             {
                 /**
-                 * @var \ElasticExportRakutenDE\IDL_ResultList\RakutenDE $idlResultList
+                 * If the stock filter is set, this will sort out all variations
+                 * not matching the filter.
                  */
-                $idlResultList = pluginApp(\ElasticExportRakutenDE\IDL_ResultList\RakutenDE::class);
-                $idlResultList = $idlResultList->getResultList($variationIdList, $settings, $filter);
-            }
-
-            //Creates an array with the variationId as key to surpass the sorting problem
-            if(isset($idlResultList) && $idlResultList instanceof RecordList)
-            {
-                $this->createIdlArray($idlResultList);
-            }
-
-            foreach($resultList['documents'] as $variation)
-            {
-                if(!array_key_exists($variation['id'], $this->idlVariations))
+                if(array_key_exists('variationStock.netPositive' ,$filter))
                 {
-                    continue;
+                    $stockList = $this->getStockList($variation);
+                    if($stockList['stock'] <= 0)
+                    {
+                        continue;
+                    }
                 }
+                elseif(array_key_exists('variationStock.isSalable' ,$filter))
+                {
+                    if(count($filter['variationStock.isSalable']['stockLimitation']) == 2)
+                    {
+                        if($variation['data']['variation']['stockLimitation'] != 0 || $variation['data']['variation']['stockLimitation'] != 2)
+                        {
+                            $stockList = $this->getStockList($variation);
+                            if($stockList['stock'] <= 0)
+                            {
+                                continue;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if($variation['data']['variation']['stockLimitation'] != $filter['variationStock.isSalable']['stockLimitation'][0])
+                        {
+                            $stockList = $this->getStockList($variation);
+                            if($stockList['stock'] <= 0)
+                            {
+                                continue;
+                            }
+                        }
+                    }
+                }
+
                 // Case first variation
                 if ($currentItemId === null)
                 {
@@ -221,7 +230,6 @@ class RakutenDE extends CSVPluginGenerator
                     !array_key_exists($variation['data']['item']['id'], $this->attributeNameCombination))
                 {
                     $this->attributeName[$variation['data']['item']['id']] = $this->elasticExportHelper->getAttributeName($variation, $settings);
-
                     foreach ($variation['data']['attributes'] as $attribute)
                     {
                         $this->attributeNameCombination[$variation['data']['item']['id']][] = $attribute['attributeId'];
@@ -288,11 +296,11 @@ class RakutenDE extends CSVPluginGenerator
     private function buildParentWithoutChildrenRow($item, KeyValue $settings)
     {
 
-        $vat = $this->getVatClassId($item);
+        $priceList = $this->getPriceList($item, $settings);
+
+        $vat = $this->getVatClassId($priceList['vatValue']);
 
         $stockList = $this->getStockList($item);
-
-        $priceList = $this->getPriceList($item, $settings);
 
         $basePriceComponentList = $this->getBasePriceComponentList($item);
 
@@ -317,11 +325,11 @@ class RakutenDE extends CSVPluginGenerator
             'bezug_reduzierter_preis'	=> $priceList['referenceReducedPrice'],
             'mwst_klasse'				=> $vat,
             'bestandsverwaltung_aktiv'	=> $stockList['inventoryManagementActive'],
-            'bild1'						=> $this->getImageByNumber($item, $settings, 0),
-            'bild2'						=> $this->getImageByNumber($item, $settings, 1),
-            'bild3'						=> $this->getImageByNumber($item, $settings, 2),
-            'bild4'						=> $this->getImageByNumber($item, $settings, 3),
-            'bild5'						=> $this->getImageByNumber($item, $settings, 4),
+            'bild1'						=> $this->getImageByNumber($item, 0),
+            'bild2'						=> $this->getImageByNumber($item, 1),
+            'bild3'						=> $this->getImageByNumber($item, 2),
+            'bild4'						=> $this->getImageByNumber($item, 3),
+            'bild5'						=> $this->getImageByNumber($item, 4),
             'kategorien'				=> $this->elasticExportHelper->getCategory((int)$item['data']['defaultCategories'][0]['id'], $settings->get('lang'), $settings->get('plentyId')),
             'lieferzeit'				=> $this->elasticExportHelper->getAvailability($item, $settings, false),
             'tradoria_kategorie'		=> $item['data']['item']['rakutenCategoryId'],
@@ -347,11 +355,11 @@ class RakutenDE extends CSVPluginGenerator
             'free_var_19'				=> $item['data']['item']['free19'],
             'free_var_20'				=> $item['data']['item']['free20'],
             'MPN'						=> $item['data']['variation']['model'],
-            'bild6'						=> $this->getImageByNumber($item, $settings, 5),
-            'bild7'						=> $this->getImageByNumber($item, $settings, 6),
-            'bild8'						=> $this->getImageByNumber($item, $settings, 7),
-            'bild9'						=> $this->getImageByNumber($item, $settings, 8),
-            'bild10'					=> $this->getImageByNumber($item, $settings, 9),
+            'bild6'						=> $this->getImageByNumber($item, 5),
+            'bild7'						=> $this->getImageByNumber($item, 6),
+            'bild8'						=> $this->getImageByNumber($item, 7),
+            'bild9'						=> $this->getImageByNumber($item, 8),
+            'bild10'					=> $this->getImageByNumber($item, 9),
             'technical_data'			=> $this->elasticExportHelper->getTechnicalData($item, $settings),
             'energie_klassen_gruppe'	=> $this->getItemPropertyByExternalComponent($item, self::RAKUTEN_DE, self::PROPERTY_TYPE_ENERGY_CLASS_GROUP),
             'energie_klasse'			=> $this->getItemPropertyByExternalComponent($item, self::RAKUTEN_DE, self::PROPERTY_TYPE_ENERGY_CLASS),
@@ -370,7 +378,9 @@ class RakutenDE extends CSVPluginGenerator
      */
     private function buildParentWithChildrenRow($item, KeyValue $settings, array $attributeName)
     {
-        $vat = $this->getVatClassId($item);
+        $priceList = $this->getPriceList($item, $settings);
+
+        $vat = $this->getVatClassId($priceList['vatValue']);
 
         $stockList = $this->getStockList($item);
 
@@ -393,11 +403,11 @@ class RakutenDE extends CSVPluginGenerator
             'bezug_reduzierter_preis'	=> '',
             'mwst_klasse'				=> $vat,
             'bestandsverwaltung_aktiv'	=> $stockList['inventoryManagementActive'],
-            'bild1'						=> $this->getImageByNumber($item, $settings, 0),
-            'bild2'						=> $this->getImageByNumber($item, $settings, 1),
-            'bild3'						=> $this->getImageByNumber($item, $settings, 2),
-            'bild4'						=> $this->getImageByNumber($item, $settings, 3),
-            'bild5'						=> $this->getImageByNumber($item, $settings, 4),
+            'bild1'						=> $this->getImageByNumber($item, 0),
+            'bild2'						=> $this->getImageByNumber($item, 1),
+            'bild3'						=> $this->getImageByNumber($item, 2),
+            'bild4'						=> $this->getImageByNumber($item, 3),
+            'bild5'						=> $this->getImageByNumber($item, 4),
             'kategorien'				=> $this->elasticExportHelper->getCategory((int)$item['data']['defaultCategories'][0]['id'], $settings->get('lang'), $settings->get('plentyId')),
             'lieferzeit'				=> '',
             'tradoria_kategorie'		=> $item['data']['item']['rakutenCategoryId'],
@@ -423,11 +433,11 @@ class RakutenDE extends CSVPluginGenerator
             'free_var_19'				=> $item['data']['item']['free19'],
             'free_var_20'				=> $item['data']['item']['free20'],
             'MPN'						=> $item['data']['variation']['model'],
-            'bild6'						=> $this->getImageByNumber($item, $settings, 5),
-            'bild7'						=> $this->getImageByNumber($item, $settings, 6),
-            'bild8'						=> $this->getImageByNumber($item, $settings, 7),
-            'bild9'						=> $this->getImageByNumber($item, $settings, 8),
-            'bild10'					=> $this->getImageByNumber($item, $settings, 9),
+            'bild6'						=> $this->getImageByNumber($item, 5),
+            'bild7'						=> $this->getImageByNumber($item, 6),
+            'bild8'						=> $this->getImageByNumber($item, 7),
+            'bild9'						=> $this->getImageByNumber($item, 8),
+            'bild10'					=> $this->getImageByNumber($item, 9),
             'technical_data'			=> $this->elasticExportHelper->getTechnicalData($item, $settings),
             'energie_klassen_gruppe'	=> '',
             'energie_klasse'			=> '',
@@ -521,22 +531,16 @@ class RakutenDE extends CSVPluginGenerator
 
     /**
      * @param array $item
-     * @param KeyValue $settings
      * @param int $number
      * @return string
      */
-    private function getImageByNumber($item, KeyValue $settings, int $number):string
+    private function getImageByNumber($item, int $number):string
     {
-        $imageList = $this->elasticExportHelper->getImageList($item, $settings);
-
-        if(count($imageList) > 0 && array_key_exists($number, $imageList))
+        if(is_array($item['data']['images']['all']) && count($item['data']['images']['all']) > 0)
         {
-            return (string)$imageList[$number];
+            return (string)$this->elasticExportHelper->getImageUrlBySize($item['data']['images']['all'][$number]);
         }
-        else
-        {
-            return '';
-        }
+        return '';
     }
 
     /**
@@ -571,12 +575,12 @@ class RakutenDE extends CSVPluginGenerator
 
     /**
      * Get id for vat
-     * @param array $item
+     * @param int $vatValue
      * @return int
      */
-    private function getVatClassId($item):int
+    private function getVatClassId($vatValue):int
     {
-        $vat = $this->idlVariations[$item['id']]['variationRetailPrice.vatValue'];
+        $vat = $vatValue;
         if($vat == '10,7')
         {
             $vat = 4;
@@ -608,11 +612,11 @@ class RakutenDE extends CSVPluginGenerator
     {
         $marketProperties = $this->marketPropertyHelperRepository->getMarketProperty($marketId);
 
-        foreach($this->idlVariations[$item['id']]['itemPropertyList'] as $property)
+        foreach($item['data']['properties'] as $property)
         {
             foreach($marketProperties as $marketProperty)
             {
-                if(is_array($marketProperty) && count($marketProperty) > 0 && $marketProperty['character_item_id'] == $property->propertyId)
+                if(is_array($marketProperty) && count($marketProperty) > 0 && $marketProperty['character_item_id'] == $property['property']['id'])
                 {
                     if (strlen($externalComponent) > 0 && strpos($marketProperty['external_component'], $externalComponent) !== false)
                     {
@@ -658,6 +662,14 @@ class RakutenDE extends CSVPluginGenerator
      */
     private function getStockList($item):array
     {
+        $stockRepository = pluginApp(StockRepositoryContract::class);
+        if($stockRepository instanceof StockRepositoryContract)
+        {
+            $stockRepository->setFilters(['variationId' => $item['id']]);
+        }
+        $stockResult = $stockRepository->listStock(['stockNet'],1,1);
+        $stockNet = $stockResult->getResult()->first()->stockNet;
+
         $inventoryManagementActive = 0;
         $variationAvailable = 0;
         $stock = 0;
@@ -668,32 +680,32 @@ class RakutenDE extends CSVPluginGenerator
             $inventoryManagementActive = 0;
             $stock = 999;
         }
-        elseif($item['data']['variation']['stockLimitation'] == 1 && $this->idlVariations[$item['id']]['variationStock.stockNet'] > 0)
+        elseif($item['data']['variation']['stockLimitation'] == 1 && $stockNet > 0)
         {
             $variationAvailable = 1;
             $inventoryManagementActive = 1;
-            if($this->idlVariations[$item['id']]['variationStock.stockNet'] > 999)
+            if($stockNet > 999)
             {
                 $stock = 999;
             }
             else
             {
-                $stock = $this->idlVariations[$item['id']]['variationStock.stockNet'];
+                $stock = $stockNet;
             }
         }
         elseif($item['data']['variation']['stockLimitation'] == 0)
         {
             $variationAvailable = 1;
             $inventoryManagementActive = 0;
-            if($this->idlVariations[$item['id']]['variationStock.stockNet'] > 999)
+            if($stockNet > 999)
             {
                 $stock = 999;
             }
             else
             {
-                if($this->idlVariations[$item['id']]['variationStock.stockNet'] > 0)
+                if($stockNet > 0)
                 {
-                    $stock = $this->idlVariations[$item['id']]['variationStock.stockNet'];
+                    $stock = $stockNet;
                 }
                 else
                 {
@@ -718,11 +730,53 @@ class RakutenDE extends CSVPluginGenerator
      */
     private function getPriceList($item, KeyValue $settings):array
     {
-        $variationPrice = $this->idlVariations[$item['id']]['variationRetailPrice.price'];
-        $variationRrp = $this->elasticExportHelper
-            ->getRecommendedRetailPrice($this->idlVariations[$item['id']]['variationRecommendedRetailPrice.price'], $settings);
-        $variationSpecialPrice = $this->elasticExportHelper
-            ->getSpecialPrice($this->idlVariations[$item['id']]['variationSpecialOfferRetailPrice.retailPrice'], $settings);
+        $variationPrice = 0.00;
+        $vatValue = 19;
+
+        //getting the retail price
+        /**
+         * SalesPriceSearchRequest $salesPriceSearchRequest
+         */
+        $salesPriceSearchRequest = pluginApp(SalesPriceSearchRequest::class);
+        if($salesPriceSearchRequest instanceof SalesPriceSearchRequest)
+        {
+            $salesPriceSearchRequest->variationId = $item['id'];
+            $salesPriceSearchRequest->referrerId = $settings->get('referrerId');
+        }
+        /**
+         * SalesPriceSearchRepository $salesPriceSearchRepository
+         */
+        $salesPriceSearchRepository = pluginApp(SalesPriceSearchRepository::class);
+        if($salesPriceSearchRepository instanceof SalesPriceSearchRepository)
+        {
+            $salesPriceSearch  = $salesPriceSearchRepository->search($salesPriceSearchRequest);
+            $variationPrice = $salesPriceSearch->price;
+            $vatValue = $salesPriceSearch->vatValue;
+        }
+
+        //getting the recommended retail price
+        if($settings->get('transferRrp') == self::TRANSFER_RRP_YES
+            && $salesPriceSearchRepository instanceof SalesPriceSearchRepository)
+        {
+            $salesPriceSearchRequest->type = 'rrp';
+            $variationRrp = $salesPriceSearchRepository->search($salesPriceSearchRequest)->price;
+        }
+        else
+        {
+            $variationRrp = 0.00;
+        }
+
+        //getting the special price
+        if($settings->get('transferOfferPrice') == self::TRANSFER_OFFER_PRICE_YES
+            && $salesPriceSearchRepository instanceof SalesPriceSearchRepository)
+        {
+            $salesPriceSearchRequest->type = 'specialOffer';
+            $variationSpecialPrice = $salesPriceSearchRepository->search($salesPriceSearchRequest)->price;
+        }
+        else
+        {
+            $variationSpecialPrice = 0.00;
+        }
 
         //setting retail price as selling price without a reduced price
         $price = $variationPrice;
@@ -760,33 +814,8 @@ class RakutenDE extends CSVPluginGenerator
         return array(
             'price'                     =>  $price,
             'reducedPrice'              =>  $reducedPrice,
-            'referenceReducedPrice'     =>  $referenceReducedPrice
+            'referenceReducedPrice'     =>  $referenceReducedPrice,
+            'vatValue'                  =>  $vatValue
         );
-    }
-
-    /**
-     * @param RecordList $idlResultList
-     */
-    private function createIdlArray($idlResultList)
-    {
-        if($idlResultList instanceof RecordList)
-        {
-            foreach($idlResultList as $idlVariation)
-            {
-                if($idlVariation instanceof Record)
-                {
-                    $this->idlVariations[$idlVariation->variationBase->id] = [
-                        'itemBase.id' => $idlVariation->itemBase->id,
-                        'variationBase.id' => $idlVariation->variationBase->id,
-                        'itemPropertyList' => $idlVariation->itemPropertyList,
-                        'variationStock.stockNet' => $idlVariation->variationStock->stockNet,
-                        'variationRetailPrice.price' => $idlVariation->variationRetailPrice->price,
-                        'variationRetailPrice.vatValue' => $idlVariation->variationRetailPrice->vatValue,
-                        'variationRecommendedRetailPrice.price' => $idlVariation->variationRecommendedRetailPrice->price,
-                        'variationSpecialOfferRetailPrice.retailPrice' => $idlVariation->variationSpecialOfferRetailPrice->retailPrice
-                    ];
-                }
-            }
-        }
     }
 }

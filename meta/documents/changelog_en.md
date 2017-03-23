@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.0.4 (2017-03-23)
+
+### Changed
+- Removed the ItemDataLayer to improve the performance.
+
 ## v1.0.3 (2017-03-22)
 
 ### Fixed
