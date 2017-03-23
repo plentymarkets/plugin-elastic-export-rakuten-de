@@ -168,7 +168,11 @@ class RakutenDE extends ResultFields
                 'attributes.attributeValueSetId',
                 'attributes.attributeId',
                 'attributes.valueId',
+                'attributes.names.name',
+                'attributes.names.lang',
 
+                //properties
+                'properties.property.id'
             ],
 
             [
