@@ -12,9 +12,12 @@ use Plenty\Modules\Item\SalesPrice\Models\SalesPriceSearchRequest;
 use Plenty\Modules\Item\Search\Contracts\VariationElasticSearchScrollRepositoryContract;
 use Plenty\Modules\Market\Helper\Contracts\MarketPropertyHelperRepositoryContract;
 use Plenty\Modules\StockManagement\Stock\Contracts\StockRepositoryContract;
+use Plenty\Plugin\Log\Loggable;
 
 class RakutenDE extends CSVPluginGenerator
 {
+    use Loggable;
+
     const RAKUTEN_DE = 106.00;
     const PROPERTY_TYPE_ENERGY_CLASS       = 'energy_efficiency_class';
     const PROPERTY_TYPE_ENERGY_CLASS_GROUP = 'energy_efficiency_class_group';
@@ -140,7 +143,7 @@ class RakutenDE extends CSVPluginGenerator
         $lines = 0;
         $limitReached = false;
 
-
+        $startTime = microtime(true);
         if($elasticSearch instanceof VariationElasticSearchScrollRepositoryContract)
         {
             do
@@ -150,8 +153,27 @@ class RakutenDE extends CSVPluginGenerator
                     break;
                 }
 
+                $this->getLogger(__METHOD__)->debug('ElasticExportRakutenDE::log.writtenLines', [
+                    'lines written' => $lines,
+                ]);
+
+                $esStartTime = microtime(true);
+
                 $resultList = $elasticSearch->execute();
 
+                $this->getLogger(__METHOD__)->debug('ElasticExportRakutenDE::log.esDuration', [
+                    'Elastic Search duration' => microtime(true) - $esStartTime,
+                ]);
+
+                if(count($resultList['error']) > 0)
+                {
+                    $this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.occurredElasticSearchErrors', [
+                        'error message' => $resultList['error'],
+                    ]);
+                }
+
+
+                $buildRowStartTime = microtime(true);
                 foreach($resultList['documents'] as $variation)
                 {
                     if($lines == $filter['limit'])
@@ -226,8 +248,16 @@ class RakutenDE extends CSVPluginGenerator
                     $this->buildRows($settings, $variations);
                 }
 
+                $this->getLogger(__METHOD__)->debug('ElasticExportRakutenDE::log.buildRowDuration', [
+                    'Build Row duration' => microtime(true) - $buildRowStartTime,
+                ]);
+
             } while ($elasticSearch->hasNext());
         }
+
+        $this->getLogger(__METHOD__)->debug('ElasticExportRakutenDE::log.fileGenerationDuration', [
+            'Whole file generation duration' => microtime(true) - $startTime,
+        ]);
     }
 
     /**
