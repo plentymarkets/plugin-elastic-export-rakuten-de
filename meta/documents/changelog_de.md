@@ -1,5 +1,13 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## v1.0.5 (2017-03-27)
+
+### Hinzugefügt
+- Es wurden Logs hinzugefügt.
+
+### Geändert
+- Die Artikelsuche von Elastic Search findet nun im Generator statt.
+
 ## v1.0.4 (2017-03-23)
 
 ### Geändert
