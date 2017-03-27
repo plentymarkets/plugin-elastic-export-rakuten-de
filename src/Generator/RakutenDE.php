@@ -9,6 +9,7 @@ use Plenty\Modules\Helper\Services\ArrayHelper;
 use Plenty\Modules\DataExchange\Models\FormatSetting;
 use Plenty\Modules\Helper\Models\KeyValue;
 use Plenty\Modules\Item\SalesPrice\Models\SalesPriceSearchRequest;
+use Plenty\Modules\Item\Search\Contracts\VariationElasticSearchScrollRepositoryContract;
 use Plenty\Modules\Market\Helper\Contracts\MarketPropertyHelperRepositoryContract;
 use Plenty\Modules\StockManagement\Stock\Contracts\StockRepositoryContract;
 
@@ -61,150 +62,171 @@ class RakutenDE extends CSVPluginGenerator
     }
 
     /**
-     * @param array $resultList
+     * @param VariationElasticSearchScrollRepositoryContract $elasticSearch
      * @param array $formatSettings
      * @param array $filter
      */
-    protected function generatePluginContent($resultList, array $formatSettings = [], array $filter = [])
+    protected function generatePluginContent($elasticSearch, array $formatSettings = [], array $filter = [])
     {
         $this->elasticExportHelper = pluginApp(ElasticExportCoreHelper::class);
-        if(is_array($resultList['documents']) && count($resultList['documents']) > 0)
+        $settings = $this->arrayHelper->buildMapFromObjectList($formatSettings, 'key', 'value');
+
+        $this->setDelimiter(";");
+
+        $this->addCSVContent([
+            'id',
+            'variante_zu_id',
+            'artikelnummer',
+            'produkt_bestellbar',
+            'produktname',
+            'hersteller',
+            'beschreibung',
+            'variante',
+            'variantenwert',
+            'isbn_ean',
+            'lagerbestand',
+            'preis',
+            'grundpreis_inhalt',
+            'grundpreis_einheit',
+            'reduzierter_preis',
+            'bezug_reduzierter_preis',
+            'mwst_klasse',
+            'bestandsverwaltung_aktiv',
+            'bild1',
+            'bild2',
+            'bild3',
+            'bild4',
+            'bild5',
+            'kategorien',
+            'lieferzeit',
+            'tradoria_kategorie',
+            'sichtbar',
+            'free_var_1',
+            'free_var_2',
+            'free_var_3',
+            'free_var_4',
+            'free_var_5',
+            'free_var_6',
+            'free_var_7',
+            'free_var_8',
+            'free_var_9',
+            'free_var_10',
+            'free_var_11',
+            'free_var_12',
+            'free_var_13',
+            'free_var_14',
+            'free_var_15',
+            'free_var_16',
+            'free_var_17',
+            'free_var_18',
+            'free_var_19',
+            'free_var_20',
+            'MPN',
+            'bild6',
+            'bild7',
+            'bild8',
+            'bild9',
+            'bild10',
+            'technical_data',
+            'energie_klassen_gruppe',
+            'energie_klasse',
+            'energie_klasse_bis',
+            'energie_klassen_bild',
+        ]);
+
+        $currentItemId = null;
+        $previousItemId = null;
+        $variations = array();
+        $lines = 0;
+        $limitReached = false;
+
+
+        if($elasticSearch instanceof VariationElasticSearchScrollRepositoryContract)
         {
-            $settings = $this->arrayHelper->buildMapFromObjectList($formatSettings, 'key', 'value');
-
-            $this->setDelimiter(";");
-
-            $this->addCSVContent([
-                'id',
-                'variante_zu_id',
-                'artikelnummer',
-                'produkt_bestellbar',
-                'produktname',
-                'hersteller',
-                'beschreibung',
-                'variante',
-                'variantenwert',
-                'isbn_ean',
-                'lagerbestand',
-                'preis',
-                'grundpreis_inhalt',
-                'grundpreis_einheit',
-                'reduzierter_preis',
-                'bezug_reduzierter_preis',
-                'mwst_klasse',
-                'bestandsverwaltung_aktiv',
-                'bild1',
-                'bild2',
-                'bild3',
-                'bild4',
-                'bild5',
-                'kategorien',
-                'lieferzeit',
-                'tradoria_kategorie',
-                'sichtbar',
-                'free_var_1',
-                'free_var_2',
-                'free_var_3',
-                'free_var_4',
-                'free_var_5',
-                'free_var_6',
-                'free_var_7',
-                'free_var_8',
-                'free_var_9',
-                'free_var_10',
-                'free_var_11',
-                'free_var_12',
-                'free_var_13',
-                'free_var_14',
-                'free_var_15',
-                'free_var_16',
-                'free_var_17',
-                'free_var_18',
-                'free_var_19',
-                'free_var_20',
-                'MPN',
-                'bild6',
-                'bild7',
-                'bild8',
-                'bild9',
-                'bild10',
-                'technical_data',
-                'energie_klassen_gruppe',
-                'energie_klasse',
-                'energie_klasse_bis',
-                'energie_klassen_bild',
-            ]);
-
-            $currentItemId = null;
-            $previousItemId = null;
-            $variations = array();
-
-            foreach($resultList['documents'] as $variation)
+            do
             {
-                /**
-                 * If the stock filter is set, this will sort out all variations
-                 * not matching the filter.
-                 */
-                if(array_key_exists('variationStock.netPositive' ,$filter))
+                if($limitReached === true)
                 {
-                    $stockList = $this->getStockList($variation);
-                    if($stockList['stock'] <= 0)
-                    {
-                        continue;
-                    }
+                    break;
                 }
-                elseif(array_key_exists('variationStock.isSalable' ,$filter))
+
+                $resultList = $elasticSearch->execute();
+
+                foreach($resultList['documents'] as $variation)
                 {
-                    if(count($filter['variationStock.isSalable']['stockLimitation']) == 2)
+                    if($lines == $filter['limit'])
                     {
-                        if($variation['data']['variation']['stockLimitation'] != 0 || $variation['data']['variation']['stockLimitation'] != 2)
+                        $limitReached = true;
+                        break;
+                    }
+                    /**
+                     * If the stock filter is set, this will sort out all variations
+                     * not matching the filter.
+                     */
+                    if(array_key_exists('variationStock.netPositive' ,$filter))
+                    {
+                        $stockList = $this->getStockList($variation);
+                        if($stockList['stock'] <= 0)
                         {
-                            $stockList = $this->getStockList($variation);
-                            if($stockList['stock'] <= 0)
+                            continue;
+                        }
+                    }
+                    elseif(array_key_exists('variationStock.isSalable' ,$filter))
+                    {
+                        if(count($filter['variationStock.isSalable']['stockLimitation']) == 2)
+                        {
+                            if($variation['data']['variation']['stockLimitation'] != 0 || $variation['data']['variation']['stockLimitation'] != 2)
                             {
-                                continue;
+                                $stockList = $this->getStockList($variation);
+                                if($stockList['stock'] <= 0)
+                                {
+                                    continue;
+                                }
                             }
                         }
+                        else
+                        {
+                            if($variation['data']['variation']['stockLimitation'] != $filter['variationStock.isSalable']['stockLimitation'][0])
+                            {
+                                $stockList = $this->getStockList($variation);
+                                if($stockList['stock'] <= 0)
+                                {
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+
+                    $lines = $lines +1;
+
+                    // Case first variation
+                    if ($currentItemId === null)
+                    {
+                        $previousItemId = $variation['data']['item']['id'];
+                    }
+                    $currentItemId = $variation['data']['item']['id'];
+
+                    // Check if it's the same item
+                    if ($currentItemId == $previousItemId)
+                    {
+                        $variations[] = $variation;
                     }
                     else
                     {
-                        if($variation['data']['variation']['stockLimitation'] != $filter['variationStock.isSalable']['stockLimitation'][0])
-                        {
-                            $stockList = $this->getStockList($variation);
-                            if($stockList['stock'] <= 0)
-                            {
-                                continue;
-                            }
-                        }
+                        $this->buildRows($settings, $variations);
+                        $variations = array();
+                        $variations[] = $variation;
+                        $previousItemId = $variation['data']['item']['id'];
                     }
                 }
 
-                // Case first variation
-                if ($currentItemId === null)
-                {
-                    $previousItemId = $variation['data']['item']['id'];
-                }
-                $currentItemId = $variation['data']['item']['id'];
-
-                // Check if it's the same item
-                if ($currentItemId == $previousItemId)
-                {
-                    $variations[] = $variation;
-                }
-                else
+                // Write the last batch of variations
+                if (is_array($variations) && count($variations) > 0)
                 {
                     $this->buildRows($settings, $variations);
-                    $variations = array();
-                    $variations[] = $variation;
-                    $previousItemId = $variation['data']['item']['id'];
                 }
-            }
 
-            // Write the last batch of variations
-            if (is_array($variations) && count($variations) > 0)
-            {
-                $this->buildRows($settings, $variations);
-            }
+            } while ($elasticSearch->hasNext());
         }
     }
 

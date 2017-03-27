@@ -19,6 +19,7 @@ class ElasticExportRakutenDEServiceProvider extends DataExchangeServiceProvider
             'ElasticExportRakutenDE\ResultField\RakutenDE',
             'ElasticExportRakutenDE\Generator\RakutenDE',
             '',
+            true,
             true
         );
     }
