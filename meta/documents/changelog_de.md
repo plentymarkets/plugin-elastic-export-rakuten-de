@@ -1,5 +1,10 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## v1.0.6 (2017-03-27)
+
+### Hinzugefügt
+- Es wurden Validatoren hinzugefügt.
+
 ## v1.0.5 (2017-03-27)
 
 ### Hinzugefügt
