@@ -3,6 +3,7 @@
 namespace ElasticExportRakutenDE\Generator;
 
 use ElasticExport\Helper\ElasticExportCoreHelper;
+use ElasticExportRakutenDE\Validators\GeneratorValidator;
 use Plenty\Legacy\Repositories\Item\SalesPrice\SalesPriceSearchRepository;
 use Plenty\Modules\DataExchange\Contracts\CSVPluginGenerator;
 use Plenty\Modules\Helper\Services\ArrayHelper;
@@ -13,6 +14,7 @@ use Plenty\Modules\Item\Search\Contracts\VariationElasticSearchScrollRepositoryC
 use Plenty\Modules\Market\Helper\Contracts\MarketPropertyHelperRepositoryContract;
 use Plenty\Modules\StockManagement\Stock\Contracts\StockRepositoryContract;
 use Plenty\Plugin\Log\Loggable;
+
 
 class RakutenDE extends CSVPluginGenerator
 {
@@ -172,85 +174,104 @@ class RakutenDE extends CSVPluginGenerator
                     ]);
                 }
 
-
                 $buildRowStartTime = microtime(true);
-                foreach($resultList['documents'] as $variation)
+
+                $validateOnce = false;
+                if(is_array($resultList['documents']) && count($resultList['documents']) > 0)
                 {
-                    if($lines == $filter['limit'])
+                    foreach($resultList['documents'] as $variation)
                     {
-                        $limitReached = true;
-                        break;
-                    }
-                    /**
-                     * If the stock filter is set, this will sort out all variations
-                     * not matching the filter.
-                     */
-                    if(array_key_exists('variationStock.netPositive' ,$filter))
-                    {
-                        $stockList = $this->getStockList($variation);
-                        if($stockList['stock'] <= 0)
+                        if($validateOnce === false)
                         {
-                            continue;
-                        }
-                    }
-                    elseif(array_key_exists('variationStock.isSalable' ,$filter))
-                    {
-                        if(count($filter['variationStock.isSalable']['stockLimitation']) == 2)
-                        {
-                            if($variation['data']['variation']['stockLimitation'] != 0 || $variation['data']['variation']['stockLimitation'] != 2)
+                            $validator = pluginApp(GeneratorValidator::class);
+                            if($validator instanceof GeneratorValidator)
                             {
-                                $stockList = $this->getStockList($variation);
-                                if($stockList['stock'] <= 0)
+                                $isValid = $validator->mainValidator($variation);
+                                $validateOnce = true;
+                                if($isValid === false)
                                 {
-                                    continue;
+                                    return;
                                 }
                             }
+
+                        }
+
+                        if($lines == $filter['limit'])
+                        {
+                            $limitReached = true;
+                            break;
+                        }
+                        /**
+                         * If the stock filter is set, this will sort out all variations
+                         * not matching the filter.
+                         */
+                        if(array_key_exists('variationStock.netPositive' ,$filter))
+                        {
+                            $stockList = $this->getStockList($variation);
+                            if($stockList['stock'] <= 0)
+                            {
+                                continue;
+                            }
+                        }
+                        elseif(array_key_exists('variationStock.isSalable' ,$filter))
+                        {
+                            if(count($filter['variationStock.isSalable']['stockLimitation']) == 2)
+                            {
+                                if($variation['data']['variation']['stockLimitation'] != 0 || $variation['data']['variation']['stockLimitation'] != 2)
+                                {
+                                    $stockList = $this->getStockList($variation);
+                                    if($stockList['stock'] <= 0)
+                                    {
+                                        continue;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                if($variation['data']['variation']['stockLimitation'] != $filter['variationStock.isSalable']['stockLimitation'][0])
+                                {
+                                    $stockList = $this->getStockList($variation);
+                                    if($stockList['stock'] <= 0)
+                                    {
+                                        continue;
+                                    }
+                                }
+                            }
+                        }
+
+                        $lines = $lines +1;
+
+                        // Case first variation
+                        if ($currentItemId === null)
+                        {
+                            $previousItemId = $variation['data']['item']['id'];
+                        }
+                        $currentItemId = $variation['data']['item']['id'];
+
+                        // Check if it's the same item
+                        if ($currentItemId == $previousItemId)
+                        {
+                            $variations[] = $variation;
                         }
                         else
                         {
-                            if($variation['data']['variation']['stockLimitation'] != $filter['variationStock.isSalable']['stockLimitation'][0])
-                            {
-                                $stockList = $this->getStockList($variation);
-                                if($stockList['stock'] <= 0)
-                                {
-                                    continue;
-                                }
-                            }
+                            $this->buildRows($settings, $variations);
+                            $variations = array();
+                            $variations[] = $variation;
+                            $previousItemId = $variation['data']['item']['id'];
                         }
                     }
 
-                    $lines = $lines +1;
-
-                    // Case first variation
-                    if ($currentItemId === null)
-                    {
-                        $previousItemId = $variation['data']['item']['id'];
-                    }
-                    $currentItemId = $variation['data']['item']['id'];
-
-                    // Check if it's the same item
-                    if ($currentItemId == $previousItemId)
-                    {
-                        $variations[] = $variation;
-                    }
-                    else
+                    // Write the last batch of variations
+                    if (is_array($variations) && count($variations) > 0)
                     {
                         $this->buildRows($settings, $variations);
-                        $variations = array();
-                        $variations[] = $variation;
-                        $previousItemId = $variation['data']['item']['id'];
                     }
-                }
 
-                // Write the last batch of variations
-                if (is_array($variations) && count($variations) > 0)
-                {
-                    $this->buildRows($settings, $variations);
+                    $this->getLogger(__METHOD__)->debug('ElasticExportRakutenDE::log.buildRowDuration', [
+                        'Build Row duration' => microtime(true) - $buildRowStartTime,
+                    ]);
                 }
-
-                $this->getLogger(__METHOD__)->debug('ElasticExportRakutenDE::log.buildRowDuration', [
-                    'Build Row duration' => microtime(true) - $buildRowStartTime,
-                ]);
 
             } while ($elasticSearch->hasNext());
         }
@@ -282,14 +303,20 @@ class RakutenDE extends CSVPluginGenerator
                     !array_key_exists($variation['data']['item']['id'], $this->attributeNameCombination))
                 {
                     $this->attributeName[$variation['data']['item']['id']] = $this->elasticExportHelper->getAttributeName($variation, $settings);
-                    foreach ($variation['data']['attributes'] as $attribute)
+                    if(is_array($variation['data']['attributes']) && count($variation['data']['attributes']) > 0)
                     {
-                        $this->attributeNameCombination[$variation['data']['item']['id']][] = $attribute['attributeId'];
+                        foreach ($variation['data']['attributes'] as $attribute)
+                        {
+                            if(array_key_exists('attributeId', $attribute))
+                            {
+                                $this->attributeNameCombination[$variation['data']['item']['id']][] = $attribute['attributeId'];
+                            }
+                        }
                     }
                 }
 
                 // note key of primary variation
-                if($variation['data']['variation']['isMain'] === true)
+                if(array_key_exists('isMain', $variation['data']['variation']) && $variation['data']['variation']['isMain'] === true)
                 {
                     $primaryVariationKey = $key;
                 }
@@ -664,18 +691,24 @@ class RakutenDE extends CSVPluginGenerator
     {
         $marketProperties = $this->marketPropertyHelperRepository->getMarketProperty($marketId);
 
-        foreach($item['data']['properties'] as $property)
+        if(is_array($item['data']['properties']) && count($item['data']['properties']) > 0)
         {
-            foreach($marketProperties as $marketProperty)
+            foreach($item['data']['properties'] as $property)
             {
-                if(is_array($marketProperty) && count($marketProperty) > 0 && $marketProperty['character_item_id'] == $property['property']['id'])
+                foreach($marketProperties as $marketProperty)
                 {
-                    if (strlen($externalComponent) > 0 && strpos($marketProperty['external_component'], $externalComponent) !== false)
+                    if(array_key_exists('id', $property['property']))
                     {
-                        $list = explode(':', $marketProperty['external_component']);
-                        if (isset($list[1]) && strlen($list[1]) > 0)
+                        if(is_array($marketProperty) && count($marketProperty) > 0 && $marketProperty['character_item_id'] == $property['property']['id'])
                         {
-                            return $list[1];
+                            if (strlen($externalComponent) > 0 && strpos($marketProperty['external_component'], $externalComponent) !== false)
+                            {
+                                $list = explode(':', $marketProperty['external_component']);
+                                if (isset($list[1]) && strlen($list[1]) > 0)
+                                {
+                                    return $list[1];
+                                }
+                            }
                         }
                     }
                 }
