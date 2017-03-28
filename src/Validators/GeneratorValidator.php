@@ -150,14 +150,6 @@ class GeneratorValidator
             }
         }
 
-        if(!array_key_exists('rakutenCategoryId', $variation['data']['item']))
-        {
-            $path = 'item[\'data\'][\'item\']';
-            $key = 'rakutenCategoryId';
-            $this->missingKeyLog($key, $path);
-            return false;
-        }
-
         return true;
     }
 
