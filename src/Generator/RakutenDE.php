@@ -51,10 +51,7 @@ class RakutenDE extends CSVPluginGenerator
      * MarketPropertyHelperRepositoryContract $marketPropertyHelperRepository
      */
     private $marketPropertyHelperRepository;
-    /**
-     * @var StockRepositoryContract
-     */
-    private $stockRepositoryContract;
+    
     /**
      * @var SalesPriceSearchRepository
      */
@@ -64,19 +61,16 @@ class RakutenDE extends CSVPluginGenerator
      * RakutenDE constructor.
      * @param ArrayHelper $arrayHelper
      * @param MarketPropertyHelperRepositoryContract $marketPropertyHelperRepository
-     * @param StockRepositoryContract $stockRepositoryContract
      * @param SalesPriceSearchRepository $salesPriceSearchRepository
      */
     public function __construct(
         ArrayHelper $arrayHelper,
         MarketPropertyHelperRepositoryContract $marketPropertyHelperRepository,
-        StockRepositoryContract $stockRepositoryContract,
         SalesPriceSearchRepository $salesPriceSearchRepository
     )
     {
         $this->arrayHelper = $arrayHelper;
         $this->marketPropertyHelperRepository = $marketPropertyHelperRepository;
-        $this->stockRepositoryContract = $stockRepositoryContract;
         $this->salesPriceSearchRepository = $salesPriceSearchRepository;
     }
 
@@ -761,9 +755,15 @@ class RakutenDE extends CSVPluginGenerator
      */
     private function getStockList($item):array
     {
-        $this->stockRepositoryContract->setFilters(['variationId' => $item['id']]);
-        $stockResult = $this->stockRepositoryContract->listStock(['stockNet'],1,1);
-        $stockNet = $stockResult->getResult()->first()->stockNet;
+        $stockNet = 0;
+
+        $stockRepositoryContract = pluginApp(StockRepositoryContract::class);
+        if($stockRepositoryContract instanceof StockRepositoryContract)
+        {
+            $stockRepositoryContract->setFilters(['variationId' => $item['id']]);
+            $stockResult = $stockRepositoryContract->listStock(['stockNet'],1,1);
+            $stockNet = $stockResult->getResult()->first()->stockNet;
+        }
 
         $inventoryManagementActive = 0;
         $variationAvailable = 0;
