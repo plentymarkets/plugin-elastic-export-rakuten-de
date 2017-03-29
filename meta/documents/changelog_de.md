@@ -1,5 +1,10 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## v1.0.7 (2017-03-29)
+
+### Geändert
+- Es wurde die Performance verbessert.
+
 ## v1.0.6 (2017-03-27)
 
 ### Hinzugefügt
