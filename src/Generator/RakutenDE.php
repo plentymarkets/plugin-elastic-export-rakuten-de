@@ -51,19 +51,33 @@ class RakutenDE extends CSVPluginGenerator
      * MarketPropertyHelperRepositoryContract $marketPropertyHelperRepository
      */
     private $marketPropertyHelperRepository;
+    /**
+     * @var StockRepositoryContract
+     */
+    private $stockRepositoryContract;
+    /**
+     * @var SalesPriceSearchRepository
+     */
+    private $salesPriceSearchRepository;
 
     /**
      * RakutenDE constructor.
      * @param ArrayHelper $arrayHelper
      * @param MarketPropertyHelperRepositoryContract $marketPropertyHelperRepository
+     * @param StockRepositoryContract $stockRepositoryContract
+     * @param SalesPriceSearchRepository $salesPriceSearchRepository
      */
     public function __construct(
         ArrayHelper $arrayHelper,
-        MarketPropertyHelperRepositoryContract $marketPropertyHelperRepository
+        MarketPropertyHelperRepositoryContract $marketPropertyHelperRepository,
+        StockRepositoryContract $stockRepositoryContract,
+        SalesPriceSearchRepository $salesPriceSearchRepository
     )
     {
         $this->arrayHelper = $arrayHelper;
         $this->marketPropertyHelperRepository = $marketPropertyHelperRepository;
+        $this->stockRepositoryContract = $stockRepositoryContract;
+        $this->salesPriceSearchRepository = $salesPriceSearchRepository;
     }
 
     /**
@@ -747,12 +761,8 @@ class RakutenDE extends CSVPluginGenerator
      */
     private function getStockList($item):array
     {
-        $stockRepository = pluginApp(StockRepositoryContract::class);
-        if($stockRepository instanceof StockRepositoryContract)
-        {
-            $stockRepository->setFilters(['variationId' => $item['id']]);
-        }
-        $stockResult = $stockRepository->listStock(['stockNet'],1,1);
+        $this->stockRepositoryContract->setFilters(['variationId' => $item['id']]);
+        $stockResult = $this->stockRepositoryContract->listStock(['stockNet'],1,1);
         $stockNet = $stockResult->getResult()->first()->stockNet;
 
         $inventoryManagementActive = 0;
@@ -828,23 +838,16 @@ class RakutenDE extends CSVPluginGenerator
             $salesPriceSearchRequest->variationId = $item['id'];
             $salesPriceSearchRequest->referrerId = $settings->get('referrerId');
         }
-        /**
-         * SalesPriceSearchRepository $salesPriceSearchRepository
-         */
-        $salesPriceSearchRepository = pluginApp(SalesPriceSearchRepository::class);
-        if($salesPriceSearchRepository instanceof SalesPriceSearchRepository)
-        {
-            $salesPriceSearch  = $salesPriceSearchRepository->search($salesPriceSearchRequest);
-            $variationPrice = $salesPriceSearch->price;
-            $vatValue = $salesPriceSearch->vatValue;
-        }
+
+        $salesPriceSearch  = $this->salesPriceSearchRepository->search($salesPriceSearchRequest);
+        $variationPrice = $salesPriceSearch->price;
+        $vatValue = $salesPriceSearch->vatValue;
 
         //getting the recommended retail price
-        if($settings->get('transferRrp') == self::TRANSFER_RRP_YES
-            && $salesPriceSearchRepository instanceof SalesPriceSearchRepository)
+        if($settings->get('transferRrp') == self::TRANSFER_RRP_YES)
         {
             $salesPriceSearchRequest->type = 'rrp';
-            $variationRrp = $salesPriceSearchRepository->search($salesPriceSearchRequest)->price;
+            $variationRrp = $this->salesPriceSearchRepository->search($salesPriceSearchRequest)->price;
         }
         else
         {
@@ -852,11 +855,10 @@ class RakutenDE extends CSVPluginGenerator
         }
 
         //getting the special price
-        if($settings->get('transferOfferPrice') == self::TRANSFER_OFFER_PRICE_YES
-            && $salesPriceSearchRepository instanceof SalesPriceSearchRepository)
+        if($settings->get('transferOfferPrice') == self::TRANSFER_OFFER_PRICE_YES)
         {
             $salesPriceSearchRequest->type = 'specialOffer';
-            $variationSpecialPrice = $salesPriceSearchRepository->search($salesPriceSearchRequest)->price;
+            $variationSpecialPrice = $this->salesPriceSearchRepository->search($salesPriceSearchRequest)->price;
         }
         else
         {
