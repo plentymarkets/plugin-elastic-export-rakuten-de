@@ -82,6 +82,11 @@ class RakutenDE extends ResultFields
          * @var KeyMutator $keyMutator
          */
         $keyMutator = pluginApp(KeyMutator::class);
+        if($keyMutator instanceof KeyMutator)
+        {
+            $keyMutator->setKeyList($this->getKeyList());
+            $keyMutator->setNestedKeyList($this->getNestedKeyList());
+        }
 
         /**
          * @var ImageMutator $imageMutator
@@ -184,13 +189,11 @@ class RakutenDE extends ResultFields
             [
                 $languageMutator,
                 $skuMutator,
-                $defaultCategoryMutator
+                $defaultCategoryMutator,
+                $keyMutator
             ],
         ];
 
-        $keyMutator->setKeyList($this->getKeyList());
-        $keyMutator->setNestedKeyList($this->getNestedKeyList());
-        $fields[1][] = $keyMutator;
         if($reference != -1)
         {
             $fields[1][] = $imageMutator;
