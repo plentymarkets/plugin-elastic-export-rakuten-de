@@ -7,6 +7,7 @@ use Plenty\Modules\DataExchange\Models\FormatSetting;
 use Plenty\Modules\Helper\Services\ArrayHelper;
 use Plenty\Modules\Item\Search\Mutators\ImageMutator;
 use Plenty\Modules\Cloud\ElasticSearch\Lib\Source\Mutator\BuiltIn\LanguageMutator;
+use Plenty\Modules\Item\Search\Mutators\KeyMutator;
 use Plenty\Modules\Item\Search\Mutators\SkuMutator;
 use Plenty\Modules\Item\Search\Mutators\DefaultCategoryMutator;
 
@@ -77,6 +78,16 @@ class RakutenDE extends ResultFields
         $itemDescriptionFields[] = 'texts.technicalData';
 
         //Mutator
+        /**
+         * @var KeyMutator $keyMutator
+         */
+        $keyMutator = pluginApp(KeyMutator::class);
+        if($keyMutator instanceof KeyMutator)
+        {
+            $keyMutator->setKeyList($this->getKeyList());
+            $keyMutator->setNestedKeyList($this->getNestedKeyList());
+        }
+
         /**
          * @var ImageMutator $imageMutator
          */
@@ -178,7 +189,8 @@ class RakutenDE extends ResultFields
             [
                 $languageMutator,
                 $skuMutator,
-                $defaultCategoryMutator
+                $defaultCategoryMutator,
+                $keyMutator
             ],
         ];
 
@@ -193,5 +205,121 @@ class RakutenDE extends ResultFields
         }
 
         return $fields;
+    }
+
+    private function getKeyList()
+    {
+        $keyList = [
+            //item
+            'item.id',
+            'item.manufacturer.id',
+            'item.rakutenCategoryId',
+            'item.free1',
+            'item.free2',
+            'item.free3',
+            'item.free4',
+            'item.free5',
+            'item.free6',
+            'item.free7',
+            'item.free8',
+            'item.free9',
+            'item.free10',
+            'item.free11',
+            'item.free12',
+            'item.free13',
+            'item.free14',
+            'item.free15',
+            'item.free16',
+            'item.free17',
+            'item.free18',
+            'item.free19',
+            'item.free20',
+
+            //variation
+            'variation.availability.id',
+            'variation.stockLimitation',
+            'variation.vatId',
+            'variation.model',
+            'variation.isMain',
+
+            //unit
+            'unit.content',
+            'unit.id',
+        ];
+
+        return $keyList;
+    }
+
+    private function getNestedKeyList()
+    {
+        $nestedKeyList['keys'] = [
+            //images
+            'images.all',
+
+            //sku
+            'skus',
+
+            //texts
+            'texts',
+
+            //defaultCategories
+            'defaultCategories',
+
+            //barcodes
+            'barcodes',
+
+            //attributes
+            'attributes',
+
+            //properties
+            'properties'
+        ];
+        $nestedKeyList['nestedKeys'] = [
+            'images.all' => [
+                'urlMiddle',
+                'urlPreview',
+                'urlSecondPreview',
+                'url',
+                'path',
+                'position',
+            ],
+
+            'skus' => [
+                'sku'
+            ],
+
+            'texts'  => [
+                'urlPath',
+                'name1',
+                'name2',
+                'name3',
+                'shortDescription',
+                'description',
+                'technicalData',
+            ],
+
+            'defaultCategories' => [
+                'id'
+            ],
+
+            'barcodes'  => [
+                'code',
+                'type',
+            ],
+
+            'attributes'   => [
+                'attributeValueSetId',
+                'attributeId',
+                'valueId',
+                'names.name',
+                'names.lang',
+            ],
+
+            'properties'    => [
+                'property.id',
+            ]
+        ];
+
+        return $nestedKeyList;
     }
 }

@@ -1,5 +1,10 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## v1.0.8 (2017-03-30)
+
+### Hinzugefügt
+- Es wurde ein neuer Mutator hinzugefügt, welcher verhindern soll das auf nicht existente Arraykeys zugegeriffen werden.
+
 ## v1.0.7 (2017-03-29)
 
 ### Geändert
