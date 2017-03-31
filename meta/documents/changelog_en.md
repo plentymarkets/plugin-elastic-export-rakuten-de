@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.0.8 (2017-03-30)
+
+### Added
+- Added a new mutator so we will prevent trying to get access to an array key which not exists.
+
 ## v1.0.7 (2017-03-29)
 
 ### Added
