@@ -839,7 +839,7 @@ class RakutenDE extends CSVPluginGenerator
                 }
                 else
                 {
-                    $stock = 0;
+                    $stock = 999;
                 }
             }
         }
