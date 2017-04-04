@@ -1,5 +1,11 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## v1.0.9 (2017-04-04)
+
+### Geändert
+- Der aktuelle Variantenbestand wird nun anhand der Vertriebslager ermittelt.
+- Die Logik wurde angepasst um die Stabilität des Exports zu verbessern.
+
 ## v1.0.8 (2017-03-30)
 
 ### Hinzugefügt
