@@ -14,6 +14,7 @@ use Plenty\Modules\Item\Search\Contracts\VariationElasticSearchScrollRepositoryC
 use Plenty\Modules\Market\Helper\Contracts\MarketPropertyHelperRepositoryContract;
 use Plenty\Modules\StockManagement\Stock\Contracts\StockRepositoryContract;
 use Plenty\Plugin\Log\Loggable;
+use Plenty\Repositories\Models\PaginatedResult;
 
 
 class RakutenDE extends CSVPluginGenerator
@@ -154,6 +155,7 @@ class RakutenDE extends CSVPluginGenerator
         $limitReached = false;
 
         $startTime = microtime(true);
+
         if($elasticSearch instanceof VariationElasticSearchScrollRepositoryContract)
         {
             do
@@ -183,8 +185,8 @@ class RakutenDE extends CSVPluginGenerator
                 }
 
                 $buildRowStartTime = microtime(true);
-
                 $validateOnce = false;
+
                 if(is_array($resultList['documents']) && count($resultList['documents']) > 0)
                 {
                     foreach($resultList['documents'] as $variation)
@@ -192,10 +194,12 @@ class RakutenDE extends CSVPluginGenerator
                         if($validateOnce === false)
                         {
                             $validator = pluginApp(GeneratorValidator::class);
+
                             if($validator instanceof GeneratorValidator)
                             {
                                 $isValid = $validator->mainValidator($variation);
                                 $validateOnce = true;
+
                                 if($isValid === false)
                                 {
                                     return;
@@ -209,6 +213,7 @@ class RakutenDE extends CSVPluginGenerator
                             $limitReached = true;
                             break;
                         }
+
                         /**
                          * If the stock filter is set, this will sort out all variations
                          * not matching the filter.
@@ -254,6 +259,7 @@ class RakutenDE extends CSVPluginGenerator
                         {
                             $previousItemId = $variation['data']['item']['id'];
                         }
+
                         $currentItemId = $variation['data']['item']['id'];
 
                         // Check if it's the same item
@@ -263,7 +269,18 @@ class RakutenDE extends CSVPluginGenerator
                         }
                         else
                         {
-                            $this->buildRows($settings, $variations);
+                        	try
+							{
+								$this->buildRows($settings, $variations);
+							}
+							catch(\Throwable $exception)
+							{
+								$this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.buildRowError', [
+									'error' => $exception->getMessage(),
+									'line' => $exception->getLine(),
+								]);
+							}
+
                             $variations = array();
                             $variations[] = $variation;
                             $previousItemId = $variation['data']['item']['id'];
@@ -273,7 +290,17 @@ class RakutenDE extends CSVPluginGenerator
                     // Write the last batch of variations
                     if (is_array($variations) && count($variations) > 0)
                     {
-                        $this->buildRows($settings, $variations);
+                    	try
+						{
+							$this->buildRows($settings, $variations);
+						}
+						catch(\Throwable $exception)
+						{
+							$this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.buildRowError', [
+								'error' => $exception->getMessage(),
+								'line' => $exception->getLine(),
+							]);
+						}
                     }
 
                     $this->getLogger(__METHOD__)->debug('ElasticExportRakutenDE::log.buildRowDuration', [
@@ -756,13 +783,21 @@ class RakutenDE extends CSVPluginGenerator
     private function getStockList($item):array
     {
         $stockNet = 0;
-
         $stockRepositoryContract = pluginApp(StockRepositoryContract::class);
+
         if($stockRepositoryContract instanceof StockRepositoryContract)
         {
             $stockRepositoryContract->setFilters(['variationId' => $item['id']]);
-            $stockResult = $stockRepositoryContract->listStock(['stockNet'],1,1);
-            $stockNet = $stockResult->getResult()->first()->stockNet;
+            $stockResult = $stockRepositoryContract->listStockByWarehouseType('sales', ['stockNet'], 1, 1);
+
+            if($stockResult instanceof PaginatedResult)
+			{
+				$stockNet = $stockResult->getResult()->first()->stockNet;
+			}
+            else
+			{
+				$stockNet = 0;
+			}
         }
 
         $inventoryManagementActive = 0;
@@ -804,7 +839,7 @@ class RakutenDE extends CSVPluginGenerator
                 }
                 else
                 {
-                    $stock = 0;
+                    $stock = 999;
                 }
             }
         }

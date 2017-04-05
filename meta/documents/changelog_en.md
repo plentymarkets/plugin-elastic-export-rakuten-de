@@ -1,5 +1,11 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.0.9 (2017-04-04)
+
+### Changed
+- Current variation stock is calculated on the basis of the sales warehouse.
+- The logic was adjusted to improve the stability of the export.
+
 ## v1.0.8 (2017-03-30)
 
 ### Added
