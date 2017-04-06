@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.1.0 (2017-04-06)
+
+### Fixed
+- An issue was fixed which caused the item filter "stock" to not work properly.
+
 ## v1.0.9 (2017-04-04)
 
 ### Changed

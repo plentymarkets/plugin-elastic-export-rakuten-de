@@ -1,5 +1,10 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## v1.1.0 (2017-04-06)
+
+### Behoben
+- Es wurde ein Fehler behoben, der dazu geführt hat, dass der Artikelfilter "Bestand" nicht richtig funktioniert hat.
+
 ## v1.0.9 (2017-04-04)
 
 ### Geändert
