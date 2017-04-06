@@ -220,20 +220,36 @@ class RakutenDE extends CSVPluginGenerator
                          */
                         if(array_key_exists('variationStock.netPositive' ,$filter))
                         {
-                            $stockList = $this->getStockList($variation);
-                            if($stockList['stock'] <= 0)
+                            $stock = 0;
+                            $stockRepositoryContract = pluginApp(StockRepositoryContract::class);
+                            if($stockRepositoryContract instanceof StockRepositoryContract)
+                            {
+                                $stockRepositoryContract->setFilters(['variationId' => $variation['id']]);
+                                $stockResult = $stockRepositoryContract->listStockByWarehouseType('sales',['stockNet'],1,1);
+                                $stock = $stockResult->getResult()->first()->stockNet;
+                            }
+
+                            if($stock <= 0)
                             {
                                 continue;
                             }
                         }
                         elseif(array_key_exists('variationStock.isSalable' ,$filter))
                         {
+                            $stock = 0;
+                            $stockRepositoryContract = pluginApp(StockRepositoryContract::class);
+                            if($stockRepositoryContract instanceof StockRepositoryContract)
+                            {
+                                $stockRepositoryContract->setFilters(['variationId' => $variation['id']]);
+                                $stockResult = $stockRepositoryContract->listStockByWarehouseType('sales',['stockNet'],1,1);
+                                $stock = $stockResult->getResult()->first()->stockNet;
+                            }
+
                             if(count($filter['variationStock.isSalable']['stockLimitation']) == 2)
                             {
-                                if($variation['data']['variation']['stockLimitation'] != 0 || $variation['data']['variation']['stockLimitation'] != 2)
+                                if($variation['data']['variation']['stockLimitation'] != 0 && $variation['data']['variation']['stockLimitation'] != 2)
                                 {
-                                    $stockList = $this->getStockList($variation);
-                                    if($stockList['stock'] <= 0)
+                                    if($stock <= 0)
                                     {
                                         continue;
                                     }
@@ -243,8 +259,7 @@ class RakutenDE extends CSVPluginGenerator
                             {
                                 if($variation['data']['variation']['stockLimitation'] != $filter['variationStock.isSalable']['stockLimitation'][0])
                                 {
-                                    $stockList = $this->getStockList($variation);
-                                    if($stockList['stock'] <= 0)
+                                    if($stock <= 0)
                                     {
                                         continue;
                                     }
