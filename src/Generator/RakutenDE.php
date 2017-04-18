@@ -226,7 +226,15 @@ class RakutenDE extends CSVPluginGenerator
                             {
                                 $stockRepositoryContract->setFilters(['variationId' => $variation['id']]);
                                 $stockResult = $stockRepositoryContract->listStockByWarehouseType('sales',['stockNet'],1,1);
-                                $stock = $stockResult->getResult()->first()->stockNet;
+                                if($stockResult instanceof PaginatedResult)
+                                {
+                                    $stockList = $stockResult->getResult();
+                                    foreach($stockList as $stock)
+                                    {
+                                        $stock = $stock->stockNet;
+                                        break;
+                                    }
+                                }
                             }
 
                             if($stock <= 0)
@@ -242,7 +250,15 @@ class RakutenDE extends CSVPluginGenerator
                             {
                                 $stockRepositoryContract->setFilters(['variationId' => $variation['id']]);
                                 $stockResult = $stockRepositoryContract->listStockByWarehouseType('sales',['stockNet'],1,1);
-                                $stock = $stockResult->getResult()->first()->stockNet;
+                                if($stockResult instanceof PaginatedResult)
+                                {
+                                    $stockList = $stockResult->getResult();
+                                    foreach($stockList as $stock)
+                                    {
+                                        $stock = $stock->stockNet;
+                                        break;
+                                    }
+                                }
                             }
 
                             if(count($filter['variationStock.isSalable']['stockLimitation']) == 2)
@@ -353,15 +369,16 @@ class RakutenDE extends CSVPluginGenerator
                     !array_key_exists($variation['data']['item']['id'], $this->attributeNameCombination))
                 {
                     $this->attributeName[$variation['data']['item']['id']] = $this->elasticExportHelper->getAttributeName($variation, $settings);
-                    if(is_array($variation['data']['attributes']) && count($variation['data']['attributes']) > 0)
+                    foreach ($variation['data']['attributes'] as $attribute)
                     {
-                        foreach ($variation['data']['attributes'] as $attribute)
+                        if(array_key_exists('attributeId', $attribute) && !is_null($attribute['attributeId']))
                         {
-                            if(array_key_exists('attributeId', $attribute))
-                            {
-                                $this->attributeNameCombination[$variation['data']['item']['id']][] = $attribute['attributeId'];
-                            }
+                            $this->attributeNameCombination[$variation['data']['item']['id']][] = $attribute['attributeId'];
                         }
+                    }
+                    if(strlen($this->attributeName[$variation['data']['item']['id']]) == 0)
+                    {
+                        unset($this->attributeName[$variation['data']['item']['id']]);
                     }
                 }
 
@@ -807,7 +824,12 @@ class RakutenDE extends CSVPluginGenerator
 
             if($stockResult instanceof PaginatedResult)
 			{
-				$stockNet = $stockResult->getResult()->first()->stockNet;
+                $stockList = $stockResult->getResult();
+                foreach($stockList as $stock)
+                {
+                    $stockNet = $stock->stockNet;
+                    break;
+                }
 			}
             else
 			{
@@ -875,9 +897,6 @@ class RakutenDE extends CSVPluginGenerator
      */
     private function getPriceList($item, KeyValue $settings):array
     {
-        $variationPrice = 0.00;
-        $vatValue = 19;
-
         //getting the retail price
         /**
          * SalesPriceSearchRequest $salesPriceSearchRequest

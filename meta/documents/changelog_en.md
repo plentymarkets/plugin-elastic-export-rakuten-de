@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.1.1 (2017-04-18)
+
+### Fixed
+- An issue was fixed which caused the plugin to fail at the build productive.
+
 ## v1.1.0 (2017-04-06)
 
 ### Fixed
