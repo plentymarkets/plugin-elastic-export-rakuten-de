@@ -32,7 +32,8 @@ class RakutenDE extends ResultFields
     }
 
     /**
-     * Generate result fields.
+     * Generate result fields for Elastic Export.
+	 *
      * @param  array $formatSettings = []
      * @return array
      */
@@ -207,6 +208,11 @@ class RakutenDE extends ResultFields
         return $fields;
     }
 
+	/**
+	 * Returns the key list for Elastic Export.
+	 *
+	 * @return array
+	 */
     private function getKeyList()
     {
         $keyList = [
@@ -250,6 +256,11 @@ class RakutenDE extends ResultFields
         return $keyList;
     }
 
+	/**
+	 * Returns the nested key list for Elastic Export.
+	 *
+	 * @return mixed
+	 */
     private function getNestedKeyList()
     {
         $nestedKeyList['keys'] = [
@@ -322,4 +333,9 @@ class RakutenDE extends ResultFields
 
         return $nestedKeyList;
     }
+
+    public function generateUpdateResultFields()
+	{
+
+	}
 }
