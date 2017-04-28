@@ -444,6 +444,15 @@ class RakutenDE extends CSVPluginGenerator
 
         $priceList = $this->getPriceList($item, $settings);
 
+		if(isset($priceList['price']) && $priceList['price'] > 0)
+		{
+			$price = number_format((float)$priceList['price'], 2, '.', '');
+		}
+		else
+		{
+			$price = '';
+		}
+
         $vat = $this->getVatClassId($priceList['vatValue']);
 
         $stockList = $this->getStockList($item);
@@ -462,7 +471,7 @@ class RakutenDE extends CSVPluginGenerator
             'variantenwert'				=> '',
             'isbn_ean'					=> $this->elasticExportHelper->getBarcodeByType($item, $settings->get('barcode')),
             'lagerbestand'				=> $stockList['stock'],
-            'preis'						=> number_format((float)$priceList['price'], 2, '.', ''),
+            'preis'						=> $price,
             'grundpreis_inhalt'			=> strlen($basePriceComponentList['unit']) ?
                 number_format((float)$basePriceComponentList['content'],3,',','') : '',
             'grundpreis_einheit'		=> $basePriceComponentList['unit'],
@@ -607,6 +616,15 @@ class RakutenDE extends CSVPluginGenerator
 
         $priceList = $this->getPriceList($item, $settings);
 
+        if(isset($priceList['price']) && $priceList['price'] > 0)
+        {
+        	$price = number_format((float)$priceList['price'], 2, '.', '');
+		}
+		else
+		{
+			$price = '';
+		}
+
         $basePriceComponentList = $this->getBasePriceComponentList($item);
 
         $data = [
@@ -621,7 +639,7 @@ class RakutenDE extends CSVPluginGenerator
             'variantenwert'				=> $attributeValue,
             'isbn_ean'					=> $this->elasticExportHelper->getBarcodeByType($item, $settings->get('barcode')),
             'lagerbestand'				=> $stockList['stock'],
-            'preis'						=> number_format((float)$priceList['price'], 2, '.', ''),
+            'preis'						=> $price,
             'grundpreis_inhalt'			=> strlen($basePriceComponentList['unit']) ?
                 number_format((float)$basePriceComponentList['content'],3,',','') : '',
             'grundpreis_einheit'		=> $basePriceComponentList['unit'],

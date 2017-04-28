@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.1.2 (2017-04-28)
+
+### Fixed
+- An issue was fixed which caused to transfer the price 0.00 if no price was set.
+
 ## v1.1.1 (2017-04-18)
 
 ### Fixed

@@ -1,5 +1,11 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## v1.1.2 (2017-04-28)
+
+### Behoben
+- Es wurde ein Fehler behoben, der dazu geführt hat, dass wenn keine Preise an der Variation hinterlegt wurden
+der Preis 0.00 übertragen wurde.
+
 ## v1.1.1 (2017-04-18)
 
 ### Behoben
