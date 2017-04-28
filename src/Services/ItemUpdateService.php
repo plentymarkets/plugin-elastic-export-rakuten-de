@@ -1,12 +1,16 @@
 <?php
 
 namespace ElasticExportRakutenDE\Services;
-use Plenty\Modules\Cloud\ElasticSearch\Lib\Processor\DocumentProcessor;
-use Plenty\Modules\Cloud\ElasticSearch\Lib\Search\Document\DocumentSearch;
-use Plenty\Modules\Cloud\ElasticSearch\Lib\Sorting\SingleSorting;
-use Plenty\Modules\Cloud\ElasticSearch\Lib\Source\IndependentSource;
+use ElasticExportRakutenDE\Api\Client;
+use ElasticExportRakutenDE\DataProvider\ElasticSearchDataProvider;
+use ElasticExportRakutenDE\Helper\PriceHelper;
+use ElasticExportRakutenDE\Helper\StockHelper;
 use Plenty\Modules\Item\Search\Contracts\VariationElasticSearchScrollRepositoryContract;
+use Plenty\Modules\Market\Credentials\Contracts\CredentialsRepositoryContract;
+use Plenty\Modules\Market\Credentials\Models\Credentials;
+use Plenty\Modules\Market\Helper\Contracts\MarketAttributeHelperRepositoryContract;
 use Plenty\Plugin\Log\Loggable;
+use Plenty\Repositories\Models\PaginatedResult;
 
 /**
  *
@@ -17,107 +21,198 @@ class ItemUpdateService
 	use Loggable;
 
 	const RAKUTEN_DE = 106.00;
+	/**
+	 * @var MarketAttributeHelperRepositoryContract
+	 */
+	private $marketAttributeHelperRepositoryContract;
+	/**
+	 * @var ElasticSearchDataProvider
+	 */
+	private $elasticSearchDataProvider;
+	/**
+	 * @var StockHelper
+	 */
+	private $stockHelper;
+	/**
+	 * @var Client
+	 */
+	private $client;
+	/**
+	 * @var CredentialsRepositoryContract
+	 */
+	private $credentialsRepositoryContract;
+	/**
+	 * @var PriceHelper
+	 */
+	private $priceHelper;
 
 	/**
 	 * ItemUpdateService constructor.
+	 * @param MarketAttributeHelperRepositoryContract $marketAttributeHelperRepositoryContract
+	 * @param ElasticSearchDataProvider $elasticSearchDataProvider
+	 * @param StockHelper $stockHelper
+	 * @param PriceHelper $priceHelper
+	 * @param Client $client
+	 * @param CredentialsRepositoryContract $credentialsRepositoryContract
 	 */
-	public function __construct()
+	public function __construct(
+		MarketAttributeHelperRepositoryContract $marketAttributeHelperRepositoryContract,
+		ElasticSearchDataProvider $elasticSearchDataProvider,
+		StockHelper $stockHelper,
+		PriceHelper $priceHelper,
+		Client $client,
+		CredentialsRepositoryContract $credentialsRepositoryContract,
+		VariationElasticSearchScrollRepositoryContract $elasticSearch)
 	{
+		$this->marketAttributeHelperRepositoryContract = $marketAttributeHelperRepositoryContract;
+		$this->elasticSearchDataProvider = $elasticSearchDataProvider;
+		$this->stockHelper = $stockHelper;
+		$this->client = $client;
+		$this->credentialsRepositoryContract = $credentialsRepositoryContract;
+		$this->priceHelper = $priceHelper;
 	}
 
 	/**
 	 * Generates the content for updating stock and price of multiple items
 	 * and variations.
 	 *
-	 * @param VariationElasticSearchScrollRepositoryContract $elasticSearch
 	 */
-	public function generateContent(
-		VariationElasticSearchScrollRepositoryContract $elasticSearch
-	)
+	public function generateContent()
 	{
-		$this->prepareElasticSearchSearch($elasticSearch);
-
-		$limitReached = false;
+		$elasticSearch = pluginApp(VariationElasticSearchScrollRepositoryContract::class);
 
 		if($elasticSearch instanceof VariationElasticSearchScrollRepositoryContract)
 		{
-			do
+			$rakutenCredentialList = $this->credentialsRepositoryContract->search(['market' => 'rakuten']);
+			if($rakutenCredentialList instanceof PaginatedResult)
 			{
-				if($limitReached === true)
+				foreach($rakutenCredentialList->getResult() as $rakutenCredential)
 				{
-					break;
-				}
-
-				$resultList = $elasticSearch->execute();
-
-				if(is_array($resultList['documents']) && count($resultList['documents']) > 0)
-				{
-					foreach($resultList['documents'] as $variation)
+					if($rakutenCredential instanceof Credentials)
 					{
+						$apiKey = $rakutenCredential->data['key'];
+						if($rakutenCredential->data['activate_data_transfer'] == 1) //todo maybe adjust key
+						{
+							$elasticSearch = $this->elasticSearchDataProvider->prepareElasticSearchSearch($elasticSearch, $rakutenCredential);
 
+							$limitReached = false;
+
+							do
+							{
+								if($limitReached === true)
+								{
+									break;
+								}
+
+								$resultList = $elasticSearch->execute();
+
+								if(is_array($resultList['documents']) && count($resultList['documents']) > 0)
+								{
+									foreach($resultList['documents'] as $variation)
+									{
+										$endPoint = $this->getEndpoint($variation);
+
+										$content = [
+											'apiKey'	=>	$apiKey
+										];
+
+										if($rakutenCredential->data['price_update'] == 1)
+										{
+											$price = $this->priceHelper->getPrice($variation);
+
+											if($price > 0)
+											{
+												$price = number_format((float)$price, 2, '.', '');
+											}
+											else
+											{
+												$price = '';
+											}
+
+											$content['price'] = $price;
+
+										}
+
+										if($rakutenCredential->data['stock_update'] == 1)
+										{
+											$stock = $this->stockHelper->getStock($variation);
+											$content['stock'] = $stock;
+										}
+
+										$this->client->call($endPoint, Client::POST, $content);
+									}
+								}
+
+							} while ($elasticSearch->hasNext());
+						}
 					}
 				}
-
-			} while ($elasticSearch->hasNext());
+			}
 		}
 	}
 
-	/**
-	 * @param VariationElasticSearchScrollRepositoryContract $elasticSearch
-	 */
-	private function prepareElasticSearchSearch($elasticSearch)
+	private function getEndpoint($variation)
 	{
 		/**
-		 * @var DocumentProcessor $documentProcessor
+		 * gets the attribute value name of each attribute value which is linked with the variation in a specific order,
+		 * which depends on the $attributeNameCombination
 		 */
-		$documentProcessor = pluginApp(DocumentProcessor::class);
+		$attributeValue = $this->getAttributeValueSetShortFrontendName($variation);
 
-		//Add each Mutator given from the resultColumns
-		foreach($resultColumns[1] as $mutator)
+		if($variation['data']['variation']['isMain'] === false)
 		{
-			$documentProcessor->addMutator($mutator);
+			return Client::EDIT_PRODUCT_VARIANT;
 		}
 
-
-		/**
-		 * @var IndependentSource $independentSource
-		 */
-		$independentSource = pluginApp(IndependentSource::class);
-
-		//Add each Result Field from the resultColumns
-		foreach($resultColumns[0] as $resultField)
+		elseif($variation['data']['variation']['isMain'] === true && count($attributeValue) > 0)
 		{
-			$independentSource->activate($resultField);
+			return Client::EDIT_PRODUCT_VARIANT;
 		}
-
-		/**
-		 * @var DocumentSearch $documentSearch
-		 */
-		$documentSearch = pluginApp(DocumentSearch::class, [$documentProcessor]);
-		$documentSearch->addSource($independentSource);
-
-
-		/**
-		 * @var SingleSorting $singleSorting
-		 */
-		$singleSorting = pluginApp(SingleSorting::class, ['variation.itemId', 'ASC']);
-		$documentSearch->setSorting($singleSorting);
-
-
-
+		elseif($variation['data']['variation']['isMain'] === true && count($attributeValue) == 0)
+		{
+			return Client::EDIT_PRODUCT;
+		}
+		else
+		{
+			return Client::EDIT_PRODUCT;
+		}
 	}
 
-	/**
-	 * Returns specific result fields for the elastic search search
-	 * which are needed for the item update.
-	 *
-	 * @return array
-	 */
-	private function getResultFields()
+	private function getAttributeValueSetShortFrontendName($variation)
 	{
-		return [
-			'item.id',
-			'skus.sku'
-		];
+		$values = [];
+		$unsortedValues = [];
+
+		if(isset($variation['data']['attributes'][0]['attributeValueSetId'])
+			&& !is_null($variation['data']['attributes'][0]['attributeValueSetId']))
+		{
+			$i = 0;
+
+			if(isset($variation['data']['attributes']))
+			{
+				foreach($variation['data']['attributes'] as $attribute)
+				{
+					$attributeValueName = '';
+
+					if(isset($attribute['attributeId']) && isset($attribute['valueId']))
+					{
+						$attributeValueName = $this->marketAttributeHelperRepositoryContract->getAttributeValueName(
+							$attribute['attributeId'],
+							$attribute['valueId'],
+							'de');
+					}
+
+					if(strlen($attributeValueName) > 0)
+					{
+						$unsortedValues[$attribute['attributeId']] = $attributeValueName;
+						$i++;
+					}
+				}
+			}
+
+			$values = $unsortedValues;
+		}
+
+		return $values;
 	}
 }

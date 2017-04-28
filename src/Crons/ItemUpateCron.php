@@ -2,30 +2,38 @@
 
 namespace ElasticExportRakutenDE\Crons;
 
-use ElasticExportRakutenDE\Services\ApiClient;
+use ElasticExportRakutenDE\Services\ItemUpdateService;
+use Plenty\Plugin\Log\Loggable;
 
 /**
  * @class ItemUpateCron
  */
 class ItemUpateCron
 {
-	/**
-	 * @var ApiClient
-	 */
-	private $apiClient;
+	use Loggable;
 
 	/**
 	 * ItemUpateCron constructor.
-	 *
-	 * @param ApiClient $apiClient
 	 */
-	public function __construct(ApiClient $apiClient)
+	public function __construct()
 	{
-		$this->apiClient = $apiClient;
 	}
 
-	public function handle()
+	/**
+	 * @param ItemUpdateService $itemUpdateService
+	 */
+	public function handle(ItemUpdateService $itemUpdateService)
 	{
-
+		try
+		{
+			$itemUpdateService->generateContent();
+		}
+		catch(\Throwable $throwable)
+		{
+			$this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.cronError', [
+				'error' => $throwable->getMessage(),
+				'line' => $throwable->getLine(),
+			]);
+		}
 	}
 }

@@ -3,6 +3,7 @@
 namespace ElasticExportRakutenDE\Generator;
 
 use ElasticExport\Helper\ElasticExportCoreHelper;
+use ElasticExportRakutenDE\Helper\PriceHelper;
 use ElasticExportRakutenDE\Validators\GeneratorValidator;
 use Plenty\Legacy\Repositories\Item\SalesPrice\SalesPriceSearchRepository;
 use Plenty\Modules\DataExchange\Contracts\CSVPluginGenerator;
@@ -58,21 +59,29 @@ class RakutenDE extends CSVPluginGenerator
      */
     private $salesPriceSearchRepository;
 
-    /**
-     * RakutenDE constructor.
-     * @param ArrayHelper $arrayHelper
-     * @param MarketPropertyHelperRepositoryContract $marketPropertyHelperRepository
-     * @param SalesPriceSearchRepository $salesPriceSearchRepository
-     */
+	/**
+	 * @var PriceHelper $priceHelper
+	 */
+    private $priceHelper;
+
+	/**
+	 * RakutenDE constructor.
+	 * @param ArrayHelper $arrayHelper
+	 * @param MarketPropertyHelperRepositoryContract $marketPropertyHelperRepository
+	 * @param SalesPriceSearchRepository $salesPriceSearchRepository
+	 * @param PriceHelper $priceHelper
+	 */
     public function __construct(
         ArrayHelper $arrayHelper,
         MarketPropertyHelperRepositoryContract $marketPropertyHelperRepository,
-        SalesPriceSearchRepository $salesPriceSearchRepository
+        SalesPriceSearchRepository $salesPriceSearchRepository,
+		PriceHelper $priceHelper
     )
     {
         $this->arrayHelper = $arrayHelper;
         $this->marketPropertyHelperRepository = $marketPropertyHelperRepository;
         $this->salesPriceSearchRepository = $salesPriceSearchRepository;
+        $this->priceHelper = $priceHelper;
     }
 
     /**
@@ -442,7 +451,7 @@ class RakutenDE extends CSVPluginGenerator
     private function buildParentWithoutChildrenRow($item, KeyValue $settings)
     {
 
-        $priceList = $this->getPriceList($item, $settings);
+        $priceList = $this->priceHelper->getPriceList($item, $settings);
 
         $vat = $this->getVatClassId($priceList['vatValue']);
 
@@ -524,7 +533,7 @@ class RakutenDE extends CSVPluginGenerator
      */
     private function buildParentWithChildrenRow($item, KeyValue $settings, array $attributeName)
     {
-        $priceList = $this->getPriceList($item, $settings);
+        $priceList = $this->priceHelper->getPriceList($item, $settings);
 
         $vat = $this->getVatClassId($priceList['vatValue']);
 
@@ -605,7 +614,7 @@ class RakutenDE extends CSVPluginGenerator
 
         $stockList = $this->getStockList($item);
 
-        $priceList = $this->getPriceList($item, $settings);
+        $priceList = $this->priceHelper->getPriceList($item, $settings);
 
         $basePriceComponentList = $this->getBasePriceComponentList($item);
 

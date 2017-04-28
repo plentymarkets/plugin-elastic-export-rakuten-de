@@ -1,16 +1,18 @@
 <?php
 
-namespace ElasticExportRakutenDE\Services;
+namespace ElasticExportRakutenDE\Api;
+
+use Plenty\Plugin\Log\Loggable;
 
 /**
- * @class ApiClient
+ * @class Client
  */
-class ApiClient
+class Client
 {
-	use \Plenty\Plugin\Log\Loggable;
+	use Loggable;
 
 	const GET = '';
-	const POST = '';
+	const POST = 'POST';
 
 	const URL = 'http://webservice.rakuten.de/merchants/';
 
@@ -38,17 +40,14 @@ class ApiClient
 		try
 		{
 			$ch = curl_init($url);
-//			curl_setopt($ch, CURLOPT_URL, $url);
 
 			switch($httpRequestMethod)
 			{
 				case self::POST:
 					curl_setopt($ch, CURLOPT_POST, true);
 					curl_setopt($ch, CURLOPT_POSTFIELDS, $content);
-					curl_setopt($ch, CURLOPT_POST, true);
 					break;
 			}
-
 
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
@@ -56,9 +55,12 @@ class ApiClient
 
 			curl_close($ch);
 		}
-		catch (\Throwable $exception)
+		catch (\Throwable $throwable)
 		{
-			$this->getLogger(__METHOD__)->error('');		// TODO
+			$this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.apiError', [
+				'error' => $throwable->getMessage(),
+				'line' => $throwable->getLine(),
+			]);
 		}
 
 		return $response;
