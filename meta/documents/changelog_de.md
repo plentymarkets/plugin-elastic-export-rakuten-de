@@ -1,5 +1,13 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## v1.1.3 (2017-05-02)
+
+### Behoben
+- Es wurde ein Fehler behoben, der dazu geführt hat, dass die SKU von Account 0 genommen wird.
+
+### Geändert
+- Die Bestandsfilterlogik wurde in den Elastic Export ausgelagert.
+
 ## v1.1.2 (2017-04-28)
 
 ### Behoben
