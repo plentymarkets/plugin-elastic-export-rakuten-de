@@ -1,5 +1,13 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## v1.1.3 (2017-05-02)
+
+### Behoben
+- Es wurde ein Fehler behoben, der dazu geführt hat, dass die SKU-Ermittlung immer auf den Account 0 bezogen wurde.
+
+### Geändert
+- Die Bestandsfilterlogik wurde in das Elastic Export-Plugin ausgelagert.
+
 ## v1.1.2 (2017-04-28)
 
 ### Behoben

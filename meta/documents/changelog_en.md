@@ -1,5 +1,13 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.1.3 (2017-05-02)
+
+### Fixed
+- An issue was fixed which caused to assign the SKU's always to the account 0.
+
+### Changed
+- Outsourced the stock filter logic to the Elastic Export plugin.
+
 ## v1.1.2 (2017-04-28)
 
 ### Fixed

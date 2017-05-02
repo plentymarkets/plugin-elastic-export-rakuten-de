@@ -3,6 +3,7 @@
 namespace ElasticExportRakutenDE\Generator;
 
 use ElasticExport\Helper\ElasticExportCoreHelper;
+use ElasticExport\Helper\ElasticExportStockHelper;
 use ElasticExportRakutenDE\Validators\GeneratorValidator;
 use Plenty\Legacy\Repositories\Item\SalesPrice\SalesPriceSearchRepository;
 use Plenty\Modules\DataExchange\Contracts\CSVPluginGenerator;
@@ -58,21 +59,29 @@ class RakutenDE extends CSVPluginGenerator
      */
     private $salesPriceSearchRepository;
 
-    /**
-     * RakutenDE constructor.
-     * @param ArrayHelper $arrayHelper
-     * @param MarketPropertyHelperRepositoryContract $marketPropertyHelperRepository
-     * @param SalesPriceSearchRepository $salesPriceSearchRepository
-     */
+	/**
+	 * @var ElasticExportStockHelper $elasticExportStockHelper
+	 */
+	private $elasticExportStockHelper;
+
+	/**
+	 * RakutenDE constructor.
+	 * @param ArrayHelper $arrayHelper
+	 * @param MarketPropertyHelperRepositoryContract $marketPropertyHelperRepository
+	 * @param SalesPriceSearchRepository $salesPriceSearchRepository
+	 * @param ElasticExportStockHelper $elasticExportStockHelper
+	 */
     public function __construct(
         ArrayHelper $arrayHelper,
         MarketPropertyHelperRepositoryContract $marketPropertyHelperRepository,
-        SalesPriceSearchRepository $salesPriceSearchRepository
+        SalesPriceSearchRepository $salesPriceSearchRepository,
+		ElasticExportStockHelper $elasticExportStockHelper
     )
     {
         $this->arrayHelper = $arrayHelper;
         $this->marketPropertyHelperRepository = $marketPropertyHelperRepository;
         $this->salesPriceSearchRepository = $salesPriceSearchRepository;
+		$this->elasticExportStockHelper = $elasticExportStockHelper;
     }
 
     /**
@@ -214,74 +223,10 @@ class RakutenDE extends CSVPluginGenerator
                             break;
                         }
 
-                        /**
-                         * If the stock filter is set, this will sort out all variations
-                         * not matching the filter.
-                         */
-                        if(array_key_exists('variationStock.netPositive' ,$filter))
-                        {
-                            $stock = 0;
-                            $stockRepositoryContract = pluginApp(StockRepositoryContract::class);
-                            if($stockRepositoryContract instanceof StockRepositoryContract)
-                            {
-                                $stockRepositoryContract->setFilters(['variationId' => $variation['id']]);
-                                $stockResult = $stockRepositoryContract->listStockByWarehouseType('sales',['stockNet'],1,1);
-                                if($stockResult instanceof PaginatedResult)
-                                {
-                                    $stockList = $stockResult->getResult();
-                                    foreach($stockList as $stock)
-                                    {
-                                        $stock = $stock->stockNet;
-                                        break;
-                                    }
-                                }
-                            }
-
-                            if($stock <= 0)
-                            {
-                                continue;
-                            }
-                        }
-                        elseif(array_key_exists('variationStock.isSalable' ,$filter))
-                        {
-                            $stock = 0;
-                            $stockRepositoryContract = pluginApp(StockRepositoryContract::class);
-                            if($stockRepositoryContract instanceof StockRepositoryContract)
-                            {
-                                $stockRepositoryContract->setFilters(['variationId' => $variation['id']]);
-                                $stockResult = $stockRepositoryContract->listStockByWarehouseType('sales',['stockNet'],1,1);
-                                if($stockResult instanceof PaginatedResult)
-                                {
-                                    $stockList = $stockResult->getResult();
-                                    foreach($stockList as $stock)
-                                    {
-                                        $stock = $stock->stockNet;
-                                        break;
-                                    }
-                                }
-                            }
-
-                            if(count($filter['variationStock.isSalable']['stockLimitation']) == 2)
-                            {
-                                if($variation['data']['variation']['stockLimitation'] != 0 && $variation['data']['variation']['stockLimitation'] != 2)
-                                {
-                                    if($stock <= 0)
-                                    {
-                                        continue;
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                if($variation['data']['variation']['stockLimitation'] != $filter['variationStock.isSalable']['stockLimitation'][0])
-                                {
-                                    if($stock <= 0)
-                                    {
-                                        continue;
-                                    }
-                                }
-                            }
-                        }
+						if($this->elasticExportStockHelper->isFilteredByStock($variation, $filter) === true)
+						{
+							continue;
+						}
 
                         $lines = $lines +1;
 
@@ -462,7 +407,7 @@ class RakutenDE extends CSVPluginGenerator
         $data = [
             'id'						=> '',
             'variante_zu_id'			=> '',
-            'artikelnummer'				=> $this->elasticExportHelper->generateSku($item['id'], self::RAKUTEN_DE, 0, $item['data']['skus']['sku']),
+            'artikelnummer'				=> $this->elasticExportHelper->generateSku($item['id'], self::RAKUTEN_DE, (int) $settings->get('marketAccountId'), $item['data']['skus']['sku']),
             'produkt_bestellbar'		=> $stockList['variationAvailable'],
             'produktname'				=> $this->elasticExportHelper->getName($item, $settings, 150),
             'hersteller'				=> $this->elasticExportHelper->getExternalManufacturerName((int)$item['data']['item']['manufacturer']['id']),
@@ -630,7 +575,7 @@ class RakutenDE extends CSVPluginGenerator
         $data = [
             'id'						=> '',
             'variante_zu_id'			=> '#'.$item['data']['item']['id'],
-            'artikelnummer'				=> $this->elasticExportHelper->generateSku($item['id'], self::RAKUTEN_DE, 0, $item['data']['skus']['sku']),
+            'artikelnummer'				=> $this->elasticExportHelper->generateSku($item['id'], self::RAKUTEN_DE, (int) $settings->get('marketAccountId'), $item['data']['skus']['sku']),
             'produkt_bestellbar'		=> $stockList['variationAvailable'],
             'produktname'				=> '',
             'hersteller'				=> '',
