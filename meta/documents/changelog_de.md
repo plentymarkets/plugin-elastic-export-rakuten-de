@@ -3,7 +3,7 @@
 ## v1.1.3 (2017-05-02)
 
 ### Behoben
-- Es wurde ein Fehler behoben, der dazu geführt hat, dass die SKU von Account 0 genommen wird.
+- Es wurde ein Fehler behoben, der dazu geführt hat, dass die SKU-ermittlung immer auf den Account 0 bezogen wurde.
 
 ### Geändert
 - Die Bestandsfilterlogik wurde in das Elastic Export-Plugin ausgelagert.
