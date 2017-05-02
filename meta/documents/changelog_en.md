@@ -6,7 +6,7 @@
 - An issue was fixed which caused to take the wrong sku.
 
 ### Changed
-- Outsourced the stock filter logic to the Elastic Export-Plugin.
+- Outsourced the stock filter logic to the Elastic Export plugin.
 
 ## v1.1.2 (2017-04-28)
 
