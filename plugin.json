@@ -20,5 +20,8 @@
   "marketplaceName": {
     "de":"Rakuten.de",
     "en":"Rakuten.de"
+  },
+  "dependencies": {
+    "ElasticExport": ">=1.0.12"
   }
 }

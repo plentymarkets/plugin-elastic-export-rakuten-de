@@ -3,7 +3,7 @@
 ## v1.1.4 (2017-05-04)
 
 ### Behoben
-- Es wurde ein Fehler behoben, der dazu geführt hat, dass das Abspeichern der SKU teilweise Fehler verursacht hat.
+- Es wurde ein Fehler behoben, der dazu geführt hat, dass SKUs teilweise nicht abgespeichert werden konnten..
 
 ## v1.1.3 (2017-05-02)
 

@@ -391,6 +391,10 @@ class RakutenDE extends CSVPluginGenerator
 
 		$sku = null;
 
+		/*
+         * since we only get one SKU back and do not know the key
+         * we need to iterate over the given array
+         */
 		foreach($item['data']['skus'] as $skuData)
 		{
 			$sku = $skuData['sku'];
@@ -568,8 +572,12 @@ class RakutenDE extends CSVPluginGenerator
 
         $priceList = $this->getPriceList($item, $settings);
 
-		$sku = null;
+        $sku = null;
 
+        /*
+         * since we only get one SKU back and do not know the key
+         * we need to iterate over the given array
+         */
 		foreach($item['data']['skus'] as $skuData)
 		{
 			$sku = $skuData['sku'];
