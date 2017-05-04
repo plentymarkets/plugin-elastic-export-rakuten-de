@@ -389,6 +389,17 @@ class RakutenDE extends CSVPluginGenerator
 
         $priceList = $this->getPriceList($item, $settings);
 
+		$sku = null;
+
+		/*
+         * since we only get one SKU back and do not know the key
+         * we need to iterate over the given array
+         */
+		foreach($item['data']['skus'] as $skuData)
+		{
+			$sku = $skuData['sku'];
+		}
+
 		if(isset($priceList['price']) && $priceList['price'] > 0)
 		{
 			$price = number_format((float)$priceList['price'], 2, '.', '');
@@ -407,7 +418,7 @@ class RakutenDE extends CSVPluginGenerator
         $data = [
             'id'						=> '',
             'variante_zu_id'			=> '',
-            'artikelnummer'				=> $this->elasticExportHelper->generateSku($item['id'], self::RAKUTEN_DE, (int) $settings->get('marketAccountId'), $item['data']['skus']['sku']),
+            'artikelnummer'				=> $this->elasticExportHelper->generateSku($item['id'], self::RAKUTEN_DE, (int) $settings->get('marketAccountId'), $sku),
             'produkt_bestellbar'		=> $stockList['variationAvailable'],
             'produktname'				=> $this->elasticExportHelper->getName($item, $settings, 150),
             'hersteller'				=> $this->elasticExportHelper->getExternalManufacturerName((int)$item['data']['item']['manufacturer']['id']),
@@ -561,6 +572,17 @@ class RakutenDE extends CSVPluginGenerator
 
         $priceList = $this->getPriceList($item, $settings);
 
+        $sku = null;
+
+        /*
+         * since we only get one SKU back and do not know the key
+         * we need to iterate over the given array
+         */
+		foreach($item['data']['skus'] as $skuData)
+		{
+			$sku = $skuData['sku'];
+		}
+
         if(isset($priceList['price']) && $priceList['price'] > 0)
         {
         	$price = number_format((float)$priceList['price'], 2, '.', '');
@@ -575,7 +597,7 @@ class RakutenDE extends CSVPluginGenerator
         $data = [
             'id'						=> '',
             'variante_zu_id'			=> '#'.$item['data']['item']['id'],
-            'artikelnummer'				=> $this->elasticExportHelper->generateSku($item['id'], self::RAKUTEN_DE, (int) $settings->get('marketAccountId'), $item['data']['skus']['sku']),
+            'artikelnummer'				=> $this->elasticExportHelper->generateSku($item['id'], self::RAKUTEN_DE, (int) $settings->get('marketAccountId'), $sku),
             'produkt_bestellbar'		=> $stockList['variationAvailable'],
             'produktname'				=> '',
             'hersteller'				=> '',

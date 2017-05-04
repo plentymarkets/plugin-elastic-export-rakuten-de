@@ -3,6 +3,11 @@
 ## v1.1.3 (2017-05-02)
 
 ### Fixed
+- An issue was fixed which caused errors while saving the SKU's.
+
+## v1.1.3 (2017-05-02)
+
+### Fixed
 - An issue was fixed which caused to assign the SKU's always to the account 0.
 
 ### Changed
