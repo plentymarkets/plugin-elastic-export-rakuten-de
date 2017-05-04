@@ -40,6 +40,8 @@ class RakutenDE extends ResultFields
     {
         $settings = $this->arrayHelper->buildMapFromObjectList($formatSettings, 'key', 'value');
 
+		$accountId = (int) $settings->get('marketAccountId');
+
         $this->setOrderByList(['variation.itemId', 'ASC']);
 
         $reference = $settings->get('referrerId') ? $settings->get('referrerId') : self::RAKUTEN_DE;
@@ -106,6 +108,7 @@ class RakutenDE extends ResultFields
         $skuMutator = pluginApp(SkuMutator::class);
         if($skuMutator instanceof SkuMutator)
         {
+        	$skuMutator->setAccount($accountId);
             $skuMutator->setMarket($reference);
         }
         /**
