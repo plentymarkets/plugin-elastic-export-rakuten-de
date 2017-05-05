@@ -69,19 +69,16 @@ class RakutenDE extends CSVPluginGenerator
 	 * @param ArrayHelper $arrayHelper
 	 * @param MarketPropertyHelperRepositoryContract $marketPropertyHelperRepository
 	 * @param SalesPriceSearchRepository $salesPriceSearchRepository
-	 * @param ElasticExportStockHelper $elasticExportStockHelper
 	 */
     public function __construct(
         ArrayHelper $arrayHelper,
         MarketPropertyHelperRepositoryContract $marketPropertyHelperRepository,
-        SalesPriceSearchRepository $salesPriceSearchRepository,
-		ElasticExportStockHelper $elasticExportStockHelper
+        SalesPriceSearchRepository $salesPriceSearchRepository
     )
     {
         $this->arrayHelper = $arrayHelper;
         $this->marketPropertyHelperRepository = $marketPropertyHelperRepository;
         $this->salesPriceSearchRepository = $salesPriceSearchRepository;
-		$this->elasticExportStockHelper = $elasticExportStockHelper;
     }
 
     /**
@@ -91,6 +88,7 @@ class RakutenDE extends CSVPluginGenerator
      */
     protected function generatePluginContent($elasticSearch, array $formatSettings = [], array $filter = [])
     {
+    	$this->elasticExportStockHelper = pluginApp(ElasticExportStockHelper::class);
         $this->elasticExportHelper = pluginApp(ElasticExportCoreHelper::class);
         $settings = $this->arrayHelper->buildMapFromObjectList($formatSettings, 'key', 'value');
 

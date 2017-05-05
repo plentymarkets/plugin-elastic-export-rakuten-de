@@ -1,6 +1,11 @@
 # Release Notes for Elastic Export Rakuten.de
 
-## v1.1.3 (2017-05-02)
+## v1.1.5 (2017-05-05)
+
+### Fixed
+- An issue was fixed which caused errors while loading the export format.
+
+## v1.1.4 (2017-05-02)
 
 ### Fixed
 - An issue was fixed which caused errors while saving the SKU's.
