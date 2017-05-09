@@ -418,10 +418,10 @@ class RakutenDE extends CSVPluginGenerator
             'variante_zu_id'			=> '',
             'artikelnummer'				=> $this->elasticExportHelper->generateSku($item['id'], self::RAKUTEN_DE, (int) $settings->get('marketAccountId'), $sku),
             'produkt_bestellbar'		=> $stockList['variationAvailable'],
-            'produktname'				=> $this->elasticExportHelper->getName($item, $settings, 150),
+            'produktname'				=> $this->elasticExportHelper->getMutatedName($item, $settings, 150),
             'hersteller'				=> $this->elasticExportHelper->getExternalManufacturerName((int)$item['data']['item']['manufacturer']['id']),
-            'beschreibung'				=> $this->elasticExportHelper->getDescription($item, $settings, 5000),
-            'variante'					=> $this->attributeName[$item['data']['item']['id']],
+            'beschreibung'				=> $this->elasticExportHelper->getMutatedDescription($item, $settings, 5000),
+            'variante'					=> isset($this->attributeName[$item['data']['item']['id']]) ? $this->attributeName[$item['data']['item']['id']] : '',
             'variantenwert'				=> '',
             'isbn_ean'					=> $this->elasticExportHelper->getBarcodeByType($item, $settings->get('barcode')),
             'lagerbestand'				=> $stockList['stock'],
@@ -434,11 +434,11 @@ class RakutenDE extends CSVPluginGenerator
             'bezug_reduzierter_preis'	=> $priceList['referenceReducedPrice'],
             'mwst_klasse'				=> $vat,
             'bestandsverwaltung_aktiv'	=> $stockList['inventoryManagementActive'],
-            'bild1'						=> $this->getImageByNumber($item, 0),
-            'bild2'						=> $this->getImageByNumber($item, 1),
-            'bild3'						=> $this->getImageByNumber($item, 2),
-            'bild4'						=> $this->getImageByNumber($item, 3),
-            'bild5'						=> $this->getImageByNumber($item, 4),
+            'bild1'						=> $this->getImageByPosition($item, 0),
+            'bild2'						=> $this->getImageByPosition($item, 1),
+            'bild3'						=> $this->getImageByPosition($item, 2),
+            'bild4'						=> $this->getImageByPosition($item, 3),
+            'bild5'						=> $this->getImageByPosition($item, 4),
             'kategorien'				=> $this->elasticExportHelper->getCategory((int)$item['data']['defaultCategories'][0]['id'], $settings->get('lang'), $settings->get('plentyId')),
             'lieferzeit'				=> $this->elasticExportHelper->getAvailability($item, $settings, false),
             'tradoria_kategorie'		=> $item['data']['item']['rakutenCategoryId'],
@@ -464,12 +464,12 @@ class RakutenDE extends CSVPluginGenerator
             'free_var_19'				=> $item['data']['item']['free19'],
             'free_var_20'				=> $item['data']['item']['free20'],
             'MPN'						=> $item['data']['variation']['model'],
-            'bild6'						=> $this->getImageByNumber($item, 5),
-            'bild7'						=> $this->getImageByNumber($item, 6),
-            'bild8'						=> $this->getImageByNumber($item, 7),
-            'bild9'						=> $this->getImageByNumber($item, 8),
-            'bild10'					=> $this->getImageByNumber($item, 9),
-            'technical_data'			=> $this->elasticExportHelper->getTechnicalData($item, $settings),
+            'bild6'						=> $this->getImageByPosition($item, 5),
+            'bild7'						=> $this->getImageByPosition($item, 6),
+            'bild8'						=> $this->getImageByPosition($item, 7),
+            'bild9'						=> $this->getImageByPosition($item, 8),
+            'bild10'					=> $this->getImageByPosition($item, 9),
+            'technical_data'			=> $this->elasticExportHelper->getMutatedTechnicalData($item, $settings),
             'energie_klassen_gruppe'	=> $this->getItemPropertyByExternalComponent($item, self::RAKUTEN_DE, self::PROPERTY_TYPE_ENERGY_CLASS_GROUP),
             'energie_klasse'			=> $this->getItemPropertyByExternalComponent($item, self::RAKUTEN_DE, self::PROPERTY_TYPE_ENERGY_CLASS),
             'energie_klasse_bis'		=> $this->getItemPropertyByExternalComponent($item, self::RAKUTEN_DE, self::PROPERTY_TYPE_ENERGY_CLASS_UNTIL),
@@ -498,9 +498,9 @@ class RakutenDE extends CSVPluginGenerator
             'variante_zu_id'			=> '',
             'artikelnummer'				=> '',
             'produkt_bestellbar'		=> '',
-            'produktname'				=> $this->elasticExportHelper->getName($item, $settings, 150),
+            'produktname'				=> $this->elasticExportHelper->getMutatedName($item, $settings, 150),
             'hersteller'				=> $this->elasticExportHelper->getExternalManufacturerName((int)$item['data']['item']['manufacturer']['id']),
-            'beschreibung'				=> $this->elasticExportHelper->getDescription($item, $settings, 5000),
+            'beschreibung'				=> $this->elasticExportHelper->getMutatedDescription($item, $settings, 5000),
             'variante'					=> $attributeName[$item['data']['item']['id']],
             'variantenwert'				=> '',
             'isbn_ean'					=> '',
@@ -512,11 +512,11 @@ class RakutenDE extends CSVPluginGenerator
             'bezug_reduzierter_preis'	=> '',
             'mwst_klasse'				=> $vat,
             'bestandsverwaltung_aktiv'	=> $stockList['inventoryManagementActive'],
-            'bild1'						=> $this->getImageByNumber($item, 0),
-            'bild2'						=> $this->getImageByNumber($item, 1),
-            'bild3'						=> $this->getImageByNumber($item, 2),
-            'bild4'						=> $this->getImageByNumber($item, 3),
-            'bild5'						=> $this->getImageByNumber($item, 4),
+            'bild1'						=> $this->getImageByPosition($item, 0),
+            'bild2'						=> $this->getImageByPosition($item, 1),
+            'bild3'						=> $this->getImageByPosition($item, 2),
+            'bild4'						=> $this->getImageByPosition($item, 3),
+            'bild5'						=> $this->getImageByPosition($item, 4),
             'kategorien'				=> $this->elasticExportHelper->getCategory((int)$item['data']['defaultCategories'][0]['id'], $settings->get('lang'), $settings->get('plentyId')),
             'lieferzeit'				=> '',
             'tradoria_kategorie'		=> $item['data']['item']['rakutenCategoryId'],
@@ -542,12 +542,12 @@ class RakutenDE extends CSVPluginGenerator
             'free_var_19'				=> $item['data']['item']['free19'],
             'free_var_20'				=> $item['data']['item']['free20'],
             'MPN'						=> $item['data']['variation']['model'],
-            'bild6'						=> $this->getImageByNumber($item, 5),
-            'bild7'						=> $this->getImageByNumber($item, 6),
-            'bild8'						=> $this->getImageByNumber($item, 7),
-            'bild9'						=> $this->getImageByNumber($item, 8),
-            'bild10'					=> $this->getImageByNumber($item, 9),
-            'technical_data'			=> $this->elasticExportHelper->getTechnicalData($item, $settings),
+            'bild6'						=> $this->getImageByPosition($item, 5),
+            'bild7'						=> $this->getImageByPosition($item, 6),
+            'bild8'						=> $this->getImageByPosition($item, 7),
+            'bild9'						=> $this->getImageByPosition($item, 8),
+            'bild10'					=> $this->getImageByPosition($item, 9),
+            'technical_data'			=> $this->elasticExportHelper->getMutatedTechnicalData($item, $settings),
             'energie_klassen_gruppe'	=> '',
             'energie_klasse'			=> '',
             'energie_klasse_bis'		=> '',
@@ -659,17 +659,43 @@ class RakutenDE extends CSVPluginGenerator
     }
 
     /**
+	 * Returns the URL of an image depending on the configured position.
+	 *
+	 * Fallback in case of no found image with position x to entry x in list.
+	 *
      * @param array $item
-     * @param int $number
+     * @param int $position
      * @return string
      */
-    private function getImageByNumber($item, int $number):string
+    private function getImageByPosition($item, int $position):string
     {
-        if(is_array($item['data']['images']['all']) && count($item['data']['images']['all']) > 0)
-        {
-            return (string)$this->elasticExportHelper->getImageUrlBySize($item['data']['images']['all'][$number]);
-        }
-        return '';
+		if(is_array($item['data']['images']['all']) && count($item['data']['images']['all']) > 0)
+		{
+			$imageByPosition = null;
+
+			foreach($item['data']['images']['all'] as $key => $image)
+			{
+				if(array_key_exists('position', $image) && $image['position'] === $position)
+				{
+					$imageByPosition = $image;
+					break;
+				}
+			}
+
+			if(is_array($imageByPosition))
+			{
+				return (string)$this->elasticExportHelper->getImageUrlBySize($imageByPosition);
+			}
+			else
+			{
+				if(isset($item['data']['images']['all'][$position]))
+				{
+					return (string)$this->elasticExportHelper->getImageUrlBySize($item['data']['images']['all'][$position]);
+				}
+			}
+		}
+
+		return '';
     }
 
     /**

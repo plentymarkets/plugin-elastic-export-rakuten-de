@@ -24,6 +24,7 @@ class RakutenDE extends ResultFields
 
     /**
      * Rakuten constructor.
+	 *
      * @param ArrayHelper $arrayHelper
      */
     public function __construct(ArrayHelper $arrayHelper)
@@ -33,19 +34,19 @@ class RakutenDE extends ResultFields
 
     /**
      * Generate result fields.
+	 *
      * @param  array $formatSettings = []
      * @return array
      */
     public function generateResultFields(array $formatSettings = []):array
     {
         $settings = $this->arrayHelper->buildMapFromObjectList($formatSettings, 'key', 'value');
+		$this->setOrderByList(['variation.itemId', 'ASC']);
 
 		$accountId = (int) $settings->get('marketAccountId');
-
-        $this->setOrderByList(['variation.itemId', 'ASC']);
-
         $reference = $settings->get('referrerId') ? $settings->get('referrerId') : self::RAKUTEN_DE;
 
+        // texts
         $itemDescriptionFields = ['texts.urlPath'];
 
         switch($settings->get('nameId'))
@@ -64,8 +65,7 @@ class RakutenDE extends ResultFields
                 break;
         }
 
-        if($settings->get('descriptionType') == 'itemShortDescription'
-            || $settings->get('previewTextType') == 'itemShortDescription')
+        if($settings->get('descriptionType') == 'itemShortDescription' || $settings->get('previewTextType') == 'itemShortDescription')
         {
             $itemDescriptionFields[] = 'texts.shortDescription';
         }
@@ -73,17 +73,22 @@ class RakutenDE extends ResultFields
         if($settings->get('descriptionType') == 'itemDescription'
             || $settings->get('descriptionType') == 'itemDescriptionAndTechnicalData'
             || $settings->get('previewTextType') == 'itemDescription'
-            || $settings->get('previewTextType') == 'itemDescriptionAndTechnicalData')
+            || $settings->get('previewTextType') == 'itemDescriptionAndTechnicalData'
+		)
         {
             $itemDescriptionFields[] = 'texts.description';
         }
+
         $itemDescriptionFields[] = 'texts.technicalData';
+		$itemDescriptionFields[] = 'texts.lang';
 
         //Mutator
-        /**
+
+		/**
          * @var KeyMutator $keyMutator
          */
         $keyMutator = pluginApp(KeyMutator::class);
+
         if($keyMutator instanceof KeyMutator)
         {
             $keyMutator->setKeyList($this->getKeyList());
@@ -94,32 +99,37 @@ class RakutenDE extends ResultFields
          * @var ImageMutator $imageMutator
          */
         $imageMutator = pluginApp(ImageMutator::class);
+
         if($imageMutator instanceof ImageMutator)
         {
             $imageMutator->addMarket($reference);
         }
+
         /**
          * @var LanguageMutator $languageMutator
          */
         $languageMutator = pluginApp(LanguageMutator::class, [[$settings->get('lang')]]);
+
         /**
          * @var SkuMutator $skuMutator
          */
         $skuMutator = pluginApp(SkuMutator::class);
+
         if($skuMutator instanceof SkuMutator)
         {
         	$skuMutator->setAccount($accountId);
             $skuMutator->setMarket($reference);
         }
+
         /**
          * @var DefaultCategoryMutator $defaultCategoryMutator
          */
         $defaultCategoryMutator = pluginApp(DefaultCategoryMutator::class);
+
         if($defaultCategoryMutator instanceof DefaultCategoryMutator)
         {
             $defaultCategoryMutator->setPlentyId($settings->get('plentyId'));
         }
-
 
         $fields = [
             [
@@ -277,6 +287,7 @@ class RakutenDE extends ResultFields
             //properties
             'properties'
         ];
+
         $nestedKeyList['nestedKeys'] = [
             'images.all' => [
                 'urlMiddle',
