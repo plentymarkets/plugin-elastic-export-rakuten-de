@@ -1,9 +1,13 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.1.7 (2017-05-10)
+
+### Fixed
+- Image positions will now be correctly interpreted.
+
 ## v1.1.6 (2017-05-09)
 
-### Behoben
-- Image positions will now be correctly interpreted.
+### Fixed
 - The description will now be exported in the configured language. 
 
 ## v1.1.5 (2017-05-05)

@@ -671,27 +671,29 @@ class RakutenDE extends CSVPluginGenerator
     {
 		if(is_array($item['data']['images']['all']) && count($item['data']['images']['all']) > 0)
 		{
-			$imageByPosition = null;
+			$count = 0;
+			$images = [];
 
-			foreach($item['data']['images']['all'] as $key => $image)
+			foreach($item['data']['images']['all'] as $image)
 			{
-				if(array_key_exists('position', $image) && $image['position'] === $position)
+				if(!array_key_exists($image['position'], $images))
 				{
-					$imageByPosition = $image;
-					break;
+					$images[$image['position']] = $image;
+				}
+				else
+				{
+					$count++;
+					$images[$image['position'].'_'.$count] = $image;
 				}
 			}
 
-			if(is_array($imageByPosition))
+			// sort by key
+			ksort($images);
+			$images = array_values($images);
+
+			if(isset($images[$position]))
 			{
-				return (string)$this->elasticExportHelper->getImageUrlBySize($imageByPosition);
-			}
-			else
-			{
-				if(isset($item['data']['images']['all'][$position]))
-				{
-					return (string)$this->elasticExportHelper->getImageUrlBySize($item['data']['images']['all'][$position]);
-				}
+				return (string)$this->elasticExportHelper->getImageUrlBySize($images[$position]);
 			}
 		}
 
