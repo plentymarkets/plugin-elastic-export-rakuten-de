@@ -2,6 +2,7 @@
 
 namespace ElasticExportRakutenDE\ResultField;
 
+use Plenty\Modules\Cloud\ElasticSearch\Lib\ElasticSearch;
 use Plenty\Modules\DataExchange\Contracts\ResultFields;
 use Plenty\Modules\DataExchange\Models\FormatSetting;
 use Plenty\Modules\Helper\Services\ArrayHelper;
@@ -41,7 +42,7 @@ class RakutenDE extends ResultFields
     public function generateResultFields(array $formatSettings = []):array
     {
         $settings = $this->arrayHelper->buildMapFromObjectList($formatSettings, 'key', 'value');
-		$this->setOrderByList(['variation.itemId', 'ASC']);
+		$this->setOrderByList(['item.id', ElasticSearch::SORTING_ORDER_ASC]);
 
 		$accountId = (int) $settings->get('marketAccountId');
         $reference = $settings->get('referrerId') ? $settings->get('referrerId') : self::RAKUTEN_DE;
