@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.1.8 (2017-05-12)
+
+### Fixed
+- An issue was fixed which caused the variations not to be in the right order.
+
 ## v1.1.7 (2017-05-10)
 
 ### Fixed
