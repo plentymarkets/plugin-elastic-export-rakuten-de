@@ -1,5 +1,10 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## v1.1.9 (2017-05-15)
+
+### Behoben
+- Es wurde ein Fehler behoben, der dazu geführt hat, dass Artikelnummern doppelt übertragen wurden.
+
 ## v1.1.8 (2017-05-12)
 
 ### Behoben
