@@ -3,7 +3,7 @@
 ## v1.1.9 (2017-05-15)
 
 ### Fixed
-- An issue was fixed which caused a duplicate entry for the item number.
+- An issue was fixed which caused a duplicate entry for the itemnumber.
 
 ## v1.1.8 (2017-05-12)
 
