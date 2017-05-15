@@ -160,6 +160,8 @@ class RakutenDE extends CSVPluginGenerator
         $variations = array();
         $lines = 0;
         $limitReached = false;
+        $newShard = false;
+		$validateOnce = false;
 
         $startTime = microtime(true);
 
@@ -192,7 +194,6 @@ class RakutenDE extends CSVPluginGenerator
                 }
 
                 $buildRowStartTime = microtime(true);
-                $validateOnce = false;
 
                 if(is_array($resultList['documents']) && count($resultList['documents']) > 0)
                 {
@@ -245,7 +246,7 @@ class RakutenDE extends CSVPluginGenerator
                         {
                         	try
 							{
-								$this->buildRows($settings, $variations);
+								$this->buildRows($settings, $variations, $newShard);
 							}
 							catch(\Throwable $exception)
 							{
@@ -255,6 +256,7 @@ class RakutenDE extends CSVPluginGenerator
 								]);
 							}
 
+							$newShard = false;
                             $variations = array();
                             $variations[] = $variation;
                             $previousItemId = $variation['data']['item']['id'];
@@ -275,6 +277,9 @@ class RakutenDE extends CSVPluginGenerator
 								'line' => $exception->getLine(),
 							]);
 						}
+
+						$newShard = true;
+						unset($variations);
                     }
 
                     $this->getLogger(__METHOD__)->debug('ElasticExportRakutenDE::log.buildRowDuration', [
@@ -293,8 +298,9 @@ class RakutenDE extends CSVPluginGenerator
     /**
      * @param $settings
      * @param array $variations
+	 * @param bool $crossShardConnection
      */
-    private function buildRows($settings, $variations)
+    private function buildRows($settings, $variations, $crossShardConnection = false)
     {
         if (is_array($variations) && count($variations) > 0)
         {
@@ -349,28 +355,42 @@ class RakutenDE extends CSVPluginGenerator
                  */
                 $attributeValue = $this->elasticExportHelper->getAttributeValueSetShortFrontendName($variation, $settings, '|', $this->attributeNameCombination[$variation['data']['item']['id']]);
 
-                if(count($variations) == 1)
-                {
-                    $this->buildParentWithoutChildrenRow($variation, $settings);
-                }
-                elseif($variation['data']['variation']['isMain'] === false && $i == 1)
-                {
-                    $this->buildParentWithChildrenRow($variation, $settings, $this->attributeName);
-                    $this->buildChildRow($variation, $settings, $attributeValue);
-                }
-                elseif($variation['data']['variation']['isMain'] === true && strlen($attributeValue) > 0)
-                {
-                    $this->buildParentWithChildrenRow($variation, $settings, $this->attributeName);
-                    $this->buildChildRow($variation, $settings, $attributeValue);
-                }
-                elseif($variation['data']['variation']['isMain'] === true && strlen($attributeValue) == 0)
-                {
-                    $this->buildParentWithChildrenRow($variation, $settings, $this->attributeName);
-                }
-                else
-                {
-                    $this->buildChildRow($variation, $settings, $attributeValue);
-                }
+
+				/**
+				 * If it is a new elastic search shard and the first entries are variations from the
+				 * last entries of the shard before, the connected variations will be added as children.
+				 */
+				if($crossShardConnection === true)
+				{
+					$this->buildChildRow($variation, $settings, $attributeValue);
+				}
+
+				elseif(count($variations) == 1)
+				{
+					$this->buildParentWithoutChildrenRow($variation, $settings);
+				}
+
+				elseif($variation['data']['variation']['isMain'] === false && $i == 1)
+				{
+					$this->buildParentWithChildrenRow($variation, $settings, $this->attributeName);
+					$this->buildChildRow($variation, $settings, $attributeValue);
+				}
+
+				elseif($variation['data']['variation']['isMain'] === true && strlen($attributeValue) > 0)
+				{
+					$this->buildParentWithChildrenRow($variation, $settings, $this->attributeName);
+					$this->buildChildRow($variation, $settings, $attributeValue);
+				}
+
+				elseif($variation['data']['variation']['isMain'] === true && strlen($attributeValue) == 0)
+				{
+					$this->buildParentWithChildrenRow($variation, $settings, $this->attributeName);
+				}
+
+				else
+				{
+					$this->buildChildRow($variation, $settings, $attributeValue);
+				}
 
                 $i++;
             }
