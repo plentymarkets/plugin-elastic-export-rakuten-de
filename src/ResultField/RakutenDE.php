@@ -6,6 +6,7 @@ use Plenty\Modules\Cloud\ElasticSearch\Lib\ElasticSearch;
 use Plenty\Modules\DataExchange\Contracts\ResultFields;
 use Plenty\Modules\DataExchange\Models\FormatSetting;
 use Plenty\Modules\Helper\Services\ArrayHelper;
+use Plenty\Modules\Item\Search\Mutators\BarcodeMutator;
 use Plenty\Modules\Item\Search\Mutators\ImageMutator;
 use Plenty\Modules\Cloud\ElasticSearch\Lib\Source\Mutator\BuiltIn\LanguageMutator;
 use Plenty\Modules\Item\Search\Mutators\KeyMutator;
@@ -95,6 +96,15 @@ class RakutenDE extends ResultFields
             $keyMutator->setKeyList($this->getKeyList());
             $keyMutator->setNestedKeyList($this->getNestedKeyList());
         }
+
+		/**
+		 * @var BarcodeMutator $barcodeMutator
+		 */
+		$barcodeMutator = pluginApp(BarcodeMutator::class);
+		if($barcodeMutator instanceof BarcodeMutator)
+		{
+			$barcodeMutator->addMarket($reference);
+		}
 
         /**
          * @var ImageMutator $imageMutator
@@ -204,6 +214,7 @@ class RakutenDE extends ResultFields
                 $languageMutator,
                 $skuMutator,
                 $defaultCategoryMutator,
+				$barcodeMutator,
                 $keyMutator
             ],
         ];

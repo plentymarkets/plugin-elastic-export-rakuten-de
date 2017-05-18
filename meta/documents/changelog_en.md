@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.1.10 (2017-05-18)
+
+### Fixed
+- An issue was fixed which caused elastic search to ignore the set referrers for the barcodes. 
+
 ## v1.1.9 (2017-05-15)
 
 ### Fixed

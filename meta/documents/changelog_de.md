@@ -1,5 +1,10 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## v1.1.10 (2017-05-18)
+
+### Behoben
+- Es wurde ein Fehler behoben, der dazu geführt hat, dass bei dem Barcode die Markplatzfreigabe ignoriert wurde.
+
 ## v1.1.9 (2017-05-15)
 
 ### Behoben
