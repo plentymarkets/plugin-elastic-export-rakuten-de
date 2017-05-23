@@ -2,9 +2,11 @@
 
 namespace ElasticExportRakutenDE\ResultField;
 
+use Plenty\Modules\Cloud\ElasticSearch\Lib\ElasticSearch;
 use Plenty\Modules\DataExchange\Contracts\ResultFields;
 use Plenty\Modules\DataExchange\Models\FormatSetting;
 use Plenty\Modules\Helper\Services\ArrayHelper;
+use Plenty\Modules\Item\Search\Mutators\BarcodeMutator;
 use Plenty\Modules\Item\Search\Mutators\ImageMutator;
 use Plenty\Modules\Cloud\ElasticSearch\Lib\Source\Mutator\BuiltIn\LanguageMutator;
 use Plenty\Modules\Item\Search\Mutators\KeyMutator;
@@ -24,6 +26,7 @@ class RakutenDE extends ResultFields
 
     /**
      * Rakuten constructor.
+	 *
      * @param ArrayHelper $arrayHelper
      */
     public function __construct(ArrayHelper $arrayHelper)
@@ -32,7 +35,7 @@ class RakutenDE extends ResultFields
     }
 
     /**
-     * Generate result fields for Elastic Export.
+     * Generate result fields.
 	 *
      * @param  array $formatSettings = []
      * @return array
@@ -40,11 +43,12 @@ class RakutenDE extends ResultFields
     public function generateResultFields(array $formatSettings = []):array
     {
         $settings = $this->arrayHelper->buildMapFromObjectList($formatSettings, 'key', 'value');
+		$this->setOrderByList(['item.id', ElasticSearch::SORTING_ORDER_ASC]);
 
-        $this->setOrderByList(['variation.itemId', 'ASC']);
-
+		$accountId = (int) $settings->get('marketAccountId');
         $reference = $settings->get('referrerId') ? $settings->get('referrerId') : self::RAKUTEN_DE;
 
+        // texts
         $itemDescriptionFields = ['texts.urlPath'];
 
         switch($settings->get('nameId'))
@@ -63,8 +67,7 @@ class RakutenDE extends ResultFields
                 break;
         }
 
-        if($settings->get('descriptionType') == 'itemShortDescription'
-            || $settings->get('previewTextType') == 'itemShortDescription')
+        if($settings->get('descriptionType') == 'itemShortDescription' || $settings->get('previewTextType') == 'itemShortDescription')
         {
             $itemDescriptionFields[] = 'texts.shortDescription';
         }
@@ -72,52 +75,72 @@ class RakutenDE extends ResultFields
         if($settings->get('descriptionType') == 'itemDescription'
             || $settings->get('descriptionType') == 'itemDescriptionAndTechnicalData'
             || $settings->get('previewTextType') == 'itemDescription'
-            || $settings->get('previewTextType') == 'itemDescriptionAndTechnicalData')
+            || $settings->get('previewTextType') == 'itemDescriptionAndTechnicalData'
+		)
         {
             $itemDescriptionFields[] = 'texts.description';
         }
+
         $itemDescriptionFields[] = 'texts.technicalData';
+		$itemDescriptionFields[] = 'texts.lang';
 
         //Mutator
-        /**
+
+		/**
          * @var KeyMutator $keyMutator
          */
         $keyMutator = pluginApp(KeyMutator::class);
+
         if($keyMutator instanceof KeyMutator)
         {
             $keyMutator->setKeyList($this->getKeyList());
             $keyMutator->setNestedKeyList($this->getNestedKeyList());
         }
 
+		/**
+		 * @var BarcodeMutator $barcodeMutator
+		 */
+		$barcodeMutator = pluginApp(BarcodeMutator::class);
+		if($barcodeMutator instanceof BarcodeMutator)
+		{
+			$barcodeMutator->addMarket($reference);
+		}
+
         /**
          * @var ImageMutator $imageMutator
          */
         $imageMutator = pluginApp(ImageMutator::class);
+
         if($imageMutator instanceof ImageMutator)
         {
             $imageMutator->addMarket($reference);
         }
+
         /**
          * @var LanguageMutator $languageMutator
          */
         $languageMutator = pluginApp(LanguageMutator::class, [[$settings->get('lang')]]);
+
         /**
          * @var SkuMutator $skuMutator
          */
         $skuMutator = pluginApp(SkuMutator::class);
+
         if($skuMutator instanceof SkuMutator)
         {
+        	$skuMutator->setAccount($accountId);
             $skuMutator->setMarket($reference);
         }
+
         /**
          * @var DefaultCategoryMutator $defaultCategoryMutator
          */
         $defaultCategoryMutator = pluginApp(DefaultCategoryMutator::class);
+
         if($defaultCategoryMutator instanceof DefaultCategoryMutator)
         {
             $defaultCategoryMutator->setPlentyId($settings->get('plentyId'));
         }
-
 
         $fields = [
             [
@@ -191,6 +214,7 @@ class RakutenDE extends ResultFields
                 $languageMutator,
                 $skuMutator,
                 $defaultCategoryMutator,
+				$barcodeMutator,
                 $keyMutator
             ],
         ];
@@ -285,6 +309,7 @@ class RakutenDE extends ResultFields
             //properties
             'properties'
         ];
+
         $nestedKeyList['nestedKeys'] = [
             'images.all' => [
                 'urlMiddle',

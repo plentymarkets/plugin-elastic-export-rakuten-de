@@ -1,5 +1,54 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## v1.1.10 (2017-05-18)
+
+### Behoben
+- Es wurde ein Fehler behoben, der dazu geführt hat, dass bei dem Barcode die Markplatzfreigabe ignoriert wurde.
+
+## v1.1.9 (2017-05-15)
+
+### Behoben
+- Es wurde ein Fehler behoben, der dazu geführt hat, dass Artikelnummern doppelt übertragen wurden.
+
+## v1.1.8 (2017-05-12)
+
+### Behoben
+- Es wurde ein Fehler behoben, der dazu geführt hat, dass die Varianten nicht richtig sortiert wurden.
+
+## v1.1.7 (2017-05-10)
+
+### Behoben
+- Bildpositionen werden nun korrekt interpretiert.
+
+## v1.1.6 (2017-05-09)
+
+### Behoben
+- Die Beschreibung wird nun in der konfigurierten Sprache exportiert.
+
+## v1.1.5 (2017-05-05)
+
+### Behoben
+- Es wurde ein Fehler behoben, der dazu geführt hat, dass das Exportformat teilweise nicht geladen werden konnte.
+
+## v1.1.4 (2017-05-04)
+
+### Behoben
+- Es wurde ein Fehler behoben, der dazu geführt hat, dass SKUs teilweise nicht abgespeichert werden konnten..
+
+## v1.1.3 (2017-05-02)
+
+### Behoben
+- Es wurde ein Fehler behoben, der dazu geführt hat, dass die SKU-Ermittlung immer auf den Account 0 bezogen wurde.
+
+### Geändert
+- Die Bestandsfilterlogik wurde in das Elastic Export-Plugin ausgelagert.
+
+## v1.1.2 (2017-04-28)
+
+### Behoben
+- Es wurde ein Fehler behoben, der dazu geführt hat, dass wenn keine Preise an der Variation hinterlegt wurden
+der Preis 0.00 übertragen wurde.
+
 ## v1.1.1 (2017-04-18)
 
 ### Behoben

@@ -1,5 +1,53 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.1.10 (2017-05-18)
+
+### Fixed
+- An issue was fixed which caused elastic search to ignore the set referrers for the barcodes. 
+
+## v1.1.9 (2017-05-15)
+
+### Fixed
+- An issue was fixed which caused a duplicate entry for the itemnumber.
+
+## v1.1.8 (2017-05-12)
+
+### Fixed
+- An issue was fixed which caused the variations not to be in the right order.
+
+## v1.1.7 (2017-05-10)
+
+### Fixed
+- Image positions will now be correctly interpreted.
+
+## v1.1.6 (2017-05-09)
+
+### Fixed
+- The description will now be exported in the configured language. 
+
+## v1.1.5 (2017-05-05)
+
+### Fixed
+- An issue was fixed which caused errors while loading the export format.
+
+## v1.1.4 (2017-05-02)
+
+### Fixed
+- An issue was fixed which caused errors while saving the SKU's.
+
+## v1.1.3 (2017-05-02)
+
+### Fixed
+- An issue was fixed which caused to assign the SKU's always to the account 0.
+
+### Changed
+- Outsourced the stock filter logic to the Elastic Export plugin.
+
+## v1.1.2 (2017-04-28)
+
+### Fixed
+- An issue was fixed which caused to transfer the price 0.00 if no price was set.
+
 ## v1.1.1 (2017-04-18)
 
 ### Fixed
