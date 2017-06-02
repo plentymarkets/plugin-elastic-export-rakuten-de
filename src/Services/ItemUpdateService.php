@@ -9,6 +9,7 @@ use Plenty\Modules\Item\Search\Contracts\VariationElasticSearchScrollRepositoryC
 use Plenty\Modules\Market\Credentials\Contracts\CredentialsRepositoryContract;
 use Plenty\Modules\Market\Credentials\Models\Credentials;
 use Plenty\Modules\Market\Helper\Contracts\MarketAttributeHelperRepositoryContract;
+use Plenty\Plugin\ConfigRepository;
 use Plenty\Plugin\Log\Loggable;
 use Plenty\Repositories\Models\PaginatedResult;
 
@@ -21,30 +22,41 @@ class ItemUpdateService
 	use Loggable;
 
 	const RAKUTEN_DE = 106.00;
+
 	/**
 	 * @var MarketAttributeHelperRepositoryContract
 	 */
 	private $marketAttributeHelperRepositoryContract;
+
 	/**
 	 * @var ElasticSearchDataProvider
 	 */
 	private $elasticSearchDataProvider;
+
 	/**
 	 * @var StockHelper
 	 */
 	private $stockHelper;
+
 	/**
 	 * @var Client
 	 */
 	private $client;
+
 	/**
 	 * @var CredentialsRepositoryContract
 	 */
 	private $credentialsRepositoryContract;
+
 	/**
 	 * @var PriceHelper
 	 */
 	private $priceHelper;
+
+	/**
+	 * @var ConfigRepository
+	 */
+	private $configRepository;
 
 	/**
 	 * ItemUpdateService constructor.
@@ -54,6 +66,7 @@ class ItemUpdateService
 	 * @param PriceHelper $priceHelper
 	 * @param Client $client
 	 * @param CredentialsRepositoryContract $credentialsRepositoryContract
+	 * @param ConfigRepository $configRepository
 	 */
 	public function __construct(
 		MarketAttributeHelperRepositoryContract $marketAttributeHelperRepositoryContract,
@@ -62,7 +75,7 @@ class ItemUpdateService
 		PriceHelper $priceHelper,
 		Client $client,
 		CredentialsRepositoryContract $credentialsRepositoryContract,
-		VariationElasticSearchScrollRepositoryContract $elasticSearch)
+		ConfigRepository $configRepository)
 	{
 		$this->marketAttributeHelperRepositoryContract = $marketAttributeHelperRepositoryContract;
 		$this->elasticSearchDataProvider = $elasticSearchDataProvider;
@@ -70,6 +83,7 @@ class ItemUpdateService
 		$this->client = $client;
 		$this->credentialsRepositoryContract = $credentialsRepositoryContract;
 		$this->priceHelper = $priceHelper;
+		$this->configRepository = $configRepository;
 	}
 
 	/**
@@ -91,19 +105,16 @@ class ItemUpdateService
 					if($rakutenCredential instanceof Credentials)
 					{
 						$apiKey = $rakutenCredential->data['key'];
-						if($rakutenCredential->data['activate_data_transfer'] == 1) //todo maybe adjust key
+
+						$priceUpdate = $this->configRepository->get('update_settings.price_update');
+						$stockUpdate = $this->configRepository->get('update_settings.stock_update');
+
+						if($stockUpdate == 1 || $stockUpdate == 1) //todo maybe adjust key
 						{
 							$elasticSearch = $this->elasticSearchDataProvider->prepareElasticSearchSearch($elasticSearch, $rakutenCredential);
 
-							$limitReached = false;
-
 							do
 							{
-								if($limitReached === true)
-								{
-									break;
-								}
-
 								$resultList = $elasticSearch->execute();
 
 								if(is_array($resultList['documents']) && count($resultList['documents']) > 0)
@@ -116,7 +127,7 @@ class ItemUpdateService
 											'apiKey'	=>	$apiKey
 										];
 
-										if($rakutenCredential->data['price_update'] == 1)
+										if($priceUpdate == 1)
 										{
 											$price = $this->priceHelper->getPrice($variation);
 
@@ -133,7 +144,7 @@ class ItemUpdateService
 
 										}
 
-										if($rakutenCredential->data['stock_update'] == 1)
+										if($stockUpdate == 1)
 										{
 											$stock = $this->stockHelper->getStock($variation);
 											$content['stock'] = $stock;
