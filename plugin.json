@@ -3,7 +3,7 @@
   "namespace": "ElasticExportRakutenDE",
   "type": "export",
   "serviceProvider": "ElasticExportRakutenDE\\ElasticExportRakutenDEServiceProvider",
-  "version": "1.1.10",
+  "version": "1.1.11",
   "license": "GNU AFFERO GENERAL PUBLIC LICENSE Version 3, 19 November 2007",
   "pluginIcon": "icon_plugin_md.png",
   "price": 0.00,
@@ -12,16 +12,12 @@
     "de": "Das Plugin ElasticExportRakutenDE fügt das Datenformat RakutenDE zum Elastischen Export hinzu.",
     "en": "This plugin adds the format RakutenDE to the Elastic Export."
   },
-  "categories": [
-    "3523"
-  ],
+  "categories": ["3523"],
   "author": "plentymarkets GmbH",
   "authorIcon": "icon_author_xs.png",
   "marketplaceName": {
     "de":"Rakuten.de",
     "en":"Rakuten.de"
   },
-  "require": {
-    "ElasticExport": ">=1.0.13"
-  }
+  "require": ["ElasticExport"]
 }

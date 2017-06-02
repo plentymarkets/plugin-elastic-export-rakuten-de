@@ -1,5 +1,10 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## v1.1.11 (2017-06-02)
+
+### Behoben
+- Durch einen Fehler wurden in der Preisermittlungen Mandanten nicht korrekt berücksichtigt.
+
 ## v1.1.10 (2017-05-18)
 
 ### Behoben
