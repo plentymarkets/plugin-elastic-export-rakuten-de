@@ -946,6 +946,7 @@ class RakutenDE extends CSVPluginGenerator
         {
             $salesPriceSearchRequest->variationId = $item['id'];
             $salesPriceSearchRequest->referrerId = $settings->get('referrerId');
+            $salesPriceSearchRequest->plentyId = $settings->get('plentyId');
         }
 
         $salesPriceSearch  = $this->salesPriceSearchRepository->search($salesPriceSearchRequest);

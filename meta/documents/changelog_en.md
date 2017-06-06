@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.1.11 (2017-06-02)
+
+### Fixed
+- An issue was fixed which caused the export to use the wrong webstore client to get the price.
+
 ## v1.1.10 (2017-05-18)
 
 ### Fixed
