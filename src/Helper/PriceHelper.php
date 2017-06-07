@@ -67,6 +67,8 @@ class PriceHelper
 		{
 			$salesPriceSearchRequest->variationId = $item['id'];
 			$salesPriceSearchRequest->referrerId = $settings->get('referrerId');
+			$salesPriceSearchRequest->plentyId = $settings->get('plentyId');
+			$salesPriceSearchRequest->type = 'default';
 		}
 
 		$salesPriceSearch  = $this->salesPriceSearchRepositoryContract->search($salesPriceSearchRequest);

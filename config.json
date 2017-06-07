@@ -1,12 +1,6 @@
 [
   {
     "tab"       : "Update Einstellungen",
-    "key"       : "update_settings.activate_data_transfer",
-    "label"     : "Automatische Datenübertragung aktivieren",
-    "type"      : "checkbox"
-  },
-  {
-    "tab"       : "Update Einstellungen",
     "key"       : "update_settings.price_update",
     "label"     : "Preis-Update",
     "type"      : "checkbox"

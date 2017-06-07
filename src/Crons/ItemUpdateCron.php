@@ -6,14 +6,14 @@ use ElasticExportRakutenDE\Services\ItemUpdateService;
 use Plenty\Plugin\Log\Loggable;
 
 /**
- * @class ItemUpateCron
+ * @class ItemUpdateCron
  */
-class ItemUpateCron
+class ItemUpdateCron
 {
 	use Loggable;
 
 	/**
-	 * ItemUpateCron constructor.
+	 * ItemUpdateCron constructor.
 	 */
 	public function __construct()
 	{

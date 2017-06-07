@@ -97,7 +97,7 @@ class ItemUpdateService
 
 		if($elasticSearch instanceof VariationElasticSearchScrollRepositoryContract)
 		{
-			$rakutenCredentialList = $this->credentialsRepositoryContract->search(['market' => 'rakuten']);
+			$rakutenCredentialList = $this->credentialsRepositoryContract->search(['market' => 'rakuten.de']);
 			if($rakutenCredentialList instanceof PaginatedResult)
 			{
 				foreach($rakutenCredentialList->getResult() as $rakutenCredential)
@@ -106,10 +106,10 @@ class ItemUpdateService
 					{
 						$apiKey = $rakutenCredential->data['key'];
 
-						$priceUpdate = $this->configRepository->get('update_settings.price_update');
-						$stockUpdate = $this->configRepository->get('update_settings.stock_update');
+						$priceUpdate = $this->configRepository->get('ElasticExportRakutenDE.update_settings.price_update');
+						$stockUpdate = $this->configRepository->get('ElasticExportRakutenDE.update_settings.stock_update');
 
-						if($stockUpdate == 1 || $stockUpdate == 1) //todo maybe adjust key
+						if($priceUpdate == "true" || $stockUpdate == "true")
 						{
 							$elasticSearch = $this->elasticSearchDataProvider->prepareElasticSearchSearch($elasticSearch, $rakutenCredential);
 
@@ -127,7 +127,19 @@ class ItemUpdateService
 											'apiKey'	=>	$apiKey
 										];
 
-										if($priceUpdate == 1)
+										$sku = $variation['data']['skus'][0]['sku'];
+
+										//Need different content keys for the calls, depending on the update type
+										if($endPoint == Client::EDIT_PRODUCT)
+										{
+											$content['product_art_no'] = $sku;
+										}
+										else
+										{
+											$content['variant_art_no'] = $sku;
+										}
+
+										if($priceUpdate == "true")
 										{
 											$price = $this->priceHelper->getPrice($variation);
 
@@ -144,7 +156,7 @@ class ItemUpdateService
 
 										}
 
-										if($stockUpdate == 1)
+										if($stockUpdate == "true")
 										{
 											$stock = $this->stockHelper->getStock($variation);
 											$content['stock'] = $stock;

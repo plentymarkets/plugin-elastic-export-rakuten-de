@@ -7,7 +7,7 @@ use Plenty\Log\Services\ReferenceContainer;
 use Plenty\Modules\Cron\Services\CronContainer;
 use Plenty\Modules\DataExchange\Services\ExportPresetContainer;
 use Plenty\Plugin\DataExchangeServiceProvider;
-use ElasticExportRakutenDE\Crons\ItemUpateCron as ItemUpateCron;
+use ElasticExportRakutenDE\Crons\ItemUpdateCron;
 use Plenty\Plugin\ServiceProvider as ServiceProvider;
 
 class ElasticExportRakutenDEServiceProvider extends ServiceProvider //DataExchangeServiceProvider
@@ -31,6 +31,6 @@ class ElasticExportRakutenDEServiceProvider extends ServiceProvider //DataExchan
             true
         );
 
-		$cronContainer->add(CronContainer::HOURLY, ItemUpateCron::class);
+		$cronContainer->add(CronContainer::HOURLY, ItemUpdateCron::class);
 	}
 }

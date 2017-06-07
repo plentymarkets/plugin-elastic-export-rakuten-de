@@ -2,11 +2,15 @@
 
 namespace ElasticExportRakutenDE\DataProvider;
 
+use Plenty\Modules\Cloud\ElasticSearch\Lib\ElasticSearch;
 use Plenty\Modules\Cloud\ElasticSearch\Lib\Search\Document\DocumentSearch;
-use Plenty\Modules\Cloud\ElasticSearch\Lib\Sorting\SortingInterface;
+use Plenty\Modules\Cloud\ElasticSearch\Lib\Processor\DocumentProcessor;
+use Plenty\Modules\Cloud\ElasticSearch\Lib\Sorting\SingleSorting;
+use Plenty\Modules\Cloud\ElasticSearch\Lib\Source\Mutator\MutatorInterface;
 use Plenty\Modules\Item\Search\Contracts\VariationElasticSearchScrollRepositoryContract;
 use Plenty\Modules\Item\Search\Filter\SkuFilter;
 use Plenty\Modules\Cloud\ElasticSearch\Lib\Source\IndependentSource;
+use Plenty\Modules\Item\Search\Mutators\SkuMutator;
 use Plenty\Modules\Market\Credentials\Models\Credentials;
 
 class ElasticSearchDataProvider
@@ -21,6 +25,8 @@ class ElasticSearchDataProvider
 	public function prepareElasticSearchSearch($elasticSearch, $rakutenCredential)
 	{
 		$resultFields = $this->getResultFields();
+
+		//ResultList
 		/**
 		 * @var IndependentSource $independentSource
 		 */
@@ -32,10 +38,39 @@ class ElasticSearchDataProvider
 			$independentSource->activateList($resultFields);
 		}
 
+		$accountId = 0;
+		if($rakutenCredential instanceof Credentials)
+		{
+			$accountId = $rakutenCredential->id;
+		}
+
+		/**
+		 * @var SkuMutator $skuMutator
+		 */
+		$skuMutator = pluginApp(SkuMutator::class);
+
+		if($skuMutator instanceof SkuMutator)
+		{
+			$skuMutator->setAccount($accountId);
+			$skuMutator->setMarket((int)self::RAKUTEN_DE);
+		}
+
+		/**
+		 * @var DocumentProcessor $documentProcessor
+		 */
+		$documentProcessor = pluginApp(DocumentProcessor::class);
+		if($documentProcessor instanceof DocumentProcessor)
+		{
+			if($skuMutator instanceof MutatorInterface)
+			{
+				$documentProcessor->addMutator($skuMutator);
+			}
+		}
+
 		/**
 		 * @var DocumentSearch $documentSearch
 		 */
-		$documentSearch = pluginApp(DocumentSearch::class);
+		$documentSearch = pluginApp(DocumentSearch::class, [$documentProcessor]);
 		if($documentSearch instanceof DocumentSearch)
 		{
 			$documentSearch->addSource($independentSource);
@@ -46,23 +81,16 @@ class ElasticSearchDataProvider
 		{
 			$skuFilter->hasMarketId(self::RAKUTEN_DE);
 
-			$accountId = 0;
-			if($rakutenCredential instanceof Credentials)
-			{
-				$accountId = $rakutenCredential->data['id'];
-			}
-
 			$skuFilter->hasAccountId($accountId);
 
 			$documentSearch->addFilter($skuFilter);
 		}
 
-		/**
-		 * @var SortingInterface $sortingInterface
-		 */
-		$sortingInterface = pluginApp(SortingInterface::class, ['variation.itemId', 'ASC']);
-		if($sortingInterface instanceof SortingInterface)
-		$documentSearch->setSorting($sortingInterface);
+		$singleSorting = pluginApp(SingleSorting::class, ['item.id', ElasticSearch::SORTING_ORDER_ASC]);
+		if($singleSorting instanceof SingleSorting)
+		{
+			$documentSearch->setSorting($singleSorting);
+		}
 
 		$elasticSearch->addSearch($documentSearch);
 
