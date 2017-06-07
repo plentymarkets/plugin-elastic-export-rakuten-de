@@ -358,9 +358,4 @@ class RakutenDE extends ResultFields
 
         return $nestedKeyList;
     }
-
-    public function generateUpdateResultFields()
-	{
-
-	}
 }

@@ -10,6 +10,7 @@ use Plenty\Modules\Cloud\ElasticSearch\Lib\Source\Mutator\MutatorInterface;
 use Plenty\Modules\Item\Search\Contracts\VariationElasticSearchScrollRepositoryContract;
 use Plenty\Modules\Item\Search\Filter\SkuFilter;
 use Plenty\Modules\Cloud\ElasticSearch\Lib\Source\IndependentSource;
+use Plenty\Modules\Item\Search\Mutators\KeyMutator;
 use Plenty\Modules\Item\Search\Mutators\SkuMutator;
 use Plenty\Modules\Market\Credentials\Models\Credentials;
 
@@ -45,6 +46,11 @@ class ElasticSearchDataProvider
 		}
 
 		/**
+		 * @var DocumentProcessor $documentProcessor
+		 */
+		$documentProcessor = pluginApp(DocumentProcessor::class);
+
+		/**
 		 * @var SkuMutator $skuMutator
 		 */
 		$skuMutator = pluginApp(SkuMutator::class);
@@ -53,17 +59,29 @@ class ElasticSearchDataProvider
 		{
 			$skuMutator->setAccount($accountId);
 			$skuMutator->setMarket((int)self::RAKUTEN_DE);
+
+			if($documentProcessor instanceof DocumentProcessor)
+			{
+				if($skuMutator instanceof MutatorInterface)
+				{
+					$documentProcessor->addMutator($skuMutator);
+				}
+			}
 		}
 
-		/**
-		 * @var DocumentProcessor $documentProcessor
-		 */
-		$documentProcessor = pluginApp(DocumentProcessor::class);
-		if($documentProcessor instanceof DocumentProcessor)
+		$keyMutator = pluginApp(KeyMutator::class);
+
+		if($keyMutator instanceof KeyMutator)
 		{
-			if($skuMutator instanceof MutatorInterface)
+			$keyMutator->setKeyList($this->getKeyList());
+			$keyMutator->setNestedKeyList($this->getNestedKeyList());
+
+			if($documentProcessor instanceof DocumentProcessor)
 			{
-				$documentProcessor->addMutator($skuMutator);
+				if($keyMutator instanceof MutatorInterface)
+				{
+					$documentProcessor->addMutator($keyMutator);
+				}
 			}
 		}
 
@@ -106,8 +124,6 @@ class ElasticSearchDataProvider
 	private function getResultFields()
 	{
 		return [
-			'id',
-
 			//item
 			'item.id',
 
@@ -125,5 +141,47 @@ class ElasticSearchDataProvider
 			'attributes.names.name',
 			'attributes.names.lang',
 		];
+	}
+
+	private function getKeyList()
+	{
+		$keyList = [
+			//item
+			'item.id',
+
+			//variation
+			'variation.stockLimitation',
+			'variation.isMain',
+		];
+
+		return $keyList;
+	}
+
+	private function getNestedKeyList()
+	{
+		$nestedKeyList['keys'] = [
+			//sku
+			'skus',
+
+			//attributes
+			'attributes',
+		];
+
+		$nestedKeyList['nestedKeys'] = [
+
+			'skus' => [
+				'sku'
+			],
+
+			'attributes'   => [
+				'attributeValueSetId',
+				'attributeId',
+				'valueId',
+				'names.name',
+				'names.lang',
+			],
+		];
+
+		return $nestedKeyList;
 	}
 }
