@@ -125,7 +125,7 @@ In der folgenden Tabelle finden Sie spezifische Hinweise zu den Einstellungen, F
         </td>
         <td>
             Dies muss aktiviert sein, da Rakuten.de nur spezifische Werte akzeptiert, die hier eingetragen werden müssen.<br> 
-            Weitere Informationen dazu im Abschnitt <b>3 Übersicht der verfügbaren Spalten</b> bei der Spalte <b>lieferzeit</b>.
+            Weitere Informationen dazu im Abschnitt <b>3 Übersicht der verfügbaren Spalten</b> bei der <b>lieferzeit</b>.
         </td>        
     </tr>
 </table>
