@@ -27,7 +27,7 @@ In der folgenden Tabelle finden Sie spezifische Hinweise zu den Einstellungen, F
     <tr>
         <th colspan="2">
             Einstellungen
-        <td>
+        </th>
     </tr>
     <tr>
         <td>
@@ -56,7 +56,7 @@ In der folgenden Tabelle finden Sie spezifische Hinweise zu den Einstellungen, F
     <tr>
         <th colspan="2">
             Artikelfilter
-        <th>
+        </th>
     </tr>
     <tr>
         <td>
@@ -77,7 +77,7 @@ In der folgenden Tabelle finden Sie spezifische Hinweise zu den Einstellungen, F
     <tr>
         <th colspan="2">
             Formateinstellungen
-        <th>
+        </th>
     </tr>
     <tr>
         <td>
