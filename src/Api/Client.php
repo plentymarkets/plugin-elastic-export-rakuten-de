@@ -19,6 +19,9 @@ class Client
 	const EDIT_PRODUCT = 'products/editProduct';
 	const EDIT_PRODUCT_VARIANT = 'products/editProductVariant';
 
+	const PRODUCT_ART_NO = 'product_art_no';
+	const VARIANT_ART_NO = 'variant_art_no';
+
 	/**
 	 * ApiClient constructor.
 	 */

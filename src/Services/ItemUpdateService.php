@@ -124,7 +124,7 @@ class ItemUpdateService
 										$endPoint = $this->getEndpoint($variation);
 
 										$content = [
-											'apiKey'	=>	$apiKey
+											'key'	=>	$apiKey
 										];
 
 										$sku = $variation['data']['skus'][0]['sku'];
@@ -132,11 +132,11 @@ class ItemUpdateService
 										//Need different content keys for the calls, depending on the update type
 										if($endPoint == Client::EDIT_PRODUCT)
 										{
-											$content['product_art_no'] = $sku;
+											$content[Client::EDIT_PRODUCT] = $sku;
 										}
 										else
 										{
-											$content['variant_art_no'] = $sku;
+											$content[Client::EDIT_PRODUCT_VARIANT] = $sku;
 										}
 
 										if($priceUpdate == "true")
@@ -166,6 +166,13 @@ class ItemUpdateService
 									}
 								}
 
+								if(strlen($resultList['error']))
+								{
+									$this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.esError', [
+										'error message' => $resultList['error']
+									]);
+								}
+
 							} while ($elasticSearch->hasNext());
 						}
 					}
@@ -174,7 +181,11 @@ class ItemUpdateService
 		}
 	}
 
-	private function getEndpoint($variation)
+	/**
+	 * @param $variation
+	 * @return string
+	 */
+	private function getEndpoint($variation):string
 	{
 		/**
 		 * gets the attribute value name of each attribute value which is linked with the variation in a specific order,
@@ -182,11 +193,13 @@ class ItemUpdateService
 		 */
 		$attributeValue = $this->getAttributeValueSetShortFrontendName($variation);
 
+		/**
+		 * This is used to get the right endpoint depending on the variation is a parent or not
+		 */
 		if($variation['data']['variation']['isMain'] === false)
 		{
 			return Client::EDIT_PRODUCT_VARIANT;
 		}
-
 		elseif($variation['data']['variation']['isMain'] === true && count($attributeValue) > 0)
 		{
 			return Client::EDIT_PRODUCT_VARIANT;
@@ -201,7 +214,11 @@ class ItemUpdateService
 		}
 	}
 
-	private function getAttributeValueSetShortFrontendName($variation)
+	/**
+	 * @param $variation
+	 * @return array
+	 */
+	private function getAttributeValueSetShortFrontendName($variation):array
 	{
 		$values = [];
 		$unsortedValues = [];
