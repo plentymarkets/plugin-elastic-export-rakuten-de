@@ -148,7 +148,7 @@ In der folgenden Tabelle finden Sie spezifische Hinweise zu den Einstellungen, F
         </td>
         <td>
             <b>Pflichtfeld</b> bei Variantenartikeln<br>
-            <b>Ausgabe:</b> Die **Artikel-ID** des Artikels mit dem Präfix **#**.
+            <b>Ausgabe:</b> Die <b>Artikel-ID</b> des Artikels mit dem Präfix <b>#</b>.
         </td>        
     </tr>
     <tr>
@@ -157,7 +157,7 @@ In der folgenden Tabelle finden Sie spezifische Hinweise zu den Einstellungen, F
         </td>
         <td>
             <b>Pflichtfeld</b> bei Variantenartikeln<br>
-            <b>Ausgabe:</b> Die **Artikel-ID** des Artikels mit dem Präfix **#**.
+            <b>Ausgabe:</b> Die <b>Artikel-ID</b> des Artikels mit dem Präfix <b>#</b>.
         </td>        
     </tr>
     <tr>
@@ -277,7 +277,7 @@ In der folgenden Tabelle finden Sie spezifische Hinweise zu den Einstellungen, F
         </td>
         <td>
             <b>Beschränkung:</b> max. 5 Vorkommastellen<br>
-            <b>Ausgabe:</b> Wenn die Formateinstellung **UVP** und/oder **Angebotspreis** aktiviert wurde, steht hier der Verkaufspreis oder Angebotspreis.
+            <b>Ausgabe:</b> Wenn die Formateinstellung <b>UVP</b> und/oder <b>Angebotspreis</b> aktiviert wurde, steht hier der Verkaufspreis oder Angebotspreis.
         </td>        
     </tr>
     <tr>
