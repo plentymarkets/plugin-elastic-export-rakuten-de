@@ -5,6 +5,7 @@ namespace ElasticExportRakutenDE\Helper;
 use Plenty\Modules\Item\SalesPrice\Contracts\SalesPriceSearchRepositoryContract;
 use Plenty\Modules\Item\SalesPrice\Models\SalesPriceSearchRequest;
 use Plenty\Modules\Helper\Models\KeyValue;
+use Plenty\Modules\Order\Currency\Contracts\CurrencyRepositoryContract;
 
 class PriceHelper
 {
@@ -16,22 +17,31 @@ class PriceHelper
 	 * @var SalesPriceSearchRepositoryContract
 	 */
 	private $salesPriceSearchRepositoryContract;
+	/**
+	 * @var CurrencyRepositoryContract
+	 */
+	private $currencyRepositoryContract;
 
 	/**
 	 * PriceHelper constructor.
 	 * @param SalesPriceSearchRepositoryContract $salesPriceSearchRepositoryContract
+	 * @param CurrencyRepositoryContract $currencyRepositoryContract
 	 */
-	public function __construct(SalesPriceSearchRepositoryContract $salesPriceSearchRepositoryContract)
+	public function __construct(
+		SalesPriceSearchRepositoryContract $salesPriceSearchRepositoryContract,
+		CurrencyRepositoryContract $currencyRepositoryContract)
 	{
 		$this->salesPriceSearchRepositoryContract = $salesPriceSearchRepositoryContract;
+		$this->currencyRepositoryContract = $currencyRepositoryContract;
 	}
 
 	/**
 	 * Get a List of price, reduced price and the reference for the reduced price.
 	 * @param array $variation
+	 * @param KeyValue $settings
 	 * @return float
 	 */
-	public function getPrice($variation)
+	public function getPrice($variation, $settings)
 	{
 		//getting the retail price
 		/**
@@ -40,8 +50,15 @@ class PriceHelper
 		$salesPriceSearchRequest = pluginApp(SalesPriceSearchRequest::class);
 		if($salesPriceSearchRequest instanceof SalesPriceSearchRequest)
 		{
+			$countryId = $settings->get('destination');
+			$currency = $this->currencyRepositoryContract->getCountryCurrency($countryId)->currency;
+
 			$salesPriceSearchRequest->variationId = $variation['id'];
-			$salesPriceSearchRequest->referrerId = self::RAKUTEN_DE;
+			$salesPriceSearchRequest->referrerId = $settings->get('referrerId');
+			$salesPriceSearchRequest->plentyId = $settings->get('plentyId');
+			$salesPriceSearchRequest->type = 'default';
+			$salesPriceSearchRequest->countryId = $countryId;
+			$salesPriceSearchRequest->currency = $currency;
 		}
 
 		$salesPriceSearch  = $this->salesPriceSearchRepositoryContract->search($salesPriceSearchRequest);
@@ -58,6 +75,9 @@ class PriceHelper
 	 */
 	public function getPriceList($item, KeyValue $settings):array
 	{
+		$countryId = $settings->get('destination');
+		$currency = $this->currencyRepositoryContract->getCountryCurrency($countryId)->currency;
+
 		//getting the retail price
 		/**
 		 * SalesPriceSearchRequest $salesPriceSearchRequest
@@ -69,6 +89,8 @@ class PriceHelper
 			$salesPriceSearchRequest->referrerId = $settings->get('referrerId');
 			$salesPriceSearchRequest->plentyId = $settings->get('plentyId');
 			$salesPriceSearchRequest->type = 'default';
+			$salesPriceSearchRequest->countryId = $countryId;
+			$salesPriceSearchRequest->currency = $currency;
 		}
 
 		$salesPriceSearch  = $this->salesPriceSearchRepositoryContract->search($salesPriceSearchRequest);

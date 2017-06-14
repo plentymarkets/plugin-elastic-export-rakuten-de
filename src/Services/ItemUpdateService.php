@@ -5,6 +5,9 @@ use ElasticExportRakutenDE\Api\Client;
 use ElasticExportRakutenDE\DataProvider\ElasticSearchDataProvider;
 use ElasticExportRakutenDE\Helper\PriceHelper;
 use ElasticExportRakutenDE\Helper\StockHelper;
+use Plenty\Modules\DataExchange\Contracts\ExportRepositoryContract;
+use Plenty\Modules\DataExchange\Models\Export;
+use Plenty\Modules\Helper\Services\ArrayHelper;
 use Plenty\Modules\Item\Search\Contracts\VariationElasticSearchScrollRepositoryContract;
 use Plenty\Modules\Market\Credentials\Contracts\CredentialsRepositoryContract;
 use Plenty\Modules\Market\Credentials\Models\Credentials;
@@ -57,6 +60,10 @@ class ItemUpdateService
 	 * @var ConfigRepository
 	 */
 	private $configRepository;
+	/**
+	 * @var ExportRepositoryContract
+	 */
+	private $exportRepositoryContract;
 
 	/**
 	 * ItemUpdateService constructor.
@@ -67,6 +74,7 @@ class ItemUpdateService
 	 * @param Client $client
 	 * @param CredentialsRepositoryContract $credentialsRepositoryContract
 	 * @param ConfigRepository $configRepository
+	 * @param ExportRepositoryContract $exportRepositoryContract
 	 */
 	public function __construct(
 		MarketAttributeHelperRepositoryContract $marketAttributeHelperRepositoryContract,
@@ -75,7 +83,8 @@ class ItemUpdateService
 		PriceHelper $priceHelper,
 		Client $client,
 		CredentialsRepositoryContract $credentialsRepositoryContract,
-		ConfigRepository $configRepository)
+		ConfigRepository $configRepository,
+		ExportRepositoryContract $exportRepositoryContract)
 	{
 		$this->marketAttributeHelperRepositoryContract = $marketAttributeHelperRepositoryContract;
 		$this->elasticSearchDataProvider = $elasticSearchDataProvider;
@@ -84,6 +93,7 @@ class ItemUpdateService
 		$this->credentialsRepositoryContract = $credentialsRepositoryContract;
 		$this->priceHelper = $priceHelper;
 		$this->configRepository = $configRepository;
+		$this->exportRepositoryContract = $exportRepositoryContract;
 	}
 
 	/**
@@ -94,6 +104,7 @@ class ItemUpdateService
 	public function generateContent()
 	{
 		$elasticSearch = pluginApp(VariationElasticSearchScrollRepositoryContract::class);
+		$exportList = $this->exportRepositoryContract->search(['formatKey' => 'RakutenDE-Plugin']);
 
 		if($elasticSearch instanceof VariationElasticSearchScrollRepositoryContract)
 		{
@@ -102,78 +113,94 @@ class ItemUpdateService
 			{
 				foreach($rakutenCredentialList->getResult() as $rakutenCredential)
 				{
-					if($rakutenCredential instanceof Credentials)
+					$successfulIteration = false;
+
+					foreach($exportList->getResult() as $export)
 					{
-						$apiKey = $rakutenCredential->data['key'];
-
-						$priceUpdate = $this->configRepository->get('ElasticExportRakutenDE.update_settings.price_update');
-						$stockUpdate = $this->configRepository->get('ElasticExportRakutenDE.update_settings.stock_update');
-
-						if($priceUpdate == "true" || $stockUpdate == "true")
+						if($export instanceof Export && $successfulIteration === false)
 						{
-							$elasticSearch = $this->elasticSearchDataProvider->prepareElasticSearchSearch($elasticSearch, $rakutenCredential);
-
-							do
+							$settings = $export->formatSettings->all();
+							$settings = pluginApp(ArrayHelper::class)->buildMapFromObjectList($settings, 'key', 'value');
+							if($rakutenCredential instanceof Credentials)
 							{
-								$resultList = $elasticSearch->execute();
-
-								if(is_array($resultList['documents']) && count($resultList['documents']) > 0)
+								if((int)$rakutenCredential->id != (int)$settings->get('marketAccountId'))
 								{
-									foreach($resultList['documents'] as $variation)
+									continue;
+								}
+								$successfulIteration = true;
+
+								$apiKey = $rakutenCredential->data['key'];
+
+								$priceUpdate = $this->configRepository->get('ElasticExportRakutenDE.update_settings.price_update');
+								$stockUpdate = $this->configRepository->get('ElasticExportRakutenDE.update_settings.stock_update');
+
+								if($priceUpdate == "true" || $stockUpdate == "true")
+								{
+									$elasticSearch = $this->elasticSearchDataProvider->prepareElasticSearchSearch($elasticSearch, $rakutenCredential);
+
+									do
 									{
-										$endPoint = $this->getEndpoint($variation);
+										$resultList = $elasticSearch->execute();
 
-										$content = [
-											'key'	=>	$apiKey
-										];
-
-										$sku = $variation['data']['skus'][0]['sku'];
-
-										//Need different content keys for the calls, depending on the update type
-										if($endPoint == Client::EDIT_PRODUCT)
+										if(is_array($resultList['documents']) && count($resultList['documents']) > 0)
 										{
-											$content[Client::EDIT_PRODUCT] = $sku;
-										}
-										else
-										{
-											$content[Client::EDIT_PRODUCT_VARIANT] = $sku;
-										}
-
-										if($priceUpdate == "true")
-										{
-											$price = $this->priceHelper->getPrice($variation);
-
-											if($price > 0)
+											foreach($resultList['documents'] as $variation)
 											{
-												$price = number_format((float)$price, 2, '.', '');
-											}
-											else
-											{
-												$price = '';
-											}
+												$endPoint = $this->getEndpoint($variation);
 
-											$content['price'] = $price;
+												$content = [
+													'key'	=>	$apiKey
+												];
 
+												$sku = $variation['data']['skus'][0]['sku'];
+
+												//Need different content keys for the calls, depending on the update type
+												if($endPoint == Client::EDIT_PRODUCT)
+												{
+													$content[Client::EDIT_PRODUCT] = $sku;
+												}
+												else
+												{
+													$content[Client::EDIT_PRODUCT_VARIANT] = $sku;
+												}
+
+												if($priceUpdate == "true")
+												{
+													$price = $this->priceHelper->getPrice($variation, $settings);
+
+													if($price > 0)
+													{
+														$price = number_format((float)$price, 2, '.', '');
+													}
+													else
+													{
+														$price = '';
+													}
+
+													$content['price'] = $price;
+
+												}
+
+												if($stockUpdate == "true")
+												{
+													$stock = $this->stockHelper->getStock($variation);
+													$content['stock'] = $stock;
+												}
+
+												$this->client->call($endPoint, Client::POST, $content);
+											}
 										}
 
-										if($stockUpdate == "true")
+										if(strlen($resultList['error']))
 										{
-											$stock = $this->stockHelper->getStock($variation);
-											$content['stock'] = $stock;
+											$this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.esError', [
+												'error message' => $resultList['error']
+											]);
 										}
 
-										$this->client->call($endPoint, Client::POST, $content);
-									}
+									} while ($elasticSearch->hasNext());
 								}
-
-								if(strlen($resultList['error']))
-								{
-									$this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.esError', [
-										'error message' => $resultList['error']
-									]);
-								}
-
-							} while ($elasticSearch->hasNext());
+							}
 						}
 					}
 				}
