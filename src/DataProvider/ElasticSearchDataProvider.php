@@ -130,6 +130,7 @@ class ElasticSearchDataProvider
 			//variation
 			'variation.isMain',
 			'variation.stockLimitation',
+			'variation.isActive',
 
 			//skus
 			'skus.sku',
@@ -140,6 +141,9 @@ class ElasticSearchDataProvider
 			'attributes.valueId',
 			'attributes.names.name',
 			'attributes.names.lang',
+
+			//ids
+			'ids.markets',
 		];
 	}
 
@@ -165,6 +169,9 @@ class ElasticSearchDataProvider
 
 			//attributes
 			'attributes',
+
+			//ids
+			'ids.market'
 		];
 
 		$nestedKeyList['nestedKeys'] = [

@@ -1,6 +1,7 @@
 <?php
 
 namespace ElasticExportRakutenDE\Services;
+
 use ElasticExportRakutenDE\Api\Client;
 use ElasticExportRakutenDE\DataProvider\ElasticSearchDataProvider;
 use ElasticExportRakutenDE\Helper\PriceHelper;
@@ -27,7 +28,7 @@ class ItemUpdateService
 	const RAKUTEN_DE = 106.00;
 
 	/**
-	 * @var MarketAttributeHelperRepositoryContract
+	 * @var MarketAttributeHelperRepositoryContract $marketAttributeHelperRepositoryContract
 	 */
 	private $marketAttributeHelperRepositoryContract;
 
@@ -61,7 +62,7 @@ class ItemUpdateService
 	 */
 	private $configRepository;
 	/**
-	 * @var ExportRepositoryContract
+	 * @var ExportRepositoryContract $exportRepositoryContract
 	 */
 	private $exportRepositoryContract;
 
@@ -129,6 +130,26 @@ class ItemUpdateService
 								}
 								$successfulIteration = true;
 
+								$filters = $export->filters->toBase();
+
+								$filtersList = [];
+								foreach($filters as $filter)
+								{
+									if(substr_count($filter['key'],'.') > 1)
+									{
+										$lastPos = strrpos($filter['key'], '.');
+										$mainKey = substr($filter['key'], 0, $lastPos);
+										$subKey  = substr($filter['key'], $lastPos + 1);
+
+										$filtersList[$mainKey][$subKey] = $filter['value'];
+									}
+
+									else
+									{
+										$filtersList[$filter['key']] = $filter['value'];
+									}
+								}
+
 								$apiKey = $rakutenCredential->data['key'];
 
 								$priceUpdate = $this->configRepository->get('ElasticExportRakutenDE.update_settings.price_update');
@@ -146,11 +167,11 @@ class ItemUpdateService
 										{
 											foreach($resultList['documents'] as $variation)
 											{
+												$content['stock'] = 0;
+
 												$endPoint = $this->getEndpoint($variation);
 
-												$content = [
-													'key'	=>	$apiKey
-												];
+												$content['key'] = $apiKey;
 
 												$sku = $variation['data']['skus'][0]['sku'];
 
@@ -164,7 +185,9 @@ class ItemUpdateService
 													$content[Client::EDIT_PRODUCT_VARIANT] = $sku;
 												}
 
-												if($priceUpdate == "true")
+												$stillActive = $this->stillActive($variation, $filtersList);
+
+												if($priceUpdate == "true" && $stillActive === true)
 												{
 													$price = $this->priceHelper->getPrice($variation, $settings);
 
@@ -181,7 +204,7 @@ class ItemUpdateService
 
 												}
 
-												if($stockUpdate == "true")
+												if($stockUpdate == "true" && $stillActive === true)
 												{
 													$stock = $this->stockHelper->getStock($variation);
 													$content['stock'] = $stock;
@@ -281,5 +304,58 @@ class ItemUpdateService
 		}
 
 		return $values;
+	}
+
+	/**
+	 * @param array $variation
+	 * @param array $filterList
+	 * @return bool
+	 */
+	private function stillActive($variation, $filterList)
+	{
+		$stillActive = true;
+
+		if(array_key_exists('markets', $filterList))
+		{
+			$markets = explode(',', $filterList['markets']);
+			$marketIds = $variation['data']['ids']['markets'];
+
+			if(count($marketIds) > 0 && strlen($markets[0]) > 0)
+			{
+				foreach($markets as $key => $value)
+				{
+					if(!strpos($markets[$key], '.'))
+					{
+						$markets[$key] = $value.'.00';
+					}
+				}
+
+				$marketIds = array_unique($marketIds);
+				$match = array_intersect($markets, $marketIds);
+
+				if(count($match) != count($markets))
+				{
+					return false;
+				}
+			}
+
+			//triggers only if a valid filter is set and if the variation has no referrer
+			elseif(strlen($markets[0]) > 0)
+			{
+				return false;
+			}
+		}
+
+		if(array_key_exists('isActive', $filterList))
+		{
+			if(
+				($filterList['isActive'] == 'active' && $variation['data']['variation']['isActive'] != true)
+				|| ($filterList['isActive'] == 'inactive' && $variation['data']['variation']['isActive'] != false))
+			{
+				return false;
+			}
+		}
+
+		return $stillActive;
 	}
 }
