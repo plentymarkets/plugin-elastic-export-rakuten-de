@@ -2,10 +2,10 @@
 
 namespace ElasticExportRakutenDE\Services;
 
+use ElasticExport\Helper\ElasticExportStockHelper;
 use ElasticExportRakutenDE\Api\Client;
 use ElasticExportRakutenDE\DataProvider\ElasticSearchDataProvider;
 use ElasticExportRakutenDE\Helper\PriceHelper;
-use ElasticExportRakutenDE\Helper\StockHelper;
 use Plenty\Modules\DataExchange\Contracts\ExportRepositoryContract;
 use Plenty\Modules\DataExchange\Models\Export;
 use Plenty\Modules\Helper\Services\ArrayHelper;
@@ -38,11 +38,6 @@ class ItemUpdateService
 	private $elasticSearchDataProvider;
 
 	/**
-	 * @var StockHelper
-	 */
-	private $stockHelper;
-
-	/**
 	 * @var Client
 	 */
 	private $client;
@@ -70,7 +65,6 @@ class ItemUpdateService
 	 * ItemUpdateService constructor.
 	 * @param MarketAttributeHelperRepositoryContract $marketAttributeHelperRepositoryContract
 	 * @param ElasticSearchDataProvider $elasticSearchDataProvider
-	 * @param StockHelper $stockHelper
 	 * @param PriceHelper $priceHelper
 	 * @param Client $client
 	 * @param CredentialsRepositoryContract $credentialsRepositoryContract
@@ -80,7 +74,6 @@ class ItemUpdateService
 	public function __construct(
 		MarketAttributeHelperRepositoryContract $marketAttributeHelperRepositoryContract,
 		ElasticSearchDataProvider $elasticSearchDataProvider,
-		StockHelper $stockHelper,
 		PriceHelper $priceHelper,
 		Client $client,
 		CredentialsRepositoryContract $credentialsRepositoryContract,
@@ -89,7 +82,6 @@ class ItemUpdateService
 	{
 		$this->marketAttributeHelperRepositoryContract = $marketAttributeHelperRepositoryContract;
 		$this->elasticSearchDataProvider = $elasticSearchDataProvider;
-		$this->stockHelper = $stockHelper;
 		$this->client = $client;
 		$this->credentialsRepositoryContract = $credentialsRepositoryContract;
 		$this->priceHelper = $priceHelper;
@@ -105,6 +97,7 @@ class ItemUpdateService
 	public function generateContent()
 	{
 		$elasticSearch = pluginApp(VariationElasticSearchScrollRepositoryContract::class);
+		$elasticExportStockHelper = pluginApp(ElasticExportStockHelper::class);
 		$exportList = $this->exportRepositoryContract->search(['formatKey' => 'RakutenDE-Plugin']);
 
 		if($elasticSearch instanceof VariationElasticSearchScrollRepositoryContract)
@@ -206,7 +199,7 @@ class ItemUpdateService
 
 												if($stockUpdate == "true" && $stillActive === true)
 												{
-													$stock = $this->stockHelper->getStock($variation);
+													$stock = $elasticExportStockHelper->getStock($variation);
 													$content['stock'] = $stock;
 												}
 
