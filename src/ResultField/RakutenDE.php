@@ -232,6 +232,11 @@ class RakutenDE extends ResultFields
         return $fields;
     }
 
+	/**
+	 * Returns the key list for Elastic Export.
+	 *
+	 * @return array
+	 */
     private function getKeyList()
     {
         $keyList = [
@@ -275,6 +280,11 @@ class RakutenDE extends ResultFields
         return $keyList;
     }
 
+	/**
+	 * Returns the nested key list for Elastic Export.
+	 *
+	 * @return mixed
+	 */
     private function getNestedKeyList()
     {
         $nestedKeyList['keys'] = [

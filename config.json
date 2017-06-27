@@ -1,0 +1,14 @@
+[
+  {
+    "tab"       : "Update Einstellungen",
+    "key"       : "update_settings.price_update",
+    "label"     : "Preis-Update",
+    "type"      : "checkbox"
+  },
+  {
+    "tab"       : "Update Einstellungen",
+    "key"       : "update_settings.stock_update",
+    "label"     : "Bestands-Update",
+    "type"      : "checkbox"
+  }
+]
