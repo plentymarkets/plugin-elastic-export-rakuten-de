@@ -537,6 +537,8 @@ class RakutenDE extends CSVPluginGenerator
 			$parentSku = $item['data']['skus'][0]['parentSku'];
 		}
 
+		$parentSku = $this->variationSkuRepository->generateSkuWithParent($item, self::RAKUTEN_DE, (int) $settings->get('marketAccountId'), $sku, $parentSku, true, true)->parentSku;
+
         $priceList = $this->priceHelper->getPriceList($item, $settings);
 
         $vat = $this->getVatClassId($priceList['vatValue']);
@@ -546,7 +548,7 @@ class RakutenDE extends CSVPluginGenerator
         $data = [
             'id'						=> '#'.$item['data']['item']['id'],
             'variante_zu_id'			=> '',
-            'artikelnummer'				=> $this->variationSkuRepository->generateSkuWithParent($item, self::RAKUTEN_DE, (int) $settings->get('marketAccountId'), $sku, $parentSku),
+            'artikelnummer'				=> $parentSku,
             'produkt_bestellbar'		=> '',
             'produktname'				=> $this->elasticExportHelper->getMutatedName($item, $settings, 150),
             'hersteller'				=> $this->elasticExportHelper->getExternalManufacturerName((int)$item['data']['item']['manufacturer']['id']),
