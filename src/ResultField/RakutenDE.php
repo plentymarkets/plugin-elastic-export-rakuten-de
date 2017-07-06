@@ -191,6 +191,7 @@ class RakutenDE extends ResultFields
 
                 //sku
                 'skus.sku',
+				'skus.parentSku',
 
                 //defaultCategories
                 'defaultCategories.id',
@@ -321,7 +322,8 @@ class RakutenDE extends ResultFields
             ],
 
             'skus' => [
-                'sku'
+                'sku',
+				'parentSku'
             ],
 
             'texts'  => [
