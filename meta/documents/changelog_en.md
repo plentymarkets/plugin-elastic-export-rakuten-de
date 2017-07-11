@@ -1,5 +1,15 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.2.1 (2017-07-11)
+
+### Fixed
+- To fix the problem where the same item was generated multiple times on rakuten, we now generate a parent SKU.
+
+## v1.2.0 (2017-06-30)
+
+### Changed
+- Added the stockupdate.
+
 ## v1.1.11 (2017-06-02)
 
 ### Fixed
