@@ -3,7 +3,7 @@
 ## v1.2.1 (2017-07-11)
 
 ### Behoben
-- Es werden jetzt zusätzlich zu den normalen SKUs auch ParentSKUs erstellt um somit das doppelte Anlegen der Items zu vermeiden.
+- Es werden jetzt zusätzlich zu den normalen SKUs auch Parent-SKUs erstellt, um das Anlegen doppelter Artikel zu vermeiden.
 
 ## v1.2.0 (2017-06-30)
 

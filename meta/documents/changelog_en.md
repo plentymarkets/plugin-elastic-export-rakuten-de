@@ -8,7 +8,7 @@
 ## v1.2.0 (2017-06-30)
 
 ### Changed
-- Added the stockupdate.
+- Added the stock update.
 
 ## v1.1.11 (2017-06-02)
 
