@@ -318,6 +318,9 @@ class RakutenDE extends CSVPluginGenerator
      */
     private function buildRows($settings, $variations, $crossShardConnection = false)
     {
+    	$potentialParent = null;
+    	$parentWithoutChildren = array();
+
         if (is_array($variations) && count($variations) > 0)
         {
             $primaryVariationKey = null;
@@ -372,35 +375,63 @@ class RakutenDE extends CSVPluginGenerator
                 $attributeValue = $this->elasticExportHelper->getAttributeValueSetShortFrontendName($variation, $settings, '|', $this->attributeNameCombination[$variation['data']['item']['id']]);
 
 
+                if(!is_null($potentialParent) && strlen($attributeValue))
+                {
+					$this->buildParentWithChildrenRow($potentialParent, $settings, $this->attributeName);
+					$this->buildChildRow($variation, $settings, $attributeValue);
+				}
+
 				/**
 				 * If it is a new elastic search shard and the first entries are variations from the
 				 * last entries of the shard before, the connected variations will be added as children.
 				 */
-				if($crossShardConnection === true)
+				elseif($crossShardConnection === true)
 				{
 					$this->buildChildRow($variation, $settings, $attributeValue);
 				}
 
-				elseif(count($variations) == 1)
+				//isMain can be true or false, this does not matter in this case
+				elseif(strlen($attributeValue) == 0 && count($variations) == 1)
 				{
 					$this->buildParentWithoutChildrenRow($variation, $settings);
 				}
 
-				elseif($variation['data']['variation']['isMain'] === false && $i == 1)
+				//isMain can be true or false, this does not matter in this case
+				elseif(count($variations) == 1 && strlen($attributeValue) > 0)
 				{
 					$this->buildParentWithChildrenRow($variation, $settings, $this->attributeName);
 					$this->buildChildRow($variation, $settings, $attributeValue);
 				}
 
-				elseif($variation['data']['variation']['isMain'] === true && strlen($attributeValue) > 0)
+				/**
+				 * only if this is the first iteration
+				 * && count($variations) > 1
+				 * isMain can be true or false, this does not matter in this case
+				 */
+				elseif($i == 1 && strlen($attributeValue) > 0)
 				{
 					$this->buildParentWithChildrenRow($variation, $settings, $this->attributeName);
 					$this->buildChildRow($variation, $settings, $attributeValue);
 				}
 
+				//&& count($variations) > 1
 				elseif($variation['data']['variation']['isMain'] === true && strlen($attributeValue) == 0)
 				{
+					$potentialParent = $variation;
+					//check if the coming variations have attributeValues, if not build ParentWithoutChildren, save it into an array
+					//make another case where i check the array and act depending on it
+				}
+
+				//no attributeValue, not Main and count($variations) > 1
+				elseif(strlen($attributeValue) == 0 && $i = 1)
+				{
 					$this->buildParentWithChildrenRow($variation, $settings, $this->attributeName);
+				}
+
+				//count($variations) > 1 && isMain = false
+				elseif(strlen($attributeValue) == 0)
+				{
+					$parentWithoutChildren[] = $variation;
 				}
 
 				else
@@ -410,6 +441,14 @@ class RakutenDE extends CSVPluginGenerator
 
                 $i++;
             }
+
+            if(count($parentWithoutChildren) > 0)
+            {
+            	foreach($parentWithoutChildren as $variation)
+            	{
+					$this->buildParentWithoutChildrenRow($variation, $settings);
+				}
+			}
         }
     }
 
