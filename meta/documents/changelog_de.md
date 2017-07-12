@@ -7,8 +7,8 @@
 
 ## v1.2.0 (2017-06-30)
 
-### Geändert
-- Das Bestandsupdate wurde hinzugefügt.
+### Hinzugefügt
+- Wir haben einen Prozess zur automatischen Bestandsübermittlung integriert.
 
 ## v1.1.11 (2017-06-02)
 
