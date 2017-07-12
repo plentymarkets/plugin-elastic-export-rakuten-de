@@ -1,5 +1,15 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## v1.2.1 (2017-07-11)
+
+### Behoben
+- Es werden jetzt zusätzlich zu den normalen SKUs auch Parent-SKUs erstellt, um das Anlegen doppelter Artikel zu vermeiden.
+
+## v1.2.0 (2017-06-30)
+
+### Hinzugefügt
+- Wir haben einen Prozess zur automatischen Bestandsübermittlung integriert.
+
 ## v1.1.11 (2017-06-02)
 
 ### Behoben

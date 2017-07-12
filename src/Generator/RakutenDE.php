@@ -9,10 +9,9 @@ use ElasticExportRakutenDE\Validators\GeneratorValidator;
 use Plenty\Legacy\Repositories\Item\SalesPrice\SalesPriceSearchRepository;
 use Plenty\Modules\DataExchange\Contracts\CSVPluginGenerator;
 use Plenty\Modules\Helper\Services\ArrayHelper;
-use Plenty\Modules\DataExchange\Models\FormatSetting;
 use Plenty\Modules\Helper\Models\KeyValue;
-use Plenty\Modules\Item\SalesPrice\Models\SalesPriceSearchRequest;
 use Plenty\Modules\Item\Search\Contracts\VariationElasticSearchScrollRepositoryContract;
+use Plenty\Modules\Item\VariationSku\Contracts\VariationSkuRepositoryContract;
 use Plenty\Modules\Market\Helper\Contracts\MarketPropertyHelperRepositoryContract;
 use Plenty\Modules\StockManagement\Stock\Contracts\StockRepositoryContract;
 use Plenty\Plugin\Log\Loggable;
@@ -65,10 +64,15 @@ class RakutenDE extends CSVPluginGenerator
 	 */
     private $priceHelper;
 
-	/*
+	/**
 	 * @var ElasticExportStockHelper $elasticExportStockHelper
 	 */
 	private $elasticExportStockHelper;
+
+	/**
+	 * @var VariationSkuRepositoryContract
+	 */
+	private $variationSkuRepository;
 
 	/**
 	 * RakutenDE constructor.
@@ -76,19 +80,22 @@ class RakutenDE extends CSVPluginGenerator
 	 * @param MarketPropertyHelperRepositoryContract $marketPropertyHelperRepository
 	 * @param SalesPriceSearchRepository $salesPriceSearchRepository
 	 * @param PriceHelper $priceHelper
+	 * @param VariationSkuRepositoryContract $variationSkuRepository
 	 */
     public function __construct(
         ArrayHelper $arrayHelper,
         MarketPropertyHelperRepositoryContract $marketPropertyHelperRepository,
         SalesPriceSearchRepository $salesPriceSearchRepository,
-		PriceHelper $priceHelper
+		PriceHelper $priceHelper,
+		VariationSkuRepositoryContract $variationSkuRepository
     )
     {
         $this->arrayHelper = $arrayHelper;
         $this->marketPropertyHelperRepository = $marketPropertyHelperRepository;
         $this->salesPriceSearchRepository = $salesPriceSearchRepository;
         $this->priceHelper = $priceHelper;
-    }
+		$this->variationSkuRepository = $variationSkuRepository;
+	}
 
     /**
      * @param VariationElasticSearchScrollRepositoryContract $elasticSearch
@@ -413,19 +420,20 @@ class RakutenDE extends CSVPluginGenerator
      */
     private function buildParentWithoutChildrenRow($item, KeyValue $settings)
     {
+    	$sku = null;
+    	$parentSku = null;
+
+    	if(isset($item['data']['skus'][0]['sku']) && strlen($item['data']['skus'][0]['sku']) > 0)
+    	{
+			$sku = $item['data']['skus'][0]['sku'];
+		}
+
+		if(isset($item['data']['skus'][0]['parentSku']) && strlen($item['data']['skus'][0]['parentSku']) > 0)
+		{
+			$parentSku = $item['data']['skus'][0]['parentSku'];
+		}
 
         $priceList = $this->priceHelper->getPriceList($item, $settings);
-
-		$sku = null;
-
-		/*
-         * since we only get one SKU back and do not know the key
-         * we need to iterate over the given array
-         */
-		foreach($item['data']['skus'] as $skuData)
-		{
-			$sku = $skuData['sku'];
-		}
 
 		if(isset($priceList['price']) && $priceList['price'] > 0)
 		{
@@ -445,7 +453,7 @@ class RakutenDE extends CSVPluginGenerator
         $data = [
             'id'						=> '',
             'variante_zu_id'			=> '',
-            'artikelnummer'				=> $this->elasticExportHelper->generateSku($item['id'], self::RAKUTEN_DE, (int) $settings->get('marketAccountId'), $sku),
+            'artikelnummer'				=> $this->variationSkuRepository->generateSkuWithParent($item, self::RAKUTEN_DE, (int) $settings->get('marketAccountId'), $sku, $parentSku),
             'produkt_bestellbar'		=> $stockList['variationAvailable'],
             'produktname'				=> $this->elasticExportHelper->getMutatedName($item, $settings, 150),
             'hersteller'				=> $this->elasticExportHelper->getExternalManufacturerName((int)$item['data']['item']['manufacturer']['id']),
@@ -516,6 +524,21 @@ class RakutenDE extends CSVPluginGenerator
      */
     private function buildParentWithChildrenRow($item, KeyValue $settings, array $attributeName)
     {
+		$sku = null;
+		$parentSku = null;
+
+		if(isset($item['data']['skus'][0]['sku']) && strlen($item['data']['skus'][0]['sku']) > 0)
+		{
+			$sku = $item['data']['skus'][0]['sku'];
+		}
+
+		if(isset($item['data']['skus'][0]['parentSku']) && strlen($item['data']['skus'][0]['parentSku']) > 0)
+		{
+			$parentSku = $item['data']['skus'][0]['parentSku'];
+		}
+
+		$parentSku = $this->variationSkuRepository->generateSkuWithParent($item, self::RAKUTEN_DE, (int) $settings->get('marketAccountId'), $sku, $parentSku, true, true)->parentSku;
+
         $priceList = $this->priceHelper->getPriceList($item, $settings);
 
         $vat = $this->getVatClassId($priceList['vatValue']);
@@ -525,7 +548,7 @@ class RakutenDE extends CSVPluginGenerator
         $data = [
             'id'						=> '#'.$item['data']['item']['id'],
             'variante_zu_id'			=> '',
-            'artikelnummer'				=> '',
+            'artikelnummer'				=> $parentSku,
             'produkt_bestellbar'		=> '',
             'produktname'				=> $this->elasticExportHelper->getMutatedName($item, $settings, 150),
             'hersteller'				=> $this->elasticExportHelper->getExternalManufacturerName((int)$item['data']['item']['manufacturer']['id']),
@@ -595,20 +618,22 @@ class RakutenDE extends CSVPluginGenerator
     private function buildChildRow($item, KeyValue $settings, string $attributeValue = '')
     {
 
+		$sku = null;
+		$parentSku = null;
+
+		if(isset($item['data']['skus'][0]['sku']) && strlen($item['data']['skus'][0]['sku']) > 0)
+		{
+			$sku = $item['data']['skus'][0]['sku'];
+		}
+
+		if(isset($item['data']['skus'][0]['parentSku']) && strlen($item['data']['skus'][0]['parentSku']) > 0)
+		{
+			$parentSku = $item['data']['skus'][0]['parentSku'];
+		}
+
         $stockList = $this->getStockList($item);
 
         $priceList = $this->priceHelper->getPriceList($item, $settings);
-
-        $sku = null;
-
-        /*
-         * since we only get one SKU back and do not know the key
-         * we need to iterate over the given array
-         */
-		foreach($item['data']['skus'] as $skuData)
-		{
-			$sku = $skuData['sku'];
-		}
 
         if(isset($priceList['price']) && $priceList['price'] > 0)
         {
@@ -624,7 +649,7 @@ class RakutenDE extends CSVPluginGenerator
         $data = [
             'id'						=> '',
             'variante_zu_id'			=> '#'.$item['data']['item']['id'],
-            'artikelnummer'				=> $this->elasticExportHelper->generateSku($item['id'], self::RAKUTEN_DE, (int) $settings->get('marketAccountId'), $sku),
+            'artikelnummer'				=> $this->variationSkuRepository->generateSkuWithParent($item, self::RAKUTEN_DE, (int) $settings->get('marketAccountId'), $sku, $parentSku),
             'produkt_bestellbar'		=> $stockList['variationAvailable'],
             'produktname'				=> '',
             'hersteller'				=> '',
