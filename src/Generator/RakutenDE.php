@@ -420,8 +420,6 @@ class RakutenDE extends CSVPluginGenerator
 				elseif($variation['data']['variation']['isMain'] === true && strlen($attributeValue) == 0)
 				{
 					$potentialParent = $variation;
-					//check if the coming variations have attributeValues, if not build ParentWithoutChildren, save it into an array
-					//make another case where i check the array and act depending on it
 				}
 
 				//no attributeValue, not Main and count($variations) > 1
