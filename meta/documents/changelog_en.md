@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.2.2 (2017-07-13)
+
+### Fixed
+- An issue was fixed which caused wrong decisions for building the parent or child row.
+
 ## v1.2.1 (2017-07-11)
 
 ### Fixed
