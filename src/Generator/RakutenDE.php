@@ -379,6 +379,8 @@ class RakutenDE extends CSVPluginGenerator
                 {
 					$this->buildParentWithChildrenRow($potentialParent, $settings, $this->attributeName);
 					$this->buildChildRow($variation, $settings, $attributeValue);
+
+					unset($potentialParent);
 				}
 
 				/**
@@ -423,7 +425,7 @@ class RakutenDE extends CSVPluginGenerator
 				}
 
 				//no attributeValue, not Main and count($variations) > 1
-				elseif(strlen($attributeValue) == 0 && $i = 1)
+				elseif(strlen($attributeValue) == 0 && $i == 1)
 				{
 					$this->buildParentWithChildrenRow($variation, $settings, $this->attributeName);
 				}
