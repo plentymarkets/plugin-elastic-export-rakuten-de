@@ -3,7 +3,7 @@
 ## v1.2.2 (2017-07-13)
 
 ### Behoben
-- Es wurden Fehler behoben die dazu geführt haben, dass die Parent- und Childzuordnung nicht richtig funktionierte.
+- Es wurden Fehler behoben die dazu geführt haben, dass die Parent- und Childzuordnung fehlerhaft war.
 
 ## v1.2.1 (2017-07-11)
 
