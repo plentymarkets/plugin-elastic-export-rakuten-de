@@ -3,6 +3,7 @@
 namespace ElasticExportRakutenDE\Generator;
 
 use ElasticExport\Helper\ElasticExportCoreHelper;
+use ElasticExport\Helper\ElasticExportItemHelper;
 use ElasticExportRakutenDE\Helper\PriceHelper;
 use ElasticExport\Helper\ElasticExportStockHelper;
 use ElasticExportRakutenDE\Validators\GeneratorValidator;
@@ -16,7 +17,6 @@ use Plenty\Modules\Market\Helper\Contracts\MarketPropertyHelperRepositoryContrac
 use Plenty\Modules\StockManagement\Stock\Contracts\StockRepositoryContract;
 use Plenty\Plugin\Log\Loggable;
 use Plenty\Repositories\Models\PaginatedResult;
-
 
 class RakutenDE extends CSVPluginGenerator
 {
@@ -33,6 +33,11 @@ class RakutenDE extends CSVPluginGenerator
      * @var ElasticExportCoreHelper
      */
     private $elasticExportHelper;
+
+	/**
+	 * @var ElasticExportItemHelper
+	 */
+	private $elasticExportItemHelper;
 
     /**
      * @var ArrayHelper
@@ -106,6 +111,8 @@ class RakutenDE extends CSVPluginGenerator
     {
     	$this->elasticExportStockHelper = pluginApp(ElasticExportStockHelper::class);
         $this->elasticExportHelper = pluginApp(ElasticExportCoreHelper::class);
+        $this->elasticExportItemHelper = pluginApp(ElasticExportItemHelper::class, [1 => true]);
+
         $settings = $this->arrayHelper->buildMapFromObjectList($formatSettings, 'key', 'value');
 
         $this->setDelimiter(";");
@@ -357,6 +364,7 @@ class RakutenDE extends CSVPluginGenerator
                 }
             }
 
+
             // change sort of array and add primary variation as first entry
             if(!is_null($primaryVariationKey))
             {
@@ -519,26 +527,26 @@ class RakutenDE extends CSVPluginGenerator
             'lieferzeit'				=> $this->elasticExportHelper->getAvailability($item, $settings, false),
             'tradoria_kategorie'		=> $item['data']['item']['rakutenCategoryId'],
             'sichtbar'					=> 1,
-            'free_var_1'				=> $item['data']['item']['free1'],
-            'free_var_2'				=> $item['data']['item']['free2'],
-            'free_var_3'				=> $item['data']['item']['free3'],
-            'free_var_4'				=> $item['data']['item']['free4'],
-            'free_var_5'				=> $item['data']['item']['free5'],
-            'free_var_6'				=> $item['data']['item']['free6'],
-            'free_var_7'				=> $item['data']['item']['free7'],
-            'free_var_8'				=> $item['data']['item']['free8'],
-            'free_var_9'				=> $item['data']['item']['free9'],
-            'free_var_10'				=> $item['data']['item']['free10'],
-            'free_var_11'				=> $item['data']['item']['free11'],
-            'free_var_12'				=> $item['data']['item']['free12'],
-            'free_var_13'				=> $item['data']['item']['free13'],
-            'free_var_14'				=> $item['data']['item']['free14'],
-            'free_var_15'				=> $item['data']['item']['free15'],
-            'free_var_16'				=> $item['data']['item']['free16'],
-            'free_var_17'				=> $item['data']['item']['free17'],
-            'free_var_18'				=> $item['data']['item']['free18'],
-            'free_var_19'				=> $item['data']['item']['free19'],
-            'free_var_20'				=> $item['data']['item']['free20'],
+            'free_var_1'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 1),
+            'free_var_2'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 2),
+            'free_var_3'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 3),
+            'free_var_4'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 4),
+            'free_var_5'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 5),
+            'free_var_6'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 6),
+            'free_var_7'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 7),
+            'free_var_8'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 8),
+            'free_var_9'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 9),
+            'free_var_10'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 10),
+            'free_var_11'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 11),
+            'free_var_12'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 12),
+            'free_var_13'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 13),
+            'free_var_14'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 14),
+            'free_var_15'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 15),
+            'free_var_16'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 16),
+            'free_var_17'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 17),
+            'free_var_18'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 18),
+            'free_var_19'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 19),
+            'free_var_20'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 20),
             'MPN'						=> $item['data']['variation']['model'],
             'bild6'						=> $this->getImageByPosition($item, 5),
             'bild7'						=> $this->getImageByPosition($item, 6),
@@ -612,26 +620,26 @@ class RakutenDE extends CSVPluginGenerator
             'lieferzeit'				=> '',
             'tradoria_kategorie'		=> $item['data']['item']['rakutenCategoryId'],
             'sichtbar'					=> 1,
-            'free_var_1'				=> $item['data']['item']['free1'],
-            'free_var_2'				=> $item['data']['item']['free2'],
-            'free_var_3'				=> $item['data']['item']['free3'],
-            'free_var_4'				=> $item['data']['item']['free4'],
-            'free_var_5'				=> $item['data']['item']['free5'],
-            'free_var_6'				=> $item['data']['item']['free6'],
-            'free_var_7'				=> $item['data']['item']['free7'],
-            'free_var_8'				=> $item['data']['item']['free8'],
-            'free_var_9'				=> $item['data']['item']['free9'],
-            'free_var_10'				=> $item['data']['item']['free10'],
-            'free_var_11'				=> $item['data']['item']['free11'],
-            'free_var_12'				=> $item['data']['item']['free12'],
-            'free_var_13'				=> $item['data']['item']['free13'],
-            'free_var_14'				=> $item['data']['item']['free14'],
-            'free_var_15'				=> $item['data']['item']['free15'],
-            'free_var_16'				=> $item['data']['item']['free16'],
-            'free_var_17'				=> $item['data']['item']['free17'],
-            'free_var_18'				=> $item['data']['item']['free18'],
-            'free_var_19'				=> $item['data']['item']['free19'],
-            'free_var_20'				=> $item['data']['item']['free20'],
+            'free_var_1'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 1),
+            'free_var_2'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 2),
+            'free_var_3'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 3),
+            'free_var_4'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 4),
+            'free_var_5'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 5),
+            'free_var_6'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 6),
+            'free_var_7'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 7),
+            'free_var_8'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 8),
+            'free_var_9'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 9),
+            'free_var_10'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 10),
+            'free_var_11'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 11),
+            'free_var_12'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 12),
+            'free_var_13'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 13),
+            'free_var_14'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 14),
+            'free_var_15'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 15),
+            'free_var_16'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 16),
+            'free_var_17'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 17),
+            'free_var_18'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 18),
+            'free_var_19'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 19),
+            'free_var_20'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 20),
             'MPN'						=> $item['data']['variation']['model'],
             'bild6'						=> $this->getImageByPosition($item, 5),
             'bild7'						=> $this->getImageByPosition($item, 6),
@@ -715,26 +723,26 @@ class RakutenDE extends CSVPluginGenerator
             'lieferzeit'				=> $this->elasticExportHelper->getAvailability($item, $settings, false),
             'tradoria_kategorie'		=> '',
             'sichtbar'					=> 1,
-            'free_var_1'				=> $item['data']['item']['free1'],
-            'free_var_2'				=> $item['data']['item']['free2'],
-            'free_var_3'				=> $item['data']['item']['free3'],
-            'free_var_4'				=> $item['data']['item']['free4'],
-            'free_var_5'				=> $item['data']['item']['free5'],
-            'free_var_6'				=> $item['data']['item']['free6'],
-            'free_var_7'				=> $item['data']['item']['free7'],
-            'free_var_8'				=> $item['data']['item']['free8'],
-            'free_var_9'				=> $item['data']['item']['free9'],
-            'free_var_10'				=> $item['data']['item']['free10'],
-            'free_var_11'				=> $item['data']['item']['free11'],
-            'free_var_12'				=> $item['data']['item']['free12'],
-            'free_var_13'				=> $item['data']['item']['free13'],
-            'free_var_14'				=> $item['data']['item']['free14'],
-            'free_var_15'				=> $item['data']['item']['free15'],
-            'free_var_16'				=> $item['data']['item']['free16'],
-            'free_var_17'				=> $item['data']['item']['free17'],
-            'free_var_18'				=> $item['data']['item']['free18'],
-            'free_var_19'				=> $item['data']['item']['free19'],
-            'free_var_20'				=> $item['data']['item']['free20'],
+            'free_var_1'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 1),
+            'free_var_2'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 2),
+            'free_var_3'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 3),
+            'free_var_4'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 4),
+            'free_var_5'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 5),
+            'free_var_6'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 6),
+            'free_var_7'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 7),
+            'free_var_8'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 8),
+            'free_var_9'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 9),
+            'free_var_10'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 10),
+            'free_var_11'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 11),
+            'free_var_12'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 12),
+            'free_var_13'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 13),
+            'free_var_14'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 14),
+            'free_var_15'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 15),
+            'free_var_16'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 16),
+            'free_var_17'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 17),
+            'free_var_18'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 18),
+            'free_var_19'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 19),
+            'free_var_20'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 20),
             'MPN'						=> $item['data']['variation']['model'],
             'bild6'						=> '',
             'bild7'						=> '',
@@ -990,6 +998,5 @@ class RakutenDE extends CSVPluginGenerator
             'variationAvailable'        =>  $variationAvailable,
             'inventoryManagementActive' =>  $inventoryManagementActive,
         );
-
     }
 }

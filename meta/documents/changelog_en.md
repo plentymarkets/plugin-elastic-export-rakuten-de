@@ -1,5 +1,13 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.2.3 (2017-07-20)
+
+### Fixed
+- An issue was fixed which caused the free text fields to not be read anymore.
+
+### Changed
+- The stock and price update has been changed so it will only trigger if the values has changed within the last 2 days.
+
 ## v1.2.2 (2017-07-13)
 
 ### Fixed

@@ -3,8 +3,10 @@
 namespace ElasticExportRakutenDE\Helper;
 
 use Plenty\Modules\Item\SalesPrice\Contracts\SalesPriceSearchRepositoryContract;
+use Plenty\Modules\Item\SalesPrice\Models\SalesPrice;
 use Plenty\Modules\Item\SalesPrice\Models\SalesPriceSearchRequest;
 use Plenty\Modules\Helper\Models\KeyValue;
+use Plenty\Modules\Item\SalesPrice\Models\SalesPriceSearchResponse;
 use Plenty\Modules\Order\Currency\Contracts\CurrencyRepositoryContract;
 
 class PriceHelper
@@ -39,7 +41,7 @@ class PriceHelper
 	 * Get a List of price, reduced price and the reference for the reduced price.
 	 * @param array $variation
 	 * @param KeyValue $settings
-	 * @return float
+	 * @return SalesPriceSearchResponse
 	 */
 	public function getPrice($variation, $settings)
 	{
@@ -62,9 +64,8 @@ class PriceHelper
 		}
 
 		$salesPriceSearch  = $this->salesPriceSearchRepositoryContract->search($salesPriceSearchRequest);
-		$variationPrice = $salesPriceSearch->price;
 
-		return $variationPrice;
+		return $salesPriceSearch;
 	}
 
 	/**
