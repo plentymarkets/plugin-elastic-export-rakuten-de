@@ -3,10 +3,10 @@
 ## v1.2.3 (2017-07-20)
 
 ### Behoben
-- Es wurde ein Fehler behoben der dazu geführt habt, dass die Freitextfelder nicht mehr ausgelesen werden konnten.
+- Es wurde ein Fehler behoben der dazu geführt hat, dass die Freitextfelder nicht mehr ausgelesen werden konnten.
 
 ### Geändert
-- Der Bestands- und Preisabgleich wird nur noch für durchgeführt wenn es Änderungen innerhalb der letzten 2 Tage gab.
+- Der Bestands- und Preisabgleich wird nur noch durchgeführt wenn es Änderungen innerhalb der letzten 2 Tage gab.
 
 ## v1.2.2 (2017-07-13)
 
