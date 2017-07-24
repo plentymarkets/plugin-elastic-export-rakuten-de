@@ -139,17 +139,6 @@ class GeneratorValidator
             return false;
         }
 
-        for($i = 1; $i <= 20; $i++)
-        {
-            if(!array_key_exists('free'.$i, $variation['data']['item']))
-            {
-                $path = 'item[\'data\'][\'item\']';
-                $key = 'free'.$i;
-                $this->missingKeyLog($key, $path);
-                return false;
-            }
-        }
-
         return true;
     }
 

@@ -1,5 +1,16 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## v1.2.3 (2017-07-20)
+
+### Hinzugefügt
+- Für Parent-SKUs können unter den Plugin-Einstellungen im Tab "Parent-SKU" Pre- und Suffixe angelegt werde. Diese werden dann automatisch gesetzt, sofern nicht schon eine Parent-SKU existiert.
+
+### Behoben
+- Es wurde ein Fehler behoben der dazu geführt hat, dass die Freitextfelder nicht mehr ausgelesen werden konnten.
+
+### Geändert
+- Der Bestands- und Preisabgleich wird nur noch durchgeführt wenn es Änderungen innerhalb der letzten 2 Tage gab.
+
 ## v1.2.2 (2017-07-13)
 
 ### Behoben

@@ -9,10 +9,12 @@ use ElasticExportRakutenDE\Helper\PriceHelper;
 use Plenty\Modules\DataExchange\Contracts\ExportRepositoryContract;
 use Plenty\Modules\DataExchange\Models\Export;
 use Plenty\Modules\Helper\Services\ArrayHelper;
+use Plenty\Modules\Item\SalesPrice\Models\SalesPriceSearchResponse;
 use Plenty\Modules\Item\Search\Contracts\VariationElasticSearchScrollRepositoryContract;
 use Plenty\Modules\Market\Credentials\Contracts\CredentialsRepositoryContract;
 use Plenty\Modules\Market\Credentials\Models\Credentials;
 use Plenty\Modules\Market\Helper\Contracts\MarketAttributeHelperRepositoryContract;
+use Plenty\Modules\StockManagement\Stock\Models\Stock;
 use Plenty\Plugin\ConfigRepository;
 use Plenty\Plugin\Log\Loggable;
 use Plenty\Repositories\Models\PaginatedResult;
@@ -26,6 +28,8 @@ class ItemUpdateService
 	use Loggable;
 
 	const RAKUTEN_DE = 106.00;
+
+	const TWO_DAYS = 172800;
 
 	/**
 	 * @var MarketAttributeHelperRepositoryContract $marketAttributeHelperRepositoryContract
@@ -96,6 +100,7 @@ class ItemUpdateService
 	 */
 	public function generateContent()
 	{
+		$transferData = false;
 		$elasticSearch = pluginApp(VariationElasticSearchScrollRepositoryContract::class);
 		$elasticExportStockHelper = pluginApp(ElasticExportStockHelper::class);
 		$exportList = $this->exportRepositoryContract->search(['formatKey' => 'RakutenDE-Plugin']);
@@ -182,25 +187,49 @@ class ItemUpdateService
 
 												if($priceUpdate == "true" && $stillActive === true)
 												{
-													$price = $this->priceHelper->getPrice($variation, $settings);
+													$priceResponse = $this->priceHelper->getPrice($variation, $settings);
 
-													if($price > 0)
+													if($priceResponse instanceof SalesPriceSearchResponse)
 													{
-														$price = number_format((float)$price, 2, '.', '');
-													}
-													else
-													{
-														$price = '';
-													}
+														if($priceResponse->price > 0)
+														{
+															$price = number_format((float)$priceResponse->price, 2, '.', '');
+														}
+														else
+														{
+															$price = '';
+														}
 
-													$content['price'] = $price;
+														//checks if the price was updated within the last 2 days
+														if($priceResponse->updatedAt > (time() - self::TWO_DAYS))
+														{
+															$transferData = true;
+														}
+
+														$content['price'] = $price;
+													}
 
 												}
 
 												if($stockUpdate == "true" && $stillActive === true)
 												{
-													$stock = $elasticExportStockHelper->getStock($variation);
-													$content['stock'] = $stock;
+													$stock = $elasticExportStockHelper->getStockObject($variation);
+
+													if($stock instanceof Stock)
+													{
+														$content['stock'] = $stock->stockNet;
+
+														//checks if the stock was updated within the last 2 days
+														if($stock->updatedAt > (time() - self::TWO_DAYS))
+														{
+															$transferData = true;
+														}
+													}
+												}
+
+												if($transferData === false)
+												{
+													continue;
 												}
 
 												$this->client->call($endPoint, Client::POST, $content);

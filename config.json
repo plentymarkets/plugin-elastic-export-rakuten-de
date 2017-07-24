@@ -10,5 +10,17 @@
     "key"       : "update_settings.stock_update",
     "label"     : "Bestands-Update",
     "type"      : "checkbox"
+  },
+  {
+    "tab"       : "Parent-SKU",
+    "key"       : "parent_sku.prefix",
+    "label"     : "Prefix",
+    "type"      : "text"
+  },
+  {
+    "tab"       : "Parent-SKU",
+    "key"       : "parent_sku.suffix",
+    "label"     : "Suffix",
+    "type"      : "text"
   }
 ]
