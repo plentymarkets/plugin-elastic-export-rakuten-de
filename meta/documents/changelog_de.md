@@ -2,6 +2,9 @@
 
 ## v1.2.3 (2017-07-20)
 
+### Hinzugefügt
+- Für Parent-SKUs können unter den Plugineinstellungen in dem Tab "Parent-SKU" ein Pre- und Suffix angelegt werde. Diese werden dann automatisch gesetzt, sofern nicht schon eine ParentSKU existiert.
+
 ### Behoben
 - Es wurde ein Fehler behoben der dazu geführt hat, dass die Freitextfelder nicht mehr ausgelesen werden konnten.
 

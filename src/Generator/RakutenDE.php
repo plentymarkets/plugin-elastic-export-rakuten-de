@@ -15,6 +15,7 @@ use Plenty\Modules\Item\Search\Contracts\VariationElasticSearchScrollRepositoryC
 use Plenty\Modules\Item\VariationSku\Contracts\VariationSkuRepositoryContract;
 use Plenty\Modules\Market\Helper\Contracts\MarketPropertyHelperRepositoryContract;
 use Plenty\Modules\StockManagement\Stock\Contracts\StockRepositoryContract;
+use Plenty\Plugin\ConfigRepository;
 use Plenty\Plugin\Log\Loggable;
 use Plenty\Repositories\Models\PaginatedResult;
 
@@ -80,19 +81,30 @@ class RakutenDE extends CSVPluginGenerator
 	private $variationSkuRepository;
 
 	/**
+	 * @var string
+	 */
+	private $parentSku = '';
+	/**
+	 * @var ConfigRepository
+	 */
+	private $configRepository;
+
+	/**
 	 * RakutenDE constructor.
 	 * @param ArrayHelper $arrayHelper
 	 * @param MarketPropertyHelperRepositoryContract $marketPropertyHelperRepository
 	 * @param SalesPriceSearchRepository $salesPriceSearchRepository
 	 * @param PriceHelper $priceHelper
 	 * @param VariationSkuRepositoryContract $variationSkuRepository
+	 * @param ConfigRepository $configRepository
 	 */
     public function __construct(
         ArrayHelper $arrayHelper,
         MarketPropertyHelperRepositoryContract $marketPropertyHelperRepository,
         SalesPriceSearchRepository $salesPriceSearchRepository,
 		PriceHelper $priceHelper,
-		VariationSkuRepositoryContract $variationSkuRepository
+		VariationSkuRepositoryContract $variationSkuRepository,
+		ConfigRepository $configRepository
     )
     {
         $this->arrayHelper = $arrayHelper;
@@ -100,6 +112,7 @@ class RakutenDE extends CSVPluginGenerator
         $this->salesPriceSearchRepository = $salesPriceSearchRepository;
         $this->priceHelper = $priceHelper;
 		$this->variationSkuRepository = $variationSkuRepository;
+		$this->configRepository = $configRepository;
 	}
 
     /**
@@ -572,7 +585,10 @@ class RakutenDE extends CSVPluginGenerator
     private function buildParentWithChildrenRow($item, KeyValue $settings, array $attributeName)
     {
 		$sku = null;
-		$parentSku = null;
+
+		$parentPrefix = $this->configRepository->get('ElasticExportRakutenDE.parent_sku.prefix');
+		$parentSuffix = $this->configRepository->get('ElasticExportRakutenDE.parent_sku.suffix');
+		$parentSku = $parentPrefix . $item['data']['item']['id'] . $parentSuffix;
 
 		if(isset($item['data']['skus'][0]['sku']) && strlen($item['data']['skus'][0]['sku']) > 0)
 		{
@@ -584,7 +600,8 @@ class RakutenDE extends CSVPluginGenerator
 			$parentSku = $item['data']['skus'][0]['parentSku'];
 		}
 
-		$parentSku = $this->variationSkuRepository->generateSkuWithParent($item, self::RAKUTEN_DE, (int) $settings->get('marketAccountId'), $sku, $parentSku, true, true)->parentSku;
+		$this->parentSku = '';
+		$this->parentSku = $this->variationSkuRepository->generateSkuWithParent($item, self::RAKUTEN_DE, (int) $settings->get('marketAccountId'), $sku, $parentSku, true, true)->parentSku;
 
         $priceList = $this->priceHelper->getPriceList($item, $settings);
 
@@ -666,7 +683,7 @@ class RakutenDE extends CSVPluginGenerator
     {
 
 		$sku = null;
-		$parentSku = null;
+		$parentSku = $this->parentSku;
 
 		if(isset($item['data']['skus'][0]['sku']) && strlen($item['data']['skus'][0]['sku']) > 0)
 		{

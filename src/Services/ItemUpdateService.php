@@ -29,6 +29,8 @@ class ItemUpdateService
 
 	const RAKUTEN_DE = 106.00;
 
+	const TWO_DAYS = 172800;
+
 	/**
 	 * @var MarketAttributeHelperRepositoryContract $marketAttributeHelperRepositoryContract
 	 */
@@ -199,7 +201,7 @@ class ItemUpdateService
 														}
 
 														//checks if the price was updated within the last 2 days
-														if($priceResponse->updatedAt > (time() - 172800))
+														if($priceResponse->updatedAt > (time() - self::TWO_DAYS))
 														{
 															$transferData = true;
 														}
@@ -218,7 +220,7 @@ class ItemUpdateService
 														$content['stock'] = $stock->stockNet;
 
 														//checks if the stock was updated within the last 2 days
-														if($stock->updatedAt > (time() - 172800))
+														if($stock->updatedAt > (time() - self::TWO_DAYS))
 														{
 															$transferData = true;
 														}

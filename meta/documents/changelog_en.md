@@ -2,6 +2,9 @@
 
 ## v1.2.3 (2017-07-20)
 
+### Added
+- It is now possible to set a pre- and suffix for the parent sku. You can find the setting at the plugin settings within the tab "Parent-SKU". This setting will only trigger if this item does not already have a paren sku.
+
 ### Fixed
 - An issue was fixed which caused the free text fields to not be read anymore.
 
