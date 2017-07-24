@@ -13,6 +13,7 @@ use Plenty\Modules\Helper\Services\ArrayHelper;
 use Plenty\Modules\Helper\Models\KeyValue;
 use Plenty\Modules\Item\Search\Contracts\VariationElasticSearchScrollRepositoryContract;
 use Plenty\Modules\Item\VariationSku\Contracts\VariationSkuRepositoryContract;
+use Plenty\Modules\Item\VariationSku\Models\VariationSku;
 use Plenty\Modules\Market\Helper\Contracts\MarketPropertyHelperRepositoryContract;
 use Plenty\Modules\StockManagement\Stock\Contracts\StockRepositoryContract;
 use Plenty\Plugin\ConfigRepository;
@@ -601,7 +602,12 @@ class RakutenDE extends CSVPluginGenerator
 		}
 
 		$this->parentSku = '';
-		$this->parentSku = $this->variationSkuRepository->generateSkuWithParent($item, self::RAKUTEN_DE, (int) $settings->get('marketAccountId'), $sku, $parentSku, true, true)->parentSku;
+		$variationSkuData = $this->variationSkuRepository->generateSkuWithParent($item, self::RAKUTEN_DE, (int) $settings->get('marketAccountId'), $sku, $parentSku, true, true);
+
+		if($variationSkuData instanceof VariationSku)
+		{
+			$this->parentSku = $variationSkuData->parentSku;
+		}
 
         $priceList = $this->priceHelper->getPriceList($item, $settings);
 
