@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.2.4 (2017-07-29)
+
+### Hinzugefügt
+- It is now possible to export an energy efficiency label. The image with the position as set for the option **Image position of the energy efficiency label** in the format settings will be exported as energy efficiency label.
+
 ## v1.2.3 (2017-07-20)
 
 ### Added
