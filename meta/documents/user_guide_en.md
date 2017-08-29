@@ -124,8 +124,8 @@ The following table lists details for settings, format settings and recommended 
             Override item availabilty
         </td>
         <td>
-            This option has to be activated because Rakuten.de only accepts specific values which have to be set here.<br> 
-            Additional information are provided in <b>3 Overview of available columns</b> for the column <b>lieferzeit</b>.
+            This option has to be activated as Rakuten.de only accepts specific values which have to be set here.<br> 
+            Additional information are provided in <b>3 Overview of available columns</b> in the column <b>lieferzeit</b>.
         </td>        
     </tr>
 </table>
@@ -174,7 +174,7 @@ The following table lists details for settings, format settings and recommended 
         </td>
         <td>
             <b>Required</b><br>
-            <b>Content:</b> <b>1</b>, if the variation has stock and is not limited to net stock, else <b>0</b>.
+            <b>Content:</b> <b>1</b> if the variation has stock and is not limited to net stock. Otherwise <b>0</b>.
         </td>        
     </tr>
     <tr>
@@ -184,7 +184,7 @@ The following table lists details for settings, format settings and recommended 
         <td>
             <b>Required</b><br>
             <b>Limitation:</b> max. 100 characters<br>
-            <b>Content:</b> According to the format setting <b>item name</b>.
+            <b>Content:</b> According to the format setting <b>Item name</b>.
         </td>        
     </tr>
     <tr>
@@ -202,7 +202,7 @@ The following table lists details for settings, format settings and recommended 
         </td>
         <td>
             <b>Required</b><br>
-            <b>Content:</b> According to the format setting <b>description</b>.
+            <b>Content:</b> According to the format setting <b>Description</b>.
         </td>        
     </tr>
     <tr>
@@ -257,7 +257,7 @@ The following table lists details for settings, format settings and recommended 
         </td>
         <td>
             <b>Limitation:</b> max. 3 predecimals and decimals <br>
-            <b>Content:</b> The <b>lot</b> of the variation.
+            <b>Content:</b> The <b>content</b> of the variation.
         </td>        
     </tr>
     <tr>
@@ -266,7 +266,7 @@ The following table lists details for settings, format settings and recommended 
         </td>
         <td>
             <b>Limitation:</b> ml, l, kg, g, m, m², m³<br>
-            <b>Content:</b> The <b>unit</b> of the lot of the variation.
+            <b>Content:</b> The <b>unit</b> of the content of the variation.
         </td>        
     </tr>
     <tr>
@@ -283,7 +283,7 @@ The following table lists details for settings, format settings and recommended 
             bezug_reduzierter_preis
         </td>
         <td>
-            <b>UVP</b> or <b>VK</b>. This will be set in dependency of the column <b>preis</b>.
+            <b>UVP</b> or <b>VK</b>. This will be set in dependency to the column <b>preis</b>.
         </td>
     </tr>
     <tr>
@@ -301,7 +301,7 @@ The following table lists details for settings, format settings and recommended 
             bestandsverwaltung_aktiv
         </td>
         <td>
-            <b>Content:</b> <b>1</b>, if the variation is limited to net stock, else <b>0</b>. 
+            <b>Content:</b> <b>1</b> if the variation is limited to net stock. Otherwise <b>0</b>. 
         </td>        
     </tr>
     <tr>
@@ -327,7 +327,7 @@ The following table lists details for settings, format settings and recommended 
         </td>
         <td>
             <b>Required</b><br>
-            <b>Content:</b> <b>category path of the standard category</b> for the <b>Client</b> configured in the format settings.
+            <b>Content:</b> <b>Category path of the standard category</b> for the <b>Client</b> configured in the format settings.
         </td>        
     </tr>
     <tr>
@@ -386,7 +386,7 @@ The following table lists details for settings, format settings and recommended 
         </td>
         <td>
             <b>Limitation:</b> Fixed value as given for the property link.
-            <b>Content:</b> Value is set through a property of type <b>No</b>. The Value has to be set over <b>Settings » Item » Properties » open property</b> through the option <b>Rakuten.de property</b>.
+            <b>Content:</b> Value is set through a property of type <b>No</b>. The Value has to be set in the menu <b>Settings » Item » Properties » open property</b> through the option <b>Rakuten.de property</b>.
         </td>        
     </tr>
     <tr>
@@ -395,7 +395,7 @@ The following table lists details for settings, format settings and recommended 
         </td>
         <td>
             <b>Limitation:</b> Fixed value as given for the property link.
-            <b>Content:</b> Value is set through a property of type <b>No</b>. The Value has to be set over <b>Settings » Item » Properties » open property</b> through the option <b>Rakuten.de property</b>.        </td>        
+            <b>Content:</b> Value is set through a property of type <b>No</b>. The Value has to be set in the menu <b>Settings » Item » Properties » open property</b> through the option <b>Rakuten.de property</b>.        </td>        
     </tr>
     <tr>
         <td>
@@ -403,7 +403,7 @@ The following table lists details for settings, format settings and recommended 
         </td>
         <td>
             <b>Limitation:</b> Fixed value as given for the property link.
-            <b>Content:</b> Value is set through a property of type <b>No</b>. The Value has to be set over <b>Settings » Item » Properties » open property</b> through the option <b>Rakuten.de property</b>.        </td>        
+            <b>Content:</b> Value is set through a property of type <b>No</b>. The Value has to be set in the menu <b>Settings » Item » Properties » open property</b> through the option <b>Rakuten.de property</b>.        </td>        
     </tr>
     <tr>
         <td>
