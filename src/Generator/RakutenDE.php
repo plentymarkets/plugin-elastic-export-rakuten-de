@@ -794,7 +794,7 @@ class RakutenDE extends CSVPluginGenerator
      *
      * @param array $item
      * @param KeyValue $settings
-     * @param mixed $position
+     * @param int|string $position
      * @return string
      */
     private function getImageByPosition($item, $settings, $position):string
