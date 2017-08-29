@@ -3,7 +3,7 @@
 ## v1.2.4 (2017-07-29)
 
 ### Hinzugefügt
-- Es ist nun möglich Energieetikette zu übergeben. Es wird das Bild mit der Position gemäß der Formateinstellung **Bildposition des Energieetikette** als Energieetikette übergeben.
+- Es ist nun möglich Energieetikette zu übergeben. Es wird das Bild mit der Position gemäß der Formateinstellung **Bildposition der Energieetikette** als Energieetikette übergeben.
 
 ### Geändert
 - Der User Guide wurde erweitert.
