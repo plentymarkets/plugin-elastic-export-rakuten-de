@@ -63,7 +63,7 @@ In der folgenden Tabelle finden Sie spezifische Hinweise zu den Einstellungen, F
             Aktiv
         </td>
         <td>
-            <b>Aktiv</b> auswählen.
+            <b>Aktiv</b> wählen.
         </td>        
     </tr>
     <tr>
@@ -71,7 +71,7 @@ In der folgenden Tabelle finden Sie spezifische Hinweise zu den Einstellungen, F
             Märkte
         </td>
         <td>
-            <b>Rakuten.de</b> auswählen.
+            <b>Rakuten.de</b> wählen.
         </td>        
     </tr>
     <tr>
@@ -100,7 +100,7 @@ In der folgenden Tabelle finden Sie spezifische Hinweise zu den Einstellungen, F
             Bild
         </td>
         <td>
-            <b>Erstes Bild</b> auswählen.
+            <b>Erstes Bild</b> wählen.
         </td>        
     </tr>
     <tr>
@@ -124,8 +124,8 @@ In der folgenden Tabelle finden Sie spezifische Hinweise zu den Einstellungen, F
             Artikelverfügbarkeit überschreiben
         </td>
         <td>
-            Dies muss aktiviert sein, da Rakuten.de nur spezifische Werte akzeptiert, die hier eingetragen werden müssen.<br> 
-            Weitere Informationen dazu im Abschnitt <b>3 Übersicht der verfügbaren Spalten</b> bei der <b>lieferzeit</b>.
+            Diese Einstellung muss aktiviert sein, da Rakuten.de nur spezifische Werte akzeptiert, die hier eingetragen werden müssen.<br> 
+            Weitere Informationen dazu im Abschnitt <b>3 Übersicht der verfügbaren Spalten</b> bei <b>lieferzeit</b>.
         </td>        
     </tr>
 </table>
@@ -176,7 +176,7 @@ In der folgenden Tabelle finden Sie spezifische Hinweise zu den Einstellungen, F
         </td>
         <td>
             <b>Pflichtfeld</b><br>
-            <b>Inhalt:</b> <b>1</b>, wenn für die Variante Bestand vorhanden oder diese nicht auf den Nettowarebestand beschränkt ist, ansonsten <b>0</b>.
+            <b>Inhalt:</b> <b>1</b>, wenn für die Variante Bestand vorhanden oder diese nicht auf den Netto-Warebestand beschränkt ist, ansonsten <b>0</b>.
         </td>        
     </tr>
     <tr>
@@ -222,7 +222,7 @@ In der folgenden Tabelle finden Sie spezifische Hinweise zu den Einstellungen, F
         </td>
         <td>
             <b>Pflichtfeld</b> bei Variantenartikeln<br>
-            <b>Inhalt:</b> Die <b>Namen der Attributswerte</b> die mit den Varianten verknüpft sind.
+            <b>Inhalt:</b> Die <b>Namen der Attributswerte</b>, die mit den Varianten verknüpft sind.
         </td>        
     </tr>
     <tr>
@@ -240,7 +240,7 @@ In der folgenden Tabelle finden Sie spezifische Hinweise zu den Einstellungen, F
         </td>
         <td>
             <b>Beschränkung:</b> 0 bis 9999<br>
-            <b>Inhalt:</b> Der <b>Nettowarenbestand der Variante</b>. Bei Artikeln, die nicht auf den Nettowarenbestand beschränkt sind, wird <b>999</b> übertragen.
+            <b>Inhalt:</b> Der <b>Netto-Warenbestand der Variante</b>. Bei Artikeln, die nicht auf den Netto-Warenbestand beschränkt sind, wird <b>999</b> übertragen.
         </td>        
     </tr>
     <tr>
@@ -303,7 +303,7 @@ In der folgenden Tabelle finden Sie spezifische Hinweise zu den Einstellungen, F
             bestandsverwaltung_aktiv
         </td>
         <td>
-            <b>Inhalt:</b> <b>1</b>, wenn die Variante auf den Nettowarenbestand beschränkt ist, ansonsten <b>0</b>. 
+            <b>Inhalt:</b> <b>1</b>, wenn die Variante auf den Netto-Warenbestand beschränkt ist, ansonsten <b>0</b>. 
         </td>        
     </tr>
     <tr>
@@ -329,7 +329,7 @@ In der folgenden Tabelle finden Sie spezifische Hinweise zu den Einstellungen, F
         </td>
         <td>
             <b>Pflichtfeld</b><br>
-            <b>Inhalt:</b> <b>Kategoriepfad der Standard-Kategorie</b> für den, in den Formateinstellungen definierten <b>Mandanten</b>.
+            <b>Inhalt:</b> <b>Kategoriepfad der Standard-Kategorie</b> für den in den Formateinstellungen definierten <b>Mandanten</b>.
         </td>        
     </tr>
     <tr>
@@ -347,7 +347,7 @@ In der folgenden Tabelle finden Sie spezifische Hinweise zu den Einstellungen, F
             tradoria_kategorie
         </td>
         <td>
-            <b>Inhalt:</b> <b>Kategorieverknüpfung der Standard-Kategorie</b> für den, in den Formateinstellungen definierten <b>Mandanten</b>.
+            <b>Inhalt:</b> <b>Kategorieverknüpfung der Standard-Kategorie</b> für den in den Formateinstellungen definierten <b>Mandanten</b>.
         </td>        
     </tr>
     <tr>
@@ -363,7 +363,7 @@ In der folgenden Tabelle finden Sie spezifische Hinweise zu den Einstellungen, F
             free_var_1-20
         </td>
         <td>
-            <b>Inhalt:</b> Steht für das jeweilige <b>Freitextfeld</b>.
+            <b>Inhalt:</b> Steht für das <b>Freitextfeld</b>.
         </td>        
     </tr>
     <tr>
