@@ -1,5 +1,13 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## v1.2.4 (2017-07-29)
+
+### Hinzugefügt
+- Es ist nun möglich Energieetikette zu übergeben. Es wird das Bild mit der Position gemäß der Formateinstellung **Bildposition des Energieetikettes** als Energieetikette übergeben.
+
+### Geändert
+- Der User Guide wurde erweitert.
+
 ## v1.2.3 (2017-07-20)
 
 ### Hinzugefügt
