@@ -31,6 +31,8 @@ class RakutenDE extends CSVPluginGenerator
     const TRANSFER_RRP_YES = 1;
     const TRANSFER_OFFER_PRICE_YES = 1;
 
+
+
     /**
      * @var ElasticExportCoreHelper
      */
@@ -45,6 +47,40 @@ class RakutenDE extends CSVPluginGenerator
      * @var ArrayHelper
      */
     private $arrayHelper;
+
+	/**
+	 * @var PriceHelper $priceHelper
+	 */
+	private $priceHelper;
+
+	/**
+	 * @var ElasticExportStockHelper $elasticExportStockHelper
+	 */
+	private $elasticExportStockHelper;
+
+
+
+	/**
+	 * MarketPropertyHelperRepositoryContract $marketPropertyHelperRepository
+	 */
+	private $marketPropertyHelperRepository;
+
+	/**
+	 * @var SalesPriceSearchRepository
+	 */
+	private $salesPriceSearchRepository;
+
+	/**
+	 * @var VariationSkuRepositoryContract
+	 */
+	private $variationSkuRepository;
+
+	/**
+	 * @var ConfigRepository
+	 */
+	private $configRepository;
+
+
 
     /**
      * @var array
@@ -61,39 +97,10 @@ class RakutenDE extends CSVPluginGenerator
      */
     private $imageCache = [];
 
-    /**
-     * MarketPropertyHelperRepositoryContract $marketPropertyHelperRepository
-     */
-    private $marketPropertyHelperRepository;
-    
-    /**
-     * @var SalesPriceSearchRepository
-     */
-    private $salesPriceSearchRepository;
-
-	/**
-	 * @var PriceHelper $priceHelper
-	 */
-    private $priceHelper;
-
-	/**
-	 * @var ElasticExportStockHelper $elasticExportStockHelper
-	 */
-	private $elasticExportStockHelper;
-
-	/**
-	 * @var VariationSkuRepositoryContract
-	 */
-	private $variationSkuRepository;
-
 	/**
 	 * @var string
 	 */
 	private $parentSku = '';
-	/**
-	 * @var ConfigRepository
-	 */
-	private $configRepository;
 
 	/**
 	 * RakutenDE constructor.
@@ -255,7 +262,6 @@ class RakutenDE extends CSVPluginGenerator
                                     return;
                                 }
                             }
-
                         }
 
                         if($lines == $filter['limit'])
@@ -383,7 +389,6 @@ class RakutenDE extends CSVPluginGenerator
                 }
             }
 
-
             // change sort of array and add primary variation as first entry
             if(!is_null($primaryVariationKey))
             {
@@ -393,6 +398,7 @@ class RakutenDE extends CSVPluginGenerator
             }
 
             $i = 1;
+
             foreach($variations as $key => $variation)
             {
                 /**
@@ -885,6 +891,7 @@ class RakutenDE extends CSVPluginGenerator
     private function getVatClassId($vatValue):int
     {
         $vat = $vatValue;
+
         if($vat == '10,7')
         {
             $vat = 4;
@@ -902,6 +909,7 @@ class RakutenDE extends CSVPluginGenerator
             //bei anderen Steuersaetzen immer 19% nehmen
             $vat = 1;
         }
+
         return $vat;
     }
 
@@ -929,6 +937,7 @@ class RakutenDE extends CSVPluginGenerator
                             if (strlen($externalComponent) > 0 && strpos($marketProperty['external_component'], $externalComponent) !== false)
                             {
                                 $list = explode(':', $marketProperty['external_component']);
+
                                 if (isset($list[1]) && strlen($list[1]) > 0)
                                 {
                                     return $list[1];
@@ -953,11 +962,13 @@ class RakutenDE extends CSVPluginGenerator
         $unit = $this->getUnit($item);
         $content = (float)$item['data']['unit']['content'];
         $convertBasePriceContentTag = $this->elasticExportHelper->getConvertContentTag($content, 3);
+
         if ($convertBasePriceContentTag == true && strlen($unit))
         {
             $content = $this->elasticExportHelper->getConvertedBasePriceContent($content, $unit);
             $unit = $this->elasticExportHelper->getConvertedBasePriceUnit($unit);
         }
+
         return array(
             'content'   =>  $content,
             'unit'      =>  $unit,
@@ -1009,6 +1020,7 @@ class RakutenDE extends CSVPluginGenerator
         {
             $variationAvailable = 1;
             $inventoryManagementActive = 1;
+
             if($stockNet > 999)
             {
                 $stock = 999;
@@ -1022,6 +1034,7 @@ class RakutenDE extends CSVPluginGenerator
         {
             $variationAvailable = 1;
             $inventoryManagementActive = 0;
+            
             if($stockNet > 999)
             {
                 $stock = 999;
