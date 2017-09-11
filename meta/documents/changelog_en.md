@@ -1,11 +1,16 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.2.5 (2017-09-11)
+
+### Fixed
+- An issue was fixed which caused the **Bestandsverwaltung** to not be active when it should in some cases.
+
 ## v1.2.4 (2017-07-29)
 
-### Hinzugefügt
+### Added
 - It is now possible to export an energy efficiency label. The image with the position corresponding the option **Image position of the energy efficiency label** in the format settings will be exported as the energy efficiency label.
 
-### Geändert
+### Changed
 - The user guide was extended.
 
 ## v1.2.3 (2017-07-20)
