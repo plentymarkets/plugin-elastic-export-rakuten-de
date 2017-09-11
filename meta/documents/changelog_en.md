@@ -3,7 +3,7 @@
 ## v1.2.5 (2017-09-11)
 
 ### Fixed
-- An issue was fixed which caused the **Bestandsverwaltung** to not be active when it should in some cases.
+- An issue was fixed which caused the field **Bestandsverwaltung** to not be active.
 
 ## v1.2.4 (2017-07-29)
 
