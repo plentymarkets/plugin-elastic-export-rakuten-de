@@ -1,5 +1,10 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## v1.2.5 (2017-09-11)
+
+### Behoben
+- Es wurde ein Fehler behoben, der dazu geführt hat, dass die **Bestandsverwaltung** in manchen Fällen nicht aktiv war.
+
 ## v1.2.4 (2017-07-29)
 
 ### Hinzugefügt

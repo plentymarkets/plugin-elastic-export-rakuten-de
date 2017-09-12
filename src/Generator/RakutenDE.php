@@ -1016,19 +1016,23 @@ class RakutenDE extends CSVPluginGenerator
             $inventoryManagementActive = 0;
             $stock = 999;
         }
-        elseif($item['data']['variation']['stockLimitation'] == 1 && $stockNet > 0)
+        elseif($item['data']['variation']['stockLimitation'] == 1)
         {
-            $variationAvailable = 1;
-            $inventoryManagementActive = 1;
+			$inventoryManagementActive = 1;
 
-            if($stockNet > 999)
-            {
-                $stock = 999;
-            }
-            else
-            {
-                $stock = $stockNet;
-            }
+        	if($stockNet > 0)
+        	{
+				$variationAvailable = 1;
+
+				if($stockNet > 999)
+				{
+					$stock = 999;
+				}
+				else
+				{
+					$stock = $stockNet;
+				}
+			}
         }
         elseif($item['data']['variation']['stockLimitation'] == 0)
         {
