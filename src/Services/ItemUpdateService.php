@@ -11,7 +11,6 @@ use Plenty\Modules\DataExchange\Models\Export;
 use Plenty\Modules\Helper\Services\ArrayHelper;
 use Plenty\Modules\Item\SalesPrice\Models\SalesPriceSearchResponse;
 use Plenty\Modules\Item\Search\Contracts\VariationElasticSearchScrollRepositoryContract;
-use Plenty\Modules\Item\VariationSku\Contracts\VariationSkuRepositoryContract;
 use Plenty\Modules\Market\Credentials\Contracts\CredentialsRepositoryContract;
 use Plenty\Modules\Market\Credentials\Models\Credentials;
 use Plenty\Modules\Market\Helper\Contracts\MarketAttributeHelperRepositoryContract;
@@ -65,10 +64,6 @@ class ItemUpdateService
 	 * @var ExportRepositoryContract $exportRepositoryContract
 	 */
 	private $exportRepositoryContract;
-	/**
-	 * @var VariationSkuRepositoryContract
-	 */
-	private $variationSkuRepository;
 
 	/**
 	 * ItemUpdateService constructor.
@@ -79,7 +74,6 @@ class ItemUpdateService
 	 * @param CredentialsRepositoryContract $credentialsRepositoryContract
 	 * @param ConfigRepository $configRepository
 	 * @param ExportRepositoryContract $exportRepositoryContract
-	 * @param VariationSkuRepositoryContract $variationSkuRepository
 	 */
 	public function __construct(
 		MarketAttributeHelperRepositoryContract $marketAttributeHelperRepositoryContract,
@@ -88,8 +82,7 @@ class ItemUpdateService
 		Client $client,
 		CredentialsRepositoryContract $credentialsRepositoryContract,
 		ConfigRepository $configRepository,
-		ExportRepositoryContract $exportRepositoryContract,
-		VariationSkuRepositoryContract $variationSkuRepository)
+		ExportRepositoryContract $exportRepositoryContract)
 	{
 		$this->marketAttributeHelperRepositoryContract = $marketAttributeHelperRepositoryContract;
 		$this->elasticSearchDataProvider = $elasticSearchDataProvider;
@@ -98,7 +91,6 @@ class ItemUpdateService
 		$this->priceHelper = $priceHelper;
 		$this->configRepository = $configRepository;
 		$this->exportRepositoryContract = $exportRepositoryContract;
-		$this->variationSkuRepository = $variationSkuRepository;
 	}
 
 	/**
@@ -209,7 +201,7 @@ class ItemUpdateService
 														}
 
 														//checks if the price was updated within the last 2 days
-														if($priceResponse->updatedAt > strtotime($variation['data']['skus'][0]['exportedAt']))
+														if($priceResponse->updatedAt > (time() - self::TWO_DAYS))
 														{
 															$transferData = true;
 														}
@@ -228,7 +220,7 @@ class ItemUpdateService
 														$content['stock'] = $stock->stockNet;
 
 														//checks if the stock was updated within the last 2 days
-														if($stock->updatedAt > strtotime($variation['data']['skus'][0]['exportedAt']))
+														if($stock->updatedAt > (time() - self::TWO_DAYS))
 														{
 															$transferData = true;
 														}
@@ -240,15 +232,7 @@ class ItemUpdateService
 													continue;
 												}
 
-												$response = $this->client->call($endPoint, Client::POST, $content);
-
-												if($response instanceof \SimpleXMLElement)
-												{
-													if($response->success == "1")
-													{
-														$this->variationSkuRepository->update(['exportedAt' => date("Y-m-d H:i:s")], $variation['data']['skus'][0]['id']);
-													}
-												}
+												$this->client->call($endPoint, Client::POST, $content);
 											}
 										}
 

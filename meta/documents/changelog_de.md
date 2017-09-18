@@ -1,10 +1,5 @@
 # Release Notes für Elastic Export Rakuten.de
 
-## v1.2.6 (2017-09-18)
-
-### Geändert
-- Der **Bestandsabgleich** wurde optimiert.
-
 ## v1.2.5 (2017-09-11)
 
 ### Behoben

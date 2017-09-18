@@ -33,7 +33,7 @@ class Client
 	 * @param string $endPoint
 	 * @param string $httpRequestMethod
 	 * @param array $content
-	 * @return \SimpleXMLElement
+	 * @return string
 	 */
 	public function call($endPoint, $httpRequestMethod, $content = [])
 	{
@@ -57,16 +57,6 @@ class Client
 			$response = curl_exec($ch);
 
 			curl_close($ch);
-
-			$response = pluginApp(\SimpleXMLElement::class, [0 => $response, 1 => 0, 2 => false, 3 => "", 4 => false]);
-
-			if($response->success == "-1" && count($response->errors))
-			{
-				$this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.apiError', [
-					'errorCode' => $response->errors->error->code,
-					'message'	=> $response->errors->error->message
-				]);
-			}
 		}
 		catch (\Throwable $throwable)
 		{

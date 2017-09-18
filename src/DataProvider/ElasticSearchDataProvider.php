@@ -134,8 +134,6 @@ class ElasticSearchDataProvider
 
 			//skus
 			'skus.sku',
-			'skus.exportedAt',
-			'skus.id',
 
 			//attributes
 			'attributes.attributeValueSetId',
@@ -179,9 +177,7 @@ class ElasticSearchDataProvider
 		$nestedKeyList['nestedKeys'] = [
 
 			'skus' => [
-				'sku',
-				'exportedAt',
-				'id'
+				'sku'
 			],
 
 			'attributes'   => [
