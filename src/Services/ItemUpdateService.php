@@ -30,8 +30,6 @@ class ItemUpdateService
 
 	const RAKUTEN_DE = 106.00;
 
-	const TWO_DAYS = 172800;
-
 	/**
 	 * @var MarketAttributeHelperRepositoryContract $marketAttributeHelperRepositoryContract
 	 */
