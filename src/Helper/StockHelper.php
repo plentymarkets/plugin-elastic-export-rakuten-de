@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by IntelliJ IDEA.
- * User: max-nils-bruschke
- * Date: 26.09.17
- * Time: 09:36
- */
 
 namespace ElasticExportRakutenDE\Helper;
 
@@ -15,6 +9,20 @@ use Plenty\Repositories\Models\PaginatedResult;
 class StockHelper
 {
 	/**
+	 * @var StockRepositoryContract
+	 */
+	private $stockRepository;
+
+	/**
+	 * StockHelper constructor.
+	 * @param StockRepositoryContract $stockRepository
+	 */
+	public function __construct(StockRepositoryContract $stockRepository)
+	{
+		$this->stockRepository = $stockRepository;
+	}
+
+	/**
 	 * Get all informations that depend on stock settings and stock volume
 	 * (inventoryManagementActive, $variationAvailable, $stock)
 	 * @param array $item
@@ -24,27 +32,23 @@ class StockHelper
 	{
 		$stockNet = 0;
 		$stockModel = '';
-		$stockRepositoryContract = pluginApp(StockRepositoryContract::class);
 
-		if($stockRepositoryContract instanceof StockRepositoryContract)
+		$this->stockRepository->setFilters(['variationId' => $item['id']]);
+		$stockResult = $this->stockRepository->listStockByWarehouseType('sales', ['stockNet'], 1, 1);
+
+		if($stockResult instanceof PaginatedResult)
 		{
-			$stockRepositoryContract->setFilters(['variationId' => $item['id']]);
-			$stockResult = $stockRepositoryContract->listStockByWarehouseType('sales', ['stockNet'], 1, 1);
-
-			if($stockResult instanceof PaginatedResult)
+			$stockList = $stockResult->getResult();
+			foreach($stockList as $stock)
 			{
-				$stockList = $stockResult->getResult();
-				foreach($stockList as $stock)
-				{
-					$stockNet = $stock->stockNet;
-					$stockModel = $stock;
-					break;
-				}
+				$stockNet = $stock->stockNet;
+				$stockModel = $stock;
+				break;
 			}
-			else
-			{
-				$stockNet = 0;
-			}
+		}
+		else
+		{
+			$stockNet = 0;
 		}
 
 		$inventoryManagementActive = 0;
