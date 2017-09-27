@@ -6,6 +6,7 @@ use ElasticExport\Helper\ElasticExportStockHelper;
 use ElasticExportRakutenDE\Api\Client;
 use ElasticExportRakutenDE\DataProvider\ElasticSearchDataProvider;
 use ElasticExportRakutenDE\Helper\PriceHelper;
+use ElasticExportRakutenDE\Helper\StockHelper;
 use Plenty\Modules\DataExchange\Contracts\ExportRepositoryContract;
 use Plenty\Modules\DataExchange\Models\Export;
 use Plenty\Modules\Helper\Services\ArrayHelper;
@@ -68,6 +69,10 @@ class ItemUpdateService
 	 * @var VariationSkuRepositoryContract
 	 */
 	private $variationSkuRepository;
+	/**
+	 * @var StockHelper
+	 */
+	private $stockHelper;
 
 	/**
 	 * ItemUpdateService constructor.
@@ -79,6 +84,7 @@ class ItemUpdateService
 	 * @param ConfigRepository $configRepository
 	 * @param ExportRepositoryContract $exportRepositoryContract
 	 * @param VariationSkuRepositoryContract $variationSkuRepository
+	 * @param StockHelper $stockHelper
 	 */
 	public function __construct(
 		MarketAttributeHelperRepositoryContract $marketAttributeHelperRepositoryContract,
@@ -88,7 +94,8 @@ class ItemUpdateService
 		CredentialsRepositoryContract $credentialsRepositoryContract,
 		ConfigRepository $configRepository,
 		ExportRepositoryContract $exportRepositoryContract,
-		VariationSkuRepositoryContract $variationSkuRepository)
+		VariationSkuRepositoryContract $variationSkuRepository,
+		StockHelper $stockHelper)
 	{
 		$this->marketAttributeHelperRepositoryContract = $marketAttributeHelperRepositoryContract;
 		$this->elasticSearchDataProvider = $elasticSearchDataProvider;
@@ -98,6 +105,7 @@ class ItemUpdateService
 		$this->configRepository = $configRepository;
 		$this->exportRepositoryContract = $exportRepositoryContract;
 		$this->variationSkuRepository = $variationSkuRepository;
+		$this->stockHelper = $stockHelper;
 	}
 
 	/**
@@ -109,7 +117,6 @@ class ItemUpdateService
 	{
 		$transferData = false;
 		$elasticSearch = pluginApp(VariationElasticSearchScrollRepositoryContract::class);
-		$elasticExportStockHelper = pluginApp(ElasticExportStockHelper::class);
 		$exportList = $this->exportRepositoryContract->search(['formatKey' => 'RakutenDE-Plugin']);
 
 		if($elasticSearch instanceof VariationElasticSearchScrollRepositoryContract)
@@ -172,6 +179,8 @@ class ItemUpdateService
 										{
 											foreach($resultList['documents'] as $variation)
 											{
+												$content = array();
+
 												$content['stock'] = 0;
 
 												$endPoint = $this->getEndpoint($variation);
@@ -219,13 +228,24 @@ class ItemUpdateService
 
 												if($stockUpdate == "true" && $stillActive === true)
 												{
-													$stock = $elasticExportStockHelper->getStockObject($variation);
+													$stockList = $this->stockHelper->getStockList($variation);
 
-													if($stock instanceof Stock)
+													if(count($stockList) && $stockList['stockModel'] instanceof Stock)
 													{
-														$content['stock'] = $stock->stockNet;
+														$content['stock'] = $stockList['stock'];
+														$content['available'] = false;
 
-														if($stock->updatedAt > strtotime($variation['data']['skus'][0]['exportedAt']))
+														if($stockList['stock'] > 0)
+														{
+															$content['available'] = true;
+														}
+
+														if($endPoint == Client::EDIT_PRODUCT)
+														{
+															$content['stock_policy'] = $stockList['inventoryManagementActive'];
+														}
+
+														if($stockList['stockModel']->updatedAt > strtotime($variation['data']['skus'][0]['exportedAt']))
 														{
 															$transferData = true;
 														}
@@ -252,7 +272,7 @@ class ItemUpdateService
 										if(strlen($resultList['error']))
 										{
 											$this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.esError', [
-												'error message' => $resultList['error']
+												'error message' => $resultList['error'],
 											]);
 										}
 

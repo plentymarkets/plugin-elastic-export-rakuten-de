@@ -6,6 +6,7 @@ use ElasticExport\Helper\ElasticExportCoreHelper;
 use ElasticExport\Helper\ElasticExportItemHelper;
 use ElasticExportRakutenDE\Helper\PriceHelper;
 use ElasticExport\Helper\ElasticExportStockHelper;
+use ElasticExportRakutenDE\Helper\StockHelper;
 use ElasticExportRakutenDE\Validators\GeneratorValidator;
 use Plenty\Legacy\Repositories\Item\SalesPrice\SalesPriceSearchRepository;
 use Plenty\Modules\DataExchange\Contracts\CSVPluginGenerator;
@@ -103,6 +104,11 @@ class RakutenDE extends CSVPluginGenerator
 	private $parentSku = '';
 
 	/**
+	 * @var StockHelper
+	 */
+	private $stockHelper;
+
+	/**
 	 * RakutenDE constructor.
 	 * @param ArrayHelper $arrayHelper
 	 * @param MarketPropertyHelperRepositoryContract $marketPropertyHelperRepository
@@ -110,6 +116,7 @@ class RakutenDE extends CSVPluginGenerator
 	 * @param PriceHelper $priceHelper
 	 * @param VariationSkuRepositoryContract $variationSkuRepository
 	 * @param ConfigRepository $configRepository
+	 * @param StockHelper $stockHelper
 	 */
     public function __construct(
         ArrayHelper $arrayHelper,
@@ -117,7 +124,8 @@ class RakutenDE extends CSVPluginGenerator
         SalesPriceSearchRepository $salesPriceSearchRepository,
 		PriceHelper $priceHelper,
 		VariationSkuRepositoryContract $variationSkuRepository,
-		ConfigRepository $configRepository
+		ConfigRepository $configRepository,
+		StockHelper $stockHelper
     )
     {
         $this->arrayHelper = $arrayHelper;
@@ -126,6 +134,7 @@ class RakutenDE extends CSVPluginGenerator
         $this->priceHelper = $priceHelper;
 		$this->variationSkuRepository = $variationSkuRepository;
 		$this->configRepository = $configRepository;
+		$this->stockHelper = $stockHelper;
 	}
 
     /**
@@ -518,7 +527,7 @@ class RakutenDE extends CSVPluginGenerator
 
         $vat = $this->getVatClassId($priceList['vatValue']);
 
-        $stockList = $this->getStockList($item);
+        $stockList = $this->stockHelper->getStockList($item);
 
         $basePriceComponentList = $this->getBasePriceComponentList($item);
 
@@ -624,7 +633,7 @@ class RakutenDE extends CSVPluginGenerator
 
         $vat = $this->getVatClassId($priceList['vatValue']);
 
-        $stockList = $this->getStockList($item);
+        $stockList = $this->stockHelper->getStockList($item);
 
         $data = [
             'id'						=> '#'.$item['data']['item']['id'],
@@ -712,7 +721,7 @@ class RakutenDE extends CSVPluginGenerator
 			$parentSku = $item['data']['skus'][0]['parentSku'];
 		}
 
-        $stockList = $this->getStockList($item);
+        $stockList = $this->stockHelper->getStockList($item);
 
         $priceList = $this->priceHelper->getPriceList($item, $settings);
 
@@ -972,94 +981,6 @@ class RakutenDE extends CSVPluginGenerator
         return array(
             'content'   =>  $content,
             'unit'      =>  $unit,
-        );
-    }
-
-    /**
-     * Get all informations that depend on stock settings and stock volume
-     * (inventoryManagementActive, $variationAvailable, $stock)
-     * @param $item
-     * @return array
-     */
-    private function getStockList($item):array
-    {
-        $stockNet = 0;
-        $stockRepositoryContract = pluginApp(StockRepositoryContract::class);
-
-        if($stockRepositoryContract instanceof StockRepositoryContract)
-        {
-            $stockRepositoryContract->setFilters(['variationId' => $item['id']]);
-            $stockResult = $stockRepositoryContract->listStockByWarehouseType('sales', ['stockNet'], 1, 1);
-
-            if($stockResult instanceof PaginatedResult)
-			{
-                $stockList = $stockResult->getResult();
-                foreach($stockList as $stock)
-                {
-                    $stockNet = $stock->stockNet;
-                    break;
-                }
-			}
-            else
-			{
-				$stockNet = 0;
-			}
-        }
-
-        $inventoryManagementActive = 0;
-        $variationAvailable = 0;
-        $stock = 0;
-
-        if($item['data']['variation']['stockLimitation'] == 2)
-        {
-            $variationAvailable = 1;
-            $inventoryManagementActive = 0;
-            $stock = 999;
-        }
-        elseif($item['data']['variation']['stockLimitation'] == 1)
-        {
-			$inventoryManagementActive = 1;
-
-        	if($stockNet > 0)
-        	{
-				$variationAvailable = 1;
-
-				if($stockNet > 999)
-				{
-					$stock = 999;
-				}
-				else
-				{
-					$stock = $stockNet;
-				}
-			}
-        }
-        elseif($item['data']['variation']['stockLimitation'] == 0)
-        {
-            $variationAvailable = 1;
-            $inventoryManagementActive = 0;
-            
-            if($stockNet > 999)
-            {
-                $stock = 999;
-            }
-            else
-            {
-                if($stockNet > 0)
-                {
-                    $stock = $stockNet;
-                }
-                else
-                {
-                    $stock = 999;
-                }
-            }
-        }
-
-        return array (
-            'stock'                     =>  $stock,
-            'variationAvailable'        =>  $variationAvailable,
-            'inventoryManagementActive' =>  $inventoryManagementActive,
         );
     }
 }
