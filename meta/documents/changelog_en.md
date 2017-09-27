@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.2.7 (2017-09-27)
+
+### Added
+- The fields **available** and **stock_policy** were added to the **stock update**.
+
 ## v1.2.6 (2017-09-18)
 
 ### Changed

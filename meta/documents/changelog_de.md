@@ -1,5 +1,10 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## v1.2.7 (2017-09-27)
+
+### Hinzugefügt
+- Die Felder **available** und **stock_policy** wurden dem **Bestandsabgleich** hinzugefügt.
+
 ## v1.2.6 (2017-09-18)
 
 ### Geändert
