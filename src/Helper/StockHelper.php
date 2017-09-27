@@ -4,6 +4,7 @@ namespace ElasticExportRakutenDE\Helper;
 
 
 use Plenty\Modules\StockManagement\Stock\Contracts\StockRepositoryContract;
+use Plenty\Modules\StockManagement\Stock\Models\Stock;
 use Plenty\Repositories\Models\PaginatedResult;
 
 class StockHelper
@@ -31,7 +32,7 @@ class StockHelper
 	public function getStockList($item):array
 	{
 		$stockNet = 0;
-		$stockModel = '';
+		$stockUpdatedAt = '';
 
 		$this->stockRepository->setFilters(['variationId' => $item['id']]);
 		$stockResult = $this->stockRepository->listStockByWarehouseType('sales', ['stockNet'], 1, 1);
@@ -41,9 +42,12 @@ class StockHelper
 			$stockList = $stockResult->getResult();
 			foreach($stockList as $stock)
 			{
-				$stockNet = $stock->stockNet;
-				$stockModel = $stock;
-				break;
+				if($stock instanceof Stock)
+				{
+					$stockNet = $stock->stockNet;
+					$stockUpdatedAt = $stock->updatedAt;
+					break;
+				}
 			}
 		}
 		else
@@ -102,7 +106,7 @@ class StockHelper
 		}
 
 		return array (
-			'stockModel'				=>	$stockModel,
+			'updatedAt'					=>	$stockUpdatedAt,
 			'stock'                     =>  $stock,
 			'variationAvailable'        =>  $variationAvailable,
 			'inventoryManagementActive' =>  $inventoryManagementActive,

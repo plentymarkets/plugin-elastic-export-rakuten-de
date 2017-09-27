@@ -230,7 +230,7 @@ class ItemUpdateService
 												{
 													$stockList = $this->stockHelper->getStockList($variation);
 
-													if(count($stockList) && $stockList['stockModel'] instanceof Stock)
+													if(count($stockList))
 													{
 														$content['stock'] = $stockList['stock'];
 														$content['available'] = false;
@@ -245,7 +245,7 @@ class ItemUpdateService
 															$content['stock_policy'] = $stockList['inventoryManagementActive'];
 														}
 
-														if($stockList['stockModel']->updatedAt > strtotime($variation['data']['skus'][0]['exportedAt']))
+														if($stockList['updatedAt'] > strtotime($variation['data']['skus'][0]['exportedAt']))
 														{
 															$transferData = true;
 														}
