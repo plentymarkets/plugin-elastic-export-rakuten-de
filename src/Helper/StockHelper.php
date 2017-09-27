@@ -45,7 +45,7 @@ class StockHelper
 				if($stock instanceof Stock)
 				{
 					$stockNet = $stock->stockNet;
-					$stockUpdatedAt = $stock->updatedAt;
+					$stockUpdatedAt = $stock->updatedAt->timestamp;
 					break;
 				}
 			}
