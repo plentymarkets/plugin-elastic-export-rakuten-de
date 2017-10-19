@@ -64,7 +64,8 @@ class Client
 			{
 				$this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.apiError', [
 					'errorCode' => $response->errors->error->code,
-					'message'	=> $response->errors->error->message
+					'message'	=> $response->errors->error->message,
+					'callContent'	=> $content
 				]);
 			}
 
