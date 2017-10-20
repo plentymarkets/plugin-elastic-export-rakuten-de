@@ -4,7 +4,6 @@ namespace ElasticExportRakutenDE\ResultField;
 
 use Plenty\Modules\Cloud\ElasticSearch\Lib\ElasticSearch;
 use Plenty\Modules\DataExchange\Contracts\ResultFields;
-use Plenty\Modules\DataExchange\Models\FormatSetting;
 use Plenty\Modules\Helper\Services\ArrayHelper;
 use Plenty\Modules\Item\Search\Mutators\BarcodeMutator;
 use Plenty\Modules\Item\Search\Mutators\ImageMutator;
@@ -12,12 +11,16 @@ use Plenty\Modules\Cloud\ElasticSearch\Lib\Source\Mutator\BuiltIn\LanguageMutato
 use Plenty\Modules\Item\Search\Mutators\KeyMutator;
 use Plenty\Modules\Item\Search\Mutators\SkuMutator;
 use Plenty\Modules\Item\Search\Mutators\DefaultCategoryMutator;
+use ElasticExport\DataProvider\ResultFieldDataProvider;
+use Plenty\Plugin\Log\Loggable;
 
 /**
  * Class RakutenDE
  */
 class RakutenDE extends ResultFields
 {
+	use Loggable;
+
     const RAKUTEN_DE = 106.00;
     /*
      * @var ArrayHelper
@@ -47,42 +50,6 @@ class RakutenDE extends ResultFields
 
 		$accountId = (int) $settings->get('marketAccountId');
         $reference = $settings->get('referrerId') ? $settings->get('referrerId') : self::RAKUTEN_DE;
-
-        // texts
-        $itemDescriptionFields = ['texts.urlPath'];
-
-        switch($settings->get('nameId'))
-        {
-            case 1:
-                $itemDescriptionFields[] = 'texts.name1';
-                break;
-            case 2:
-                $itemDescriptionFields[] = 'texts.name2';
-                break;
-            case 3:
-                $itemDescriptionFields[] = 'texts.name3';
-                break;
-            default:
-                $itemDescriptionFields[] = 'texts.name1';
-                break;
-        }
-
-        if($settings->get('descriptionType') == 'itemShortDescription' || $settings->get('previewTextType') == 'itemShortDescription')
-        {
-            $itemDescriptionFields[] = 'texts.shortDescription';
-        }
-
-        if($settings->get('descriptionType') == 'itemDescription'
-            || $settings->get('descriptionType') == 'itemDescriptionAndTechnicalData'
-            || $settings->get('previewTextType') == 'itemDescription'
-            || $settings->get('previewTextType') == 'itemDescriptionAndTechnicalData'
-		)
-        {
-            $itemDescriptionFields[] = 'texts.description';
-        }
-
-        $itemDescriptionFields[] = 'texts.technicalData';
-		$itemDescriptionFields[] = 'texts.lang';
 
         //Mutator
 
@@ -142,73 +109,33 @@ class RakutenDE extends ResultFields
             $defaultCategoryMutator->setPlentyId($settings->get('plentyId'));
         }
 
-        $fields = [
-            [
-                //item
-                'item.id',
-                'item.manufacturer.id',
-                'item.rakutenCategoryId',
+		$resultFieldHelper = pluginApp(ResultFieldDataProvider::class);
+		if($resultFieldHelper instanceof ResultFieldDataProvider)
+		{
+			$resultFields = $resultFieldHelper->getResultFields($settings);
+		}
 
-                //variation
-                'id',
-                'variation.availability.id',
-                'variation.stockLimitation',
-                'variation.vatId',
-                'variation.model',
-                'variation.isMain',
-
-                //images
-                'images.all.urlMiddle',
-                'images.all.urlPreview',
-                'images.all.urlSecondPreview',
-                'images.all.url',
-                'images.all.path',
-                'images.all.position',
-
-                //unit
-                'unit.content',
-                'unit.id',
-
-                //sku
-                'skus.sku',
-				'skus.parentSku',
-
-                //defaultCategories
-                'defaultCategories.id',
-
-                //barcodes
-                'barcodes.code',
-                'barcodes.type',
-
-                //attributes
-                'attributes.attributeValueSetId',
-                'attributes.attributeId',
-                'attributes.valueId',
-                'attributes.names.name',
-                'attributes.names.lang',
-
-                //properties
-                'properties.property.id'
-            ],
-
-            [
-                $languageMutator,
-                $skuMutator,
-                $defaultCategoryMutator,
+		if(isset($resultFields) && is_array($resultFields) && count($resultFields))
+		{
+			$fields[0] = $resultFields;
+			$fields[1] = [
+				$languageMutator,
+				$skuMutator,
+				$defaultCategoryMutator,
 				$barcodeMutator,
-                $keyMutator
-            ],
-        ];
+				$keyMutator
+			];
 
-        if($reference != -1)
-        {
-            $fields[1][] = $imageMutator;
-        }
-
-        foreach($itemDescriptionFields as $itemDescriptionField)
-        {
-            $fields[0][] = $itemDescriptionField;
-        }
+			if($reference != -1)
+			{
+				$fields[1][] = $imageMutator;
+			}
+		}
+		else
+		{
+			//todo log result fields could not be loaded
+			exit();
+		}
 
         return $fields;
     }

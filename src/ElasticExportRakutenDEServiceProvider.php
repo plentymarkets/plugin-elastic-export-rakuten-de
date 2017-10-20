@@ -32,5 +32,11 @@ class ElasticExportRakutenDEServiceProvider extends ServiceProvider //DataExchan
         );
 
 		$cronContainer->add(CronContainer::HOURLY, ItemUpdateCron::class);
+
+		$referenceContainer->add([
+			'total'			=>	'total',
+			'failedShard'	=>	'failedShard',
+			'variationId'	=>	'variationId'
+		]);
 	}
 }

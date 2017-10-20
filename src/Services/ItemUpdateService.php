@@ -167,6 +167,7 @@ class ItemUpdateService
 		$previousItemId = null;
 		$variations = array();
 		$newShard = false;
+		$shardIterator = 0;
 		$elasticSearch = pluginApp(VariationElasticSearchScrollRepositoryContract::class);
 		$exportList = $this->exportRepositoryContract->search(['formatKey' => 'RakutenDE-Plugin']);
 
@@ -224,6 +225,20 @@ class ItemUpdateService
 									do
 									{
 										$resultList = $elasticSearch->execute();
+										$shardIterator++;
+
+										//log the amount of the elasticsearch result once
+										if($shardIterator == 1)
+										{
+											$this->getLogger(__METHOD__)->addReference('total', (int)$resultList['total'])->info('ElasticExportRakutenDE::log.esResultAmount');
+										}
+
+										if(count($resultList['error']) > 0)
+										{
+											$this->getLogger(__METHOD__)->addReference('failedShard', $shardIterator)->error('ElasticExportRakutenDE::log.occurredElasticSearchErrors', [
+												'error message' => $resultList['error'],
+											]);
+										}
 
 										if(is_array($resultList['documents']) && count($resultList['documents']) > 0)
 										{
@@ -305,7 +320,7 @@ class ItemUpdateService
 		else
 		{
 			//Todo add log
-			$this->getLogger(__METHOD__);
+			$this->getLogger(__METHOD__)->addReference('variationId', $variation->id)->error('ElasticExportRakutenDE::log.missingEndpoint');
 			return null;
 		}
 
