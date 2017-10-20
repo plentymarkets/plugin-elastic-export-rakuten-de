@@ -3,10 +3,8 @@
 namespace ElasticExportRakutenDE;
 
 use ElasticExportRakutenDE\Validators\GeneratorValidator;
-use Plenty\Log\Services\ReferenceContainer;
 use Plenty\Modules\Cron\Services\CronContainer;
 use Plenty\Modules\DataExchange\Services\ExportPresetContainer;
-use Plenty\Plugin\DataExchangeServiceProvider;
 use ElasticExportRakutenDE\Crons\ItemUpdateCron;
 use Plenty\Plugin\ServiceProvider as ServiceProvider;
 
@@ -19,8 +17,7 @@ class ElasticExportRakutenDEServiceProvider extends ServiceProvider //DataExchan
 
     public function boot(
     	ExportPresetContainer $exportPresetContainer,
-		CronContainer $cronContainer,
-		ReferenceContainer $referenceContainer)
+		CronContainer $cronContainer)
 	{
 		$exportPresetContainer->add(
             'RakutenDE-Plugin',
@@ -32,11 +29,5 @@ class ElasticExportRakutenDEServiceProvider extends ServiceProvider //DataExchan
         );
 
 		$cronContainer->add(CronContainer::HOURLY, ItemUpdateCron::class);
-
-		$referenceContainer->add([
-			'total'			=>	'total',
-			'failedShard'	=>	'failedShard',
-			'variationId'	=>	'variationId'
-		]);
 	}
 }
