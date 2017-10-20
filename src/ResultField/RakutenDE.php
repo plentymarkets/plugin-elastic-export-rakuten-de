@@ -133,7 +133,7 @@ class RakutenDE extends ResultFields
 		}
 		else
 		{
-			//todo log result fields could not be loaded
+			$this->getLogger(__METHOD__)->critical('ElasticExportRakutenDE::log.resultFieldError');
 			exit();
 		}
 
