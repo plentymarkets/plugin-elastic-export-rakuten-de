@@ -3,7 +3,7 @@
 ## v1.2.8 (2017-10-20)
 
 ### Changed
-- The export gets the result fields now from the ResultFieldsDataProvider within the ElasticExport plugin.
+- The export gets the result fields from the ResultFieldsDataProvider within the ElasticExport plugin.
 
 ### Fixed
 - An issue was fixed, which caused problems regarding the price and stock update.
