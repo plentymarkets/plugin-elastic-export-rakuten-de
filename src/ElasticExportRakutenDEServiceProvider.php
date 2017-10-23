@@ -10,15 +10,22 @@ use Plenty\Plugin\ServiceProvider as ServiceProvider;
 
 class ElasticExportRakutenDEServiceProvider extends ServiceProvider //DataExchangeServiceProvider
 {
+
     public function register()
     {
         $this->getApplication()->singleton(GeneratorValidator::class);
     }
 
+	/**
+	 * @param ExportPresetContainer $exportPresetContainer
+	 * @param CronContainer $cronContainer
+	 */
     public function boot(
     	ExportPresetContainer $exportPresetContainer,
 		CronContainer $cronContainer)
 	{
+
+		//Adds the export format to the export container.
 		$exportPresetContainer->add(
             'RakutenDE-Plugin',
             'ElasticExportRakutenDE\ResultField\RakutenDE',
@@ -28,6 +35,7 @@ class ElasticExportRakutenDEServiceProvider extends ServiceProvider //DataExchan
             true
         );
 
+		//Adds crons to the cron list.
 		$cronContainer->add(CronContainer::HOURLY, ItemUpdateCron::class);
 	}
 }

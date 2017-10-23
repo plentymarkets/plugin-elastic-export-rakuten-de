@@ -509,7 +509,7 @@ class ItemUpdateService
 				if(!is_null($potentialParent) && strlen($attributeValue))
 				{
 					$itemLevel = Client::EDIT_PRODUCT_VARIANT;
-					$this->startCall($variation, $itemLevel, $settings);
+					$this->sendRequest($variation, $itemLevel, $settings);
 
 					unset($potentialParent);
 				}
@@ -521,21 +521,21 @@ class ItemUpdateService
 				elseif($crossShardConnection === true)
 				{
 					$itemLevel = Client::EDIT_PRODUCT_VARIANT;
-					$this->startCall($variation, $itemLevel, $settings);
+					$this->sendRequest($variation, $itemLevel, $settings);
 				}
 
 				//isMain can be true or false, this does not matter in this case
 				elseif(strlen($attributeValue) == 0 && count($variations) == 1)
 				{
 					$itemLevel = Client::EDIT_PRODUCT;
-					$this->startCall($variation, $itemLevel, $settings);
+					$this->sendRequest($variation, $itemLevel, $settings);
 				}
 
 				//isMain can be true or false, this does not matter in this case
 				elseif(count($variations) == 1 && strlen($attributeValue) > 0)
 				{
 					$itemLevel = Client::EDIT_PRODUCT_VARIANT;
-					$this->startCall($variation, $itemLevel, $settings);
+					$this->sendRequest($variation, $itemLevel, $settings);
 				}
 
 				/**
@@ -546,7 +546,7 @@ class ItemUpdateService
 				elseif($i == 1 && strlen($attributeValue) > 0)
 				{
 					$itemLevel = Client::EDIT_PRODUCT_VARIANT;
-					$this->startCall($variation, $itemLevel, $settings);
+					$this->sendRequest($variation, $itemLevel, $settings);
 				}
 
 				//&& count($variations) > 1
@@ -570,7 +570,7 @@ class ItemUpdateService
 				else
 				{
 					$itemLevel = Client::EDIT_PRODUCT_VARIANT;
-					$this->startCall($variation, $itemLevel, $settings);
+					$this->sendRequest($variation, $itemLevel, $settings);
 				}
 
 				$i++;
@@ -581,7 +581,7 @@ class ItemUpdateService
 				foreach($parentWithoutChildren as $variation)
 				{
 					$itemLevel = Client::EDIT_PRODUCT;
-					$this->startCall($variation, $itemLevel, $settings);
+					$this->sendRequest($variation, $itemLevel, $settings);
 				}
 			}
 		}
@@ -592,7 +592,7 @@ class ItemUpdateService
 	 * @param $itemLevel
 	 * @param $settings
 	 */
-	private function startCall($variation, $itemLevel, $settings)
+	private function sendRequest($variation, $itemLevel, $settings)
 	{
 		$preparedContent = $this->prepareContent($variation, $itemLevel, $settings);
 
