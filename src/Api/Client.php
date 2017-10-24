@@ -63,8 +63,9 @@ class Client
 			if($response->success == "-1" && count($response->errors))
 			{
 				$this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.apiError', [
-					'errorCode' => $response->errors->error->code,
-					'message'	=> $response->errors->error->message
+					'error code' 		=> $response->errors->error->code,
+					'message'			=> $response->errors->error->message,
+					'request content'	=> $content
 				]);
 			}
 
@@ -72,8 +73,8 @@ class Client
 		catch (\Throwable $throwable)
 		{
 			$this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.apiError', [
-				'error' => $throwable->getMessage(),
-				'line' => $throwable->getLine(),
+				'message'	=> $throwable->getMessage(),
+				'line'	=> $throwable->getLine(),
 			]);
 		}
 

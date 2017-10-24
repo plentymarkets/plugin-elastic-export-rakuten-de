@@ -220,6 +220,7 @@ class RakutenDE extends CSVPluginGenerator
         $limitReached = false;
         $newShard = false;
 		$validateOnce = false;
+		$shardIterator = 0;
 
         $startTime = microtime(true);
 
@@ -240,13 +241,21 @@ class RakutenDE extends CSVPluginGenerator
 
                 $resultList = $elasticSearch->execute();
 
+                $shardIterator++;
+
+                //log the amount of the elasticsearch result once
+				if($shardIterator == 1)
+				{
+					$this->getLogger(__METHOD__)->addReference('total', (int)$resultList['total'])->info('ElasticExportRakutenDE::log.esResultAmount');
+				}
+
                 $this->getLogger(__METHOD__)->debug('ElasticExportRakutenDE::log.esDuration', [
                     'Elastic Search duration' => microtime(true) - $esStartTime,
                 ]);
 
                 if(count($resultList['error']) > 0)
                 {
-                    $this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.occurredElasticSearchErrors', [
+                    $this->getLogger(__METHOD__)->addReference('failedShard', $shardIterator)->error('ElasticExportRakutenDE::log.occurredElasticSearchErrors', [
                         'error message' => $resultList['error'],
                     ]);
                 }

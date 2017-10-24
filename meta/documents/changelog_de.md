@@ -1,5 +1,13 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## v1.2.8 (2017-10-20)
+
+### Geändert
+- Der Export bekommt nun die Ergebnisfelder vom ResultFieldDataProvider aus dem ElasticExport-Plugin.
+
+### Behoben
+- Ein Fehler wurde behoben, welche zu Problemen bei dem Preis- und Bestandsabgleich geführt hat.
+
 ## v1.2.7 (2017-09-27)
 
 ### Hinzugefügt
