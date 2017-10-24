@@ -319,7 +319,6 @@ class ItemUpdateService
 		}
 		else
 		{
-			//Todo add log
 			$this->getLogger(__METHOD__)->addReference('variationId', $variation->id)->error('ElasticExportRakutenDE::log.missingEndpoint');
 			return null;
 		}
@@ -349,7 +348,7 @@ class ItemUpdateService
 					}
 				}
 
-				if($stockList['updatedAt'] > strtotime($variation['data']['skus'][0]['exportedAt']))
+				if((!is_null($stockList['updatedAt']) && $stockList['updatedAt'] > strtotime($variation['data']['skus'][0]['exportedAt'])))
 				{
 					$this->transferData = true;
 				}
@@ -376,12 +375,12 @@ class ItemUpdateService
 					$price = '';
 				}
 
-				if($priceResponse->updatedAt > strtotime($variation['data']['skus'][0]['exportedAt']))
+				if(!is_null($priceResponse->updatedAt) && $priceResponse->updatedAt > strtotime($variation['data']['skus'][0]['exportedAt']))
 				{
 					$this->transferData = true;
 				}
 
-				$content['price'] = (float)$price;
+				$content['price'] = $price;
 			}
 		}
 
