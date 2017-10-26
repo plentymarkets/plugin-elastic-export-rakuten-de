@@ -31,6 +31,7 @@ class RakutenDE extends CSVPluginGenerator
     const PROPERTY_TYPE_ENERGY_CLASS_UNTIL = 'energy_efficiency_class_until';
     const TRANSFER_RRP_YES = 1;
     const TRANSFER_OFFER_PRICE_YES = 1;
+	const ENCLOSURE = '"';
 
 
 
@@ -59,8 +60,6 @@ class RakutenDE extends CSVPluginGenerator
 	 */
 	private $elasticExportStockHelper;
 
-
-
 	/**
 	 * MarketPropertyHelperRepositoryContract $marketPropertyHelperRepository
 	 */
@@ -80,8 +79,6 @@ class RakutenDE extends CSVPluginGenerator
 	 * @var ConfigRepository
 	 */
 	private $configRepository;
-
-
 
     /**
      * @var array
@@ -107,6 +104,16 @@ class RakutenDE extends CSVPluginGenerator
 	 * @var StockHelper
 	 */
 	private $stockHelper;
+
+	/**
+	 * @var string
+	 */
+	private $combinedString = '';
+
+	/**
+	 * @var int
+	 */
+	private $rowCounter = 0;
 
 	/**
 	 * RakutenDE constructor.
@@ -313,6 +320,14 @@ class RakutenDE extends CSVPluginGenerator
                         	try
 							{
 								$this->buildRows($settings, $variations, $newShard);
+
+								if($this->rowCounter >= 200)
+								{
+									//Writes the bulk rows into the csv and reset the row counter
+									$this->addBulkCSVContent($this->combinedString);
+									$this->rowCounter = 0;
+									$this->combinedString = '';
+								}
 							}
 							catch(\Throwable $exception)
 							{
@@ -355,6 +370,10 @@ class RakutenDE extends CSVPluginGenerator
 
             } while ($elasticSearch->hasNext());
         }
+
+        //Todo write a log with the amount of writing processes
+		$this->addBulkCSVContent($this->combinedString);
+        unset($this->combinedString);
 
         $this->getLogger(__METHOD__)->debug('ElasticExportRakutenDE::log.fileGenerationDuration', [
             'Whole file generation duration' => microtime(true) - $startTime,
@@ -500,7 +519,7 @@ class RakutenDE extends CSVPluginGenerator
 					$this->buildParentWithoutChildrenRow($variation, $settings);
 				}
 			}
-        }
+		}
     }
 
     /**
@@ -543,11 +562,11 @@ class RakutenDE extends CSVPluginGenerator
         $data = [
             'id'						=> '',
             'variante_zu_id'			=> '',
-            'artikelnummer'				=> $this->variationSkuRepository->generateSkuWithParent($item, self::RAKUTEN_DE, (int) $settings->get('marketAccountId'), $sku, $parentSku),
+            'artikelnummer'				=> $this->addEnclosure($this->variationSkuRepository->generateSkuWithParent($item, self::RAKUTEN_DE, (int) $settings->get('marketAccountId'), $sku, $parentSku)),
             'produkt_bestellbar'		=> $stockList['variationAvailable'],
-            'produktname'				=> $this->elasticExportHelper->getMutatedName($item, $settings, 150),
+            'produktname'				=> $this->addEnclosure($this->elasticExportHelper->getMutatedName($item, $settings, 150)),
             'hersteller'				=> $this->elasticExportHelper->getExternalManufacturerName((int)$item['data']['item']['manufacturer']['id']),
-            'beschreibung'				=> $this->elasticExportHelper->getMutatedDescription($item, $settings, 5000),
+            'beschreibung'				=> $this->addEnclosure($this->elasticExportHelper->getMutatedDescription($item, $settings, 5000)),
             'variante'					=> isset($this->attributeName[$item['data']['item']['id']]) ? $this->attributeName[$item['data']['item']['id']] : '',
             'variantenwert'				=> '',
             'isbn_ean'					=> $this->elasticExportHelper->getBarcodeByType($item, $settings->get('barcode')),
@@ -566,45 +585,46 @@ class RakutenDE extends CSVPluginGenerator
             'bild3'						=> $this->getImageByPosition($item, $settings, 2),
             'bild4'						=> $this->getImageByPosition($item, $settings, 3),
             'bild5'						=> $this->getImageByPosition($item, $settings, 4),
-            'kategorien'				=> $this->elasticExportHelper->getCategory((int)$item['data']['defaultCategories'][0]['id'], $settings->get('lang'), $settings->get('plentyId')),
-            'lieferzeit'				=> $this->elasticExportHelper->getAvailability($item, $settings, false),
+            'kategorien'				=> $this->addEnclosure($this->elasticExportHelper->getCategory((int)$item['data']['defaultCategories'][0]['id'], $settings->get('lang'), $settings->get('plentyId'))),
+            'lieferzeit'				=> $this->addEnclosure($this->elasticExportHelper->getAvailability($item, $settings, false)),
             'tradoria_kategorie'		=> $item['data']['item']['rakutenCategoryId'],
             'sichtbar'					=> 1,
-            'free_var_1'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 1),
-            'free_var_2'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 2),
-            'free_var_3'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 3),
-            'free_var_4'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 4),
-            'free_var_5'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 5),
-            'free_var_6'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 6),
-            'free_var_7'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 7),
-            'free_var_8'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 8),
-            'free_var_9'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 9),
-            'free_var_10'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 10),
-            'free_var_11'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 11),
-            'free_var_12'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 12),
-            'free_var_13'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 13),
-            'free_var_14'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 14),
-            'free_var_15'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 15),
-            'free_var_16'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 16),
-            'free_var_17'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 17),
-            'free_var_18'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 18),
-            'free_var_19'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 19),
-            'free_var_20'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 20),
-            'MPN'						=> $item['data']['variation']['model'],
+            'free_var_1'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 1)),
+            'free_var_2'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 2)),
+            'free_var_3'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 3)),
+            'free_var_4'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 4)),
+            'free_var_5'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 5)),
+            'free_var_6'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 6)),
+            'free_var_7'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 7)),
+            'free_var_8'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 8)),
+            'free_var_9'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 9)),
+            'free_var_10'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 10)),
+            'free_var_11'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 11)),
+            'free_var_12'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 12)),
+            'free_var_13'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 13)),
+            'free_var_14'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 14)),
+            'free_var_15'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 15)),
+            'free_var_16'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 16)),
+            'free_var_17'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 17)),
+            'free_var_18'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 18)),
+            'free_var_19'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 19)),
+            'free_var_20'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 20)),
+            'MPN'						=> $this->addEnclosure($item['data']['variation']['model']),
             'bild6'						=> $this->getImageByPosition($item, $settings, 5),
             'bild7'						=> $this->getImageByPosition($item, $settings, 6),
             'bild8'						=> $this->getImageByPosition($item, $settings, 7),
             'bild9'						=> $this->getImageByPosition($item, $settings, 8),
             'bild10'					=> $this->getImageByPosition($item, $settings, 9),
-            'technical_data'			=> $this->elasticExportHelper->getMutatedTechnicalData($item, $settings),
-            'energie_klassen_gruppe'	=> $this->getItemPropertyByExternalComponent($item, self::RAKUTEN_DE, self::PROPERTY_TYPE_ENERGY_CLASS_GROUP),
-            'energie_klasse'			=> $this->getItemPropertyByExternalComponent($item, self::RAKUTEN_DE, self::PROPERTY_TYPE_ENERGY_CLASS),
-            'energie_klasse_bis'		=> $this->getItemPropertyByExternalComponent($item, self::RAKUTEN_DE, self::PROPERTY_TYPE_ENERGY_CLASS_UNTIL),
+            'technical_data'			=> $this->addEnclosure($this->elasticExportHelper->getMutatedTechnicalData($item, $settings)),
+            'energie_klassen_gruppe'	=> $this->addEnclosure($this->getItemPropertyByExternalComponent($item, self::RAKUTEN_DE, self::PROPERTY_TYPE_ENERGY_CLASS_GROUP)),
+            'energie_klasse'			=> $this->addEnclosure($this->getItemPropertyByExternalComponent($item, self::RAKUTEN_DE, self::PROPERTY_TYPE_ENERGY_CLASS)),
+            'energie_klasse_bis'		=> $this->addEnclosure($this->getItemPropertyByExternalComponent($item, self::RAKUTEN_DE, self::PROPERTY_TYPE_ENERGY_CLASS_UNTIL)),
             'energie_klassen_bild'		=> $this->getImageByPosition($item, $settings, 'energyLabel'),
         ];
 
-        $this->addCSVContent(array_values($data));
-    }
+		$this->combinedString .= implode(';', $data)."\n";
+		$this->rowCounter++;
+	}
 
     /**
      * @param array $item
@@ -647,12 +667,12 @@ class RakutenDE extends CSVPluginGenerator
         $data = [
             'id'						=> '#'.$item['data']['item']['id'],
             'variante_zu_id'			=> '',
-            'artikelnummer'				=> $parentSku,
+            'artikelnummer'				=> $this->addEnclosure($parentSku),
             'produkt_bestellbar'		=> '',
-            'produktname'				=> $this->elasticExportHelper->getMutatedName($item, $settings, 150),
-            'hersteller'				=> $this->elasticExportHelper->getExternalManufacturerName((int)$item['data']['item']['manufacturer']['id']),
-            'beschreibung'				=> $this->elasticExportHelper->getMutatedDescription($item, $settings, 5000),
-            'variante'					=> $attributeName[$item['data']['item']['id']],
+            'produktname'				=> $this->addEnclosure($this->elasticExportHelper->getMutatedName($item, $settings, 150)),
+            'hersteller'				=> $this->addEnclosure($this->elasticExportHelper->getExternalManufacturerName((int)$item['data']['item']['manufacturer']['id'])),
+            'beschreibung'				=> $this->addEnclosure($this->elasticExportHelper->getMutatedDescription($item, $settings, 5000)),
+            'variante'					=> $this->addEnclosure($attributeName[$item['data']['item']['id']]),
             'variantenwert'				=> '',
             'isbn_ean'					=> '',
             'lagerbestand'				=> '',
@@ -668,45 +688,46 @@ class RakutenDE extends CSVPluginGenerator
             'bild3'						=> $this->getImageByPosition($item, $settings, 2),
             'bild4'						=> $this->getImageByPosition($item, $settings, 3),
             'bild5'						=> $this->getImageByPosition($item, $settings, 4),
-            'kategorien'				=> $this->elasticExportHelper->getCategory((int)$item['data']['defaultCategories'][0]['id'], $settings->get('lang'), $settings->get('plentyId')),
+            'kategorien'				=> $this->addEnclosure($this->elasticExportHelper->getCategory((int)$item['data']['defaultCategories'][0]['id'], $settings->get('lang'), $settings->get('plentyId'))),
             'lieferzeit'				=> '',
             'tradoria_kategorie'		=> $item['data']['item']['rakutenCategoryId'],
             'sichtbar'					=> 1,
-            'free_var_1'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 1),
-            'free_var_2'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 2),
-            'free_var_3'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 3),
-            'free_var_4'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 4),
-            'free_var_5'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 5),
-            'free_var_6'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 6),
-            'free_var_7'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 7),
-            'free_var_8'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 8),
-            'free_var_9'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 9),
-            'free_var_10'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 10),
-            'free_var_11'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 11),
-            'free_var_12'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 12),
-            'free_var_13'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 13),
-            'free_var_14'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 14),
-            'free_var_15'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 15),
-            'free_var_16'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 16),
-            'free_var_17'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 17),
-            'free_var_18'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 18),
-            'free_var_19'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 19),
-            'free_var_20'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 20),
-            'MPN'						=> $item['data']['variation']['model'],
+            'free_var_1'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 1)),
+            'free_var_2'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 2)),
+            'free_var_3'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 3)),
+            'free_var_4'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 4)),
+            'free_var_5'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 5)),
+            'free_var_6'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 6)),
+            'free_var_7'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 7)),
+            'free_var_8'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 8)),
+            'free_var_9'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 9)),
+            'free_var_10'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 10)),
+            'free_var_11'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 11)),
+            'free_var_12'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 12)),
+            'free_var_13'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 13)),
+            'free_var_14'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 14)),
+            'free_var_15'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 15)),
+            'free_var_16'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 16)),
+            'free_var_17'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 17)),
+            'free_var_18'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 18)),
+            'free_var_19'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 19)),
+            'free_var_20'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 20)),
+            'MPN'						=> $this->addEnclosure($item['data']['variation']['model']),
             'bild6'						=> $this->getImageByPosition($item, $settings, 5),
             'bild7'						=> $this->getImageByPosition($item, $settings, 6),
             'bild8'						=> $this->getImageByPosition($item, $settings, 7),
             'bild9'						=> $this->getImageByPosition($item, $settings, 8),
             'bild10'					=> $this->getImageByPosition($item, $settings, 9),
-            'technical_data'			=> $this->elasticExportHelper->getMutatedTechnicalData($item, $settings),
+            'technical_data'			=> $this->addEnclosure($this->elasticExportHelper->getMutatedTechnicalData($item, $settings)),
             'energie_klassen_gruppe'	=> '',
             'energie_klasse'			=> '',
             'energie_klasse_bis'		=> '',
             'energie_klassen_bild'		=> '',
         ];
 
-        $this->addCSVContent(array_values($data));
-    }
+		$this->combinedString .= implode(';', $data)."\n";
+		$this->rowCounter++;
+	}
 
     /**
      * @param array $item
@@ -748,13 +769,13 @@ class RakutenDE extends CSVPluginGenerator
         $data = [
             'id'						=> '',
             'variante_zu_id'			=> '#'.$item['data']['item']['id'],
-            'artikelnummer'				=> $this->variationSkuRepository->generateSkuWithParent($item, self::RAKUTEN_DE, (int) $settings->get('marketAccountId'), $sku, $parentSku),
+            'artikelnummer'				=> $this->addEnclosure($this->variationSkuRepository->generateSkuWithParent($item, self::RAKUTEN_DE, (int) $settings->get('marketAccountId'), $sku, $parentSku)),
             'produkt_bestellbar'		=> $stockList['variationAvailable'],
             'produktname'				=> '',
             'hersteller'				=> '',
             'beschreibung'				=> '',
             'variante'					=> '',
-            'variantenwert'				=> $attributeValue,
+            'variantenwert'				=> $this->addEnclosure($attributeValue),
             'isbn_ean'					=> $this->elasticExportHelper->getBarcodeByType($item, $settings->get('barcode')),
             'lagerbestand'				=> $stockList['stock'],
             'preis'						=> $price,
@@ -772,43 +793,44 @@ class RakutenDE extends CSVPluginGenerator
             'bild4'						=> '',
             'bild5'						=> '',
             'kategorien'				=> '',
-            'lieferzeit'				=> $this->elasticExportHelper->getAvailability($item, $settings, false),
+            'lieferzeit'				=> $this->addEnclosure($this->elasticExportHelper->getAvailability($item, $settings, false)),
             'tradoria_kategorie'		=> '',
             'sichtbar'					=> 1,
-            'free_var_1'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 1),
-            'free_var_2'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 2),
-            'free_var_3'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 3),
-            'free_var_4'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 4),
-            'free_var_5'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 5),
-            'free_var_6'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 6),
-            'free_var_7'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 7),
-            'free_var_8'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 8),
-            'free_var_9'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 9),
-            'free_var_10'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 10),
-            'free_var_11'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 11),
-            'free_var_12'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 12),
-            'free_var_13'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 13),
-            'free_var_14'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 14),
-            'free_var_15'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 15),
-            'free_var_16'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 16),
-            'free_var_17'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 17),
-            'free_var_18'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 18),
-            'free_var_19'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 19),
-            'free_var_20'				=> $this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 20),
-            'MPN'						=> $item['data']['variation']['model'],
+            'free_var_1'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 1)),
+            'free_var_2'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 2)),
+            'free_var_3'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 3)),
+            'free_var_4'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 4)),
+            'free_var_5'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 5)),
+            'free_var_6'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 6)),
+            'free_var_7'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 7)),
+            'free_var_8'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 8)),
+            'free_var_9'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 9)),
+            'free_var_10'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 10)),
+            'free_var_11'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 11)),
+            'free_var_12'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 12)),
+            'free_var_13'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 13)),
+            'free_var_14'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 14)),
+            'free_var_15'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 15)),
+            'free_var_16'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 16)),
+            'free_var_17'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 17)),
+            'free_var_18'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 18)),
+            'free_var_19'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 19)),
+            'free_var_20'				=> $this->addEnclosure($this->elasticExportItemHelper->getFreeFields($item['data']['item']['id'], 20)),
+            'MPN'						=> $this->addEnclosure($item['data']['variation']['model']),
             'bild6'						=> '',
             'bild7'						=> '',
             'bild8'						=> '',
             'bild9'						=> '',
             'bild10'					=> '',
             'technical_data'			=> '',
-            'energie_klassen_gruppe'	=> $this->getItemPropertyByExternalComponent($item, self::RAKUTEN_DE, self::PROPERTY_TYPE_ENERGY_CLASS_GROUP),
-            'energie_klasse'			=> $this->getItemPropertyByExternalComponent($item, self::RAKUTEN_DE, self::PROPERTY_TYPE_ENERGY_CLASS),
-            'energie_klasse_bis'		=> $this->getItemPropertyByExternalComponent($item, self::RAKUTEN_DE, self::PROPERTY_TYPE_ENERGY_CLASS_UNTIL),
+            'energie_klassen_gruppe'	=> $this->addEnclosure($this->getItemPropertyByExternalComponent($item, self::RAKUTEN_DE, self::PROPERTY_TYPE_ENERGY_CLASS_GROUP)),
+            'energie_klasse'			=> $this->addEnclosure($this->getItemPropertyByExternalComponent($item, self::RAKUTEN_DE, self::PROPERTY_TYPE_ENERGY_CLASS)),
+            'energie_klasse_bis'		=> $this->addEnclosure($this->getItemPropertyByExternalComponent($item, self::RAKUTEN_DE, self::PROPERTY_TYPE_ENERGY_CLASS_UNTIL)),
             'energie_klassen_bild'		=> $this->getImageByPosition($item, $settings, 'energyLabel'),
         ];
 
-        $this->addCSVContent(array_values($data));
+		$this->combinedString .= implode(';', $data)."\n";
+		$this->rowCounter++;
     }
 
     /**
@@ -992,4 +1014,17 @@ class RakutenDE extends CSVPluginGenerator
             'unit'      =>  $unit,
         );
     }
+
+	private function addEnclosure($string)
+	{
+		if(!is_null($string) && is_string($string) && strlen($string))
+		{
+			str_replace('"', '""', $string);
+
+			$string = self::ENCLOSURE.$string.self::ENCLOSURE;
+		}
+
+		return $string;
+	}
+
 }
