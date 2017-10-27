@@ -3,7 +3,7 @@
 ## 1.2.9 (2017-10-27)
 
 ### Fixed
-- An issue was fixed, which caused the connection to Elasticsearch to break.
+- An issue was fixed which caused the connection to elasticsearch to break.
 
 ## v1.2.8 (2017-10-20)
 
