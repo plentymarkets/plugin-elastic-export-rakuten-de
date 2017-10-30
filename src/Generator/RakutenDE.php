@@ -233,6 +233,8 @@ class RakutenDE extends CSVPluginGenerator
 
         if($elasticSearch instanceof VariationElasticSearchScrollRepositoryContract)
         {
+        	$elasticSearch->setNumberOfDocumentsPerShard(250);
+        	
             do
             {
                 if($limitReached === true)

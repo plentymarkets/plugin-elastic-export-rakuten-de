@@ -1,5 +1,10 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## 1.2.9 (2017-10-27)
+
+### Behoben
+- Ein Fehler wurde behoben, welcher dazu führte, dass der Kontakt zu Elasticsearch unterbrochen wurde.
+
 ## v1.2.8 (2017-10-20)
 
 ### Geändert
