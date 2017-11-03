@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## 1.2.10 (2017-11-03)
+
+### Fixed
+- An issue was fixed which caused that duplicate entries of parent rows.
+
 ## 1.2.9 (2017-10-27)
 
 ### Fixed

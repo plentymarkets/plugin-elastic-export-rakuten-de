@@ -1,5 +1,10 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## 1.2.10 (2017-11-03)
+
+### Behoben
+- Ein Fehler wurde behoben, welcher dazu führte, dass zweimal die gleiche Elternzeile erstellt wurde.
+
 ## 1.2.9 (2017-10-27)
 
 ### Behoben
