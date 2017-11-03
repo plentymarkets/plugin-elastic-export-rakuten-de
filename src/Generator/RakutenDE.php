@@ -336,7 +336,7 @@ class RakutenDE extends CSVPluginGenerator
                     {
                     	try
 						{
-							$this->buildRows($settings, $variations);
+							$this->buildRows($settings, $variations, $newShard);
 						}
 						catch(\Throwable $exception)
 						{
