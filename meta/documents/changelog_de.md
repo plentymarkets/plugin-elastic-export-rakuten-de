@@ -1,5 +1,13 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## 1.2.11 (2017-11-13)
+
+### Geändert
+- URLs in der Plugin-Beschreibung wurden aktualisiert.
+
+### Behoben
+- Ein Fehler wurde behoben, welcher dazu führte, dass Produkt- oder Variantenaktualisierungen während des Bestands- oder Preisabgleichs abgelehnt wurden.
+
 ## 1.2.10 (2017-11-03)
 
 ### Behoben

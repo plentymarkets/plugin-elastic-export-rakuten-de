@@ -5,16 +5,15 @@
 
 ## 1 Registering with Rakuten.de
 
-Items are sold on the market Rakuten.de. For further information about this market, refer to the [Setting up Rakuten](https://www.plentymarkets.co.uk/manual/multi-channel/rakuten/) page of the manual.
+Items are sold on the market Rakuten.de. For further information about this market, refer to the [Setting up Rakuten](https://knowledge.plentymarkets.com/en/omni-channel/multi-channel/rakuten) page of the manual.
 
 ## 2 Setting up the data format RakutenDE-Plugin in plentymarkets
 
 To use this format, you need the Elastic Export plugin.
 
-Refer to the [Exporting data formats for price search engines](https://knowledge.plentymarkets.com/en/basics/data-exchange/exporting-data#30) page of the manual for further details about the individual format settings.
+Refer to the [Exporting data](https://knowledge.plentymarkets.com/en/basics/data-exchange/exporting-data#30) page of the manual for further details about the individual format settings.
 
 The following table lists details for settings, format settings and recommended item filters for the format **RakutenDE-Plugin**.
-
 <table>
     <tr>
         <th>

@@ -24,8 +24,9 @@ class StockHelper
 	}
 
 	/**
-	 * Get all informations that depend on stock settings and stock volume
+	 * Get all information that depend on stock settings and stock volume
 	 * (inventoryManagementActive, $variationAvailable, $stock)
+     * 
 	 * @param array $item
 	 * @return array
 	 */
@@ -59,12 +60,15 @@ class StockHelper
 		$variationAvailable = 0;
 		$stock = 0;
 
+		// stock limitation do not stock inventory
 		if($item['data']['variation']['stockLimitation'] == 2)
 		{
 			$variationAvailable = 1;
 			$inventoryManagementActive = 0;
 			$stock = 999;
 		}
+		
+		// stock limitation use nett stock
 		elseif($item['data']['variation']['stockLimitation'] == 1)
 		{
 			$inventoryManagementActive = 1;
@@ -83,6 +87,8 @@ class StockHelper
 				}
 			}
 		}
+		
+		// no limitation
 		elseif($item['data']['variation']['stockLimitation'] == 0)
 		{
 			$variationAvailable = 1;
