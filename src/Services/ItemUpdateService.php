@@ -335,8 +335,10 @@ class ItemUpdateService
 			if(count($stockList))
 			{
 				$content['stock'] = $stockList['stock'];
+				$content['available'] = 0;
 
-				if(!$isVariantProduct && ($stockList['stock'] > 0 || $stockList['inventoryManagementActive'] == 2))
+//                if(!$isVariantProduct && ($stockList['stock'] > 0 || $stockList['inventoryManagementActive'] == 2))
+				if($stockList['stock'] > 0 || $stockList['inventoryManagementActive'] == 2)
 				{
 					$content['available'] = 1;
 				}
@@ -346,6 +348,10 @@ class ItemUpdateService
 					if($stockList['inventoryManagementActive'] == 1)
 					{
 						$content['stock_policy'] = 1;
+					}
+					else
+					{
+						$content['stock_policy'] = 0;
 					}
 				}
 
