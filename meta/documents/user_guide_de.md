@@ -5,16 +5,15 @@
 
 ## 1 Bei Rakuten.de registrieren
 
-Auf dem Marktplatz Rakuten bieten Sie Ihre Artikel zum Verkauf an. Weitere Informationen zu diesem Marktplatz finden Sie auf der Handbuchseite [Rakuten einrichten](https://www.plentymarkets.eu/handbuch/multi-channel/rakuten/). Um das Plugin für Rakuten.de einzurichten, registrieren Sie sich zunächst als Händler.
+Auf dem Marktplatz Rakuten bieten Sie Ihre Artikel zum Verkauf an. Weitere Informationen zu diesem Marktplatz finden Sie auf der Handbuchseite [Rakuten einrichten](https://knowledge.plentymarkets.com/omni-channel/multi-channel/rakuten). Um das Plugin für Rakuten.de einzurichten, registrieren Sie sich zunächst als Händler.
 
 ## 2 Das Format RakutenDE-Plugin in plentymarkets einrichten
 
 Um dieses Format nutzen zu können, benötigen Sie das Plugin Elastic Export.
 
-Auf der Handbuchseite [Daten exportieren](https://www.plentymarkets.eu/handbuch/datenaustausch/daten-exportieren/#4) werden allgemein die einzelnen Formateinstellungen beschrieben.
+Auf der Handbuchseite [Daten exportieren](https://knowledge.plentymarkets.com/basics/datenaustausch/daten-exportieren#30) werden allgemein die einzelnen Formateinstellungen beschrieben.
 
 In der folgenden Tabelle finden Sie spezifische Hinweise zu den Einstellungen, Formateinstellungen und empfohlenen Artikelfiltern für das Format **RakutenDE-Plugin**. 
-
 <table>
     <tr>
         <th>
@@ -130,9 +129,7 @@ In der folgenden Tabelle finden Sie spezifische Hinweise zu den Einstellungen, F
     </tr>
 </table>
 
-
 ## 3 Übersicht der verfügbaren Spalten
-
 <table>
     <tr>
         <th>
@@ -420,5 +417,4 @@ In der folgenden Tabelle finden Sie spezifische Hinweise zu den Einstellungen, F
 </table>
 
 ## 4 Lizenz
-
 Das gesamte Projekt unterliegt der GNU AFFERO GENERAL PUBLIC LICENSE – weitere Informationen finden Sie in der [LICENSE.md](https://github.com/plentymarkets/plugin-elastic-export-rakuten-de/blob/master/LICENSE.md).
