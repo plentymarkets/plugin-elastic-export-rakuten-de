@@ -338,14 +338,14 @@ class ItemUpdateService
 
 				if(!$isVariantProduct && ($stockList['stock'] > 0 || $stockList['inventoryManagementActive'] == 2))
 				{
-					$content['available'] = true;
+					$content['available'] = 1;
 				}
 
 				if($this->endpoint == Client::EDIT_PRODUCT)
 				{
 					if($stockList['inventoryManagementActive'] == 1)
 					{
-						$content['stock_policy'] = true;
+						$content['stock_policy'] = 1;
 					}
 				}
 
@@ -357,12 +357,12 @@ class ItemUpdateService
 		}
 		elseif($this->stockUpdate == self::BOOL_TRUE && $stillActive === false)
 		{
-			$content['available'] = false;
+			$content['available'] = 1;
 			$content['stock'] = 0;
 
             if($this->endpoint == Client::EDIT_PRODUCT)
             {
-                $content['stock_policy'] = true;
+                $content['stock_policy'] = 1;
             }
 			
 			$this->transferData = true;
@@ -614,6 +614,10 @@ class ItemUpdateService
 			{
 				if($response->success == "1")
 				{
+				    $this->getLogger(__METHOD__)->info('ElasticExportRakutenDE::log.stockUpdatedSuccessfully', [
+                        'endpoint'          => $this->endpoint,
+                        'request content'	=> $content
+                    ]);
 					$this->variationSkuRepository->update(['exportedAt' => date("Y-m-d H:i:s")], $variation['data']['skus'][0]['id']);
 				}
 			}
