@@ -63,6 +63,7 @@ class Client
 			if($response->success == "-1" && count($response->errors))
 			{
 				$this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.apiError', [
+				    'endpoint'          => $endPoint,
 					'error code' 		=> $response->errors->error->code,
 					'message'			=> $response->errors->error->message,
 					'request content'	=> $content
