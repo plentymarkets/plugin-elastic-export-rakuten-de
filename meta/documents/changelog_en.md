@@ -3,7 +3,7 @@
 ## 1.2.11 (2017-11-13)
 
 ### Changed
-- Some URLs were updated in the plugin description.
+- URLs were updated in the plugin description.
 
 ### Fixed
 - An issue was fixed which caused product or variation updates to be denied during the stock or price update.
