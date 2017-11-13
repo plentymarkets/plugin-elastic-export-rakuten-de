@@ -30,7 +30,10 @@ class ItemUpdateService
 	use Loggable;
 
 	const RAKUTEN_DE = 106.00;
-
+	
+	const BOOL_TRUE = 'true';
+	const BOOL_FALSE = 'false';
+	
 	/**
 	 * @var MarketAttributeHelperRepositoryContract $marketAttributeHelperRepositoryContract
 	 */
@@ -218,7 +221,7 @@ class ItemUpdateService
 								$this->priceUpdate = $this->configRepository->get('ElasticExportRakutenDE.update_settings.price_update');
 								$this->stockUpdate = $this->configRepository->get('ElasticExportRakutenDE.update_settings.stock_update');
 
-								if($this->priceUpdate == "true" || $this->stockUpdate == "true")
+								if($this->priceUpdate == self::BOOL_TRUE || $this->stockUpdate == self::BOOL_TRUE)
 								{
 									$elasticSearch = $this->elasticSearchDataProvider->prepareElasticSearchSearch($elasticSearch, $rakutenCredential);
 
@@ -296,12 +299,15 @@ class ItemUpdateService
 	}
 
 	/**
-	 * @param $variation
-	 * @param $itemLevel
-	 * @param $settings
+     * Prepares the content for the request and selects the URL endpoint.
+     * 
+	 * @param array $variation
+	 * @param string $itemLevel
+	 * @param KeyValue $settings
+     * @param bool $isVariantProduct
 	 * @return null|array
 	 */
-	private function prepareContent($variation, $itemLevel, $settings)
+	private function prepareContent($variation, $itemLevel, $settings, $isVariantProduct)
 	{
 		$content = null;
 		$stillActive = $this->stillActive($variation);
@@ -323,15 +329,14 @@ class ItemUpdateService
 			return null;
 		}
 
-		if($this->stockUpdate == "true" && $stillActive === true)
+		if($this->stockUpdate == self::BOOL_TRUE && $stillActive === true)
 		{
 			$stockList = $this->stockHelper->getStockList($variation);
 			if(count($stockList))
 			{
 				$content['stock'] = $stockList['stock'];
-				$content['available'] = false;
 
-				if($stockList['stock'] > 0)
+				if(!$isVariantProduct && ($stockList['stock'] > 0 || $stockList['inventoryManagementActive'] == 2))
 				{
 					$content['available'] = true;
 				}
@@ -342,10 +347,6 @@ class ItemUpdateService
 					{
 						$content['stock_policy'] = true;
 					}
-					else
-					{
-						$content['stock_policy'] = false;
-					}
 				}
 
 				if((!is_null($stockList['updatedAt']) && $stockList['updatedAt'] > strtotime($variation['data']['skus'][0]['exportedAt'])))
@@ -354,14 +355,20 @@ class ItemUpdateService
 				}
 			}
 		}
-		elseif($this->stockUpdate == "true" && $stillActive === false)
+		elseif($this->stockUpdate == self::BOOL_TRUE && $stillActive === false)
 		{
 			$content['available'] = false;
 			$content['stock'] = 0;
+
+            if($this->endpoint == Client::EDIT_PRODUCT)
+            {
+                $content['stock_policy'] = true;
+            }
+			
 			$this->transferData = true;
 		}
 
-		if($this->priceUpdate == "true" && $stillActive === true)
+		if($this->priceUpdate == self::BOOL_TRUE && $stillActive === true)
 		{
 			$priceResponse = $this->priceHelper->getPrice($variation, $settings);
 			if($priceResponse instanceof SalesPriceSearchResponse)
@@ -504,11 +511,10 @@ class ItemUpdateService
 				 */
 				$attributeValue = $this->elasticExportHelper->getAttributeValueSetShortFrontendName($variation, $settings, '|', $this->attributeNameCombination[$variation['data']['item']['id']]);
 
-
 				if(!is_null($potentialParent) && strlen($attributeValue))
 				{
 					$itemLevel = Client::EDIT_PRODUCT_VARIANT;
-					$this->sendRequest($variation, $itemLevel, $settings);
+					$this->sendRequest($variation, $itemLevel, $settings, true);
 
 					unset($potentialParent);
 				}
@@ -520,21 +526,21 @@ class ItemUpdateService
 				elseif($crossShardConnection === true)
 				{
 					$itemLevel = Client::EDIT_PRODUCT_VARIANT;
-					$this->sendRequest($variation, $itemLevel, $settings);
+					$this->sendRequest($variation, $itemLevel, $settings, true);
 				}
 
 				//isMain can be true or false, this does not matter in this case
 				elseif(strlen($attributeValue) == 0 && count($variations) == 1)
 				{
 					$itemLevel = Client::EDIT_PRODUCT;
-					$this->sendRequest($variation, $itemLevel, $settings);
+					$this->sendRequest($variation, $itemLevel, $settings, false);
 				}
 
 				//isMain can be true or false, this does not matter in this case
 				elseif(count($variations) == 1 && strlen($attributeValue) > 0)
 				{
 					$itemLevel = Client::EDIT_PRODUCT_VARIANT;
-					$this->sendRequest($variation, $itemLevel, $settings);
+					$this->sendRequest($variation, $itemLevel, $settings, false);
 				}
 
 				/**
@@ -545,7 +551,7 @@ class ItemUpdateService
 				elseif($i == 1 && strlen($attributeValue) > 0)
 				{
 					$itemLevel = Client::EDIT_PRODUCT_VARIANT;
-					$this->sendRequest($variation, $itemLevel, $settings);
+					$this->sendRequest($variation, $itemLevel, $settings, true);
 				}
 
 				//&& count($variations) > 1
@@ -569,7 +575,7 @@ class ItemUpdateService
 				else
 				{
 					$itemLevel = Client::EDIT_PRODUCT_VARIANT;
-					$this->sendRequest($variation, $itemLevel, $settings);
+					$this->sendRequest($variation, $itemLevel, $settings, false);
 				}
 
 				$i++;
@@ -580,20 +586,23 @@ class ItemUpdateService
 				foreach($parentWithoutChildren as $variation)
 				{
 					$itemLevel = Client::EDIT_PRODUCT;
-					$this->sendRequest($variation, $itemLevel, $settings);
+					$this->sendRequest($variation, $itemLevel, $settings, false);
 				}
 			}
 		}
 	}
 
 	/**
-	 * @param $variation
-	 * @param $itemLevel
-	 * @param $settings
+     * Sends the product or variant request.
+     * 
+	 * @param array $variation
+	 * @param string $itemLevel
+	 * @param KeyValue|null $settings
+     * @param bool $isVariantProduct
 	 */
-	private function sendRequest($variation, $itemLevel, $settings)
+	private function sendRequest($variation, $itemLevel, $settings, $isVariantProduct = false)
 	{
-		$preparedContent = $this->prepareContent($variation, $itemLevel, $settings);
+		$preparedContent = $this->prepareContent($variation, $itemLevel, $settings, $isVariantProduct);
 
 		if(!is_null($preparedContent) && is_array($preparedContent) && count($preparedContent))
 		{
