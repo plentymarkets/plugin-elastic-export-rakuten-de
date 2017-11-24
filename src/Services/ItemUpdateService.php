@@ -304,10 +304,9 @@ class ItemUpdateService
 	 * @param array $variation
 	 * @param string $itemLevel
 	 * @param KeyValue $settings
-     * @param bool $isVariantProduct
 	 * @return null|array
 	 */
-	private function prepareContent($variation, $itemLevel, $settings, $isVariantProduct)
+	private function prepareContent($variation, $itemLevel, $settings)
 	{
 		$content = null;
 		$stillActive = $this->stillActive($variation);
@@ -337,7 +336,6 @@ class ItemUpdateService
 				$content['stock'] = $stockList['stock'];
 				$content['available'] = 0;
 
-//                if(!$isVariantProduct && ($stockList['stock'] > 0 || $stockList['inventoryManagementActive'] == 2))
 				if($stockList['stock'] > 0 || $stockList['inventoryManagementActive'] == 2)
 				{
 					$content['available'] = 1;
@@ -363,7 +361,7 @@ class ItemUpdateService
 		}
 		elseif($this->stockUpdate == self::BOOL_TRUE && $stillActive === false)
 		{
-			$content['available'] = 1;
+			$content['available'] = 0;
 			$content['stock'] = 0;
 
             if($this->endpoint == Client::EDIT_PRODUCT)
@@ -517,10 +515,18 @@ class ItemUpdateService
 				 */
 				$attributeValue = $this->elasticExportHelper->getAttributeValueSetShortFrontendName($variation, $settings, '|', $this->attributeNameCombination[$variation['data']['item']['id']]);
 
-				if(!is_null($potentialParent) && strlen($attributeValue))
+				if(!is_null($potentialParent) && strlen($attributeValue) && count($variations) == 2)
 				{
 					$itemLevel = Client::EDIT_PRODUCT_VARIANT;
-					$this->sendRequest($variation, $itemLevel, $settings, true);
+					$this->sendRequest($variation, $itemLevel, $settings);
+
+					unset($potentialParent);
+				}
+
+				if(!is_null($potentialParent) && strlen($attributeValue) && count($variations) > 2)
+				{
+					$itemLevel = Client::EDIT_PRODUCT_MULTI_VARIANT;
+					$this->sendRequest($variation, $itemLevel, $settings);
 
 					unset($potentialParent);
 				}
@@ -531,22 +537,22 @@ class ItemUpdateService
 				 */
 				elseif($crossShardConnection === true)
 				{
-					$itemLevel = Client::EDIT_PRODUCT_VARIANT;
-					$this->sendRequest($variation, $itemLevel, $settings, true);
+					$itemLevel = Client::EDIT_PRODUCT_MULTI_VARIANT;
+					$this->sendRequest($variation, $itemLevel, $settings);
 				}
 
 				//isMain can be true or false, this does not matter in this case
 				elseif(strlen($attributeValue) == 0 && count($variations) == 1)
 				{
 					$itemLevel = Client::EDIT_PRODUCT;
-					$this->sendRequest($variation, $itemLevel, $settings, false);
+					$this->sendRequest($variation, $itemLevel, $settings);
 				}
 
 				//isMain can be true or false, this does not matter in this case
 				elseif(count($variations) == 1 && strlen($attributeValue) > 0)
 				{
 					$itemLevel = Client::EDIT_PRODUCT_VARIANT;
-					$this->sendRequest($variation, $itemLevel, $settings, false);
+					$this->sendRequest($variation, $itemLevel, $settings);
 				}
 
 				/**
@@ -556,8 +562,8 @@ class ItemUpdateService
 				 */
 				elseif($i == 1 && strlen($attributeValue) > 0)
 				{
-					$itemLevel = Client::EDIT_PRODUCT_VARIANT;
-					$this->sendRequest($variation, $itemLevel, $settings, true);
+					$itemLevel = Client::EDIT_PRODUCT_MULTI_VARIANT;
+					$this->sendRequest($variation, $itemLevel, $settings);
 				}
 
 				//&& count($variations) > 1
@@ -581,7 +587,7 @@ class ItemUpdateService
 				else
 				{
 					$itemLevel = Client::EDIT_PRODUCT_VARIANT;
-					$this->sendRequest($variation, $itemLevel, $settings, false);
+					$this->sendRequest($variation, $itemLevel, $settings);
 				}
 
 				$i++;
@@ -591,8 +597,8 @@ class ItemUpdateService
 			{
 				foreach($parentWithoutChildren as $variation)
 				{
-					$itemLevel = Client::EDIT_PRODUCT;
-					$this->sendRequest($variation, $itemLevel, $settings, false);
+					$itemLevel = Client::EDIT_PRODUCT_MULTI_VARIANT;
+					$this->sendRequest($variation, $itemLevel, $settings);
 				}
 			}
 		}
@@ -604,11 +610,10 @@ class ItemUpdateService
 	 * @param array $variation
 	 * @param string $itemLevel
 	 * @param KeyValue|null $settings
-     * @param bool $isVariantProduct
 	 */
-	private function sendRequest($variation, $itemLevel, $settings, $isVariantProduct = false)
+	private function sendRequest($variation, $itemLevel, $settings)
 	{
-		$preparedContent = $this->prepareContent($variation, $itemLevel, $settings, $isVariantProduct);
+		$preparedContent = $this->prepareContent($variation, $itemLevel, $settings);
 
 		if(!is_null($preparedContent) && is_array($preparedContent) && count($preparedContent))
 		{
