@@ -597,7 +597,7 @@ class ItemUpdateService
 			{
 				foreach($parentWithoutChildren as $variation)
 				{
-					$itemLevel = Client::EDIT_PRODUCT_MULTI_VARIANT;
+					$itemLevel = Client::EDIT_PRODUCT;
 					$this->sendRequest($variation, $itemLevel, $settings);
 				}
 			}
