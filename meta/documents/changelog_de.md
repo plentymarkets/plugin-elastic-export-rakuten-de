@@ -1,5 +1,10 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## 1.2.12 (2017-11-24)
+
+### Behoben
+- Ein Fehler wurde behoben, welcher dazu führte, dass der Artikel-Update nicht funktionierte, wenn es mehrere Varianten gab.
+
 ## 1.2.11 (2017-11-13)
 
 ### Geändert

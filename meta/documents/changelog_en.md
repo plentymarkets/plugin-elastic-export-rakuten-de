@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## 1.2.12 (2017-11-24)
+
+### Fixed
+- An issue was fixed which caused the item update to fail if there was more then one variation.
+
 ## 1.2.11 (2017-11-13)
 
 ### Changed
