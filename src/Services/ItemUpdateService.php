@@ -323,7 +323,7 @@ class ItemUpdateService
 		}
 		elseif(!is_null($itemLevel) && strlen($itemLevel) && $itemLevel == Client::EDIT_PRODUCT_MULTI_VARIANT)
 		{
-			$content[Client::PRODUCT_ART_NO] = $sku;
+			$content[Client::VARIANT_ART_NO] = $sku;
 			$this->endpoint = Client::EDIT_PRODUCT_MULTI_VARIANT;
 		}
 		else
