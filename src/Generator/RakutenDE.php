@@ -218,7 +218,6 @@ class RakutenDE extends CSVPluginGenerator
         $variations = array();
         $lines = 0;
         $limitReached = false;
-        $newShard = false;
 		$validateOnce = false;
 		$shardIterator = 0;
 
@@ -314,7 +313,7 @@ class RakutenDE extends CSVPluginGenerator
                         {
                         	try
 							{
-								$this->buildRows($settings, $variations, $newShard);
+								$this->buildRows($settings, $variations);
 							}
 							catch(\Throwable $exception)
 							{
@@ -324,30 +323,10 @@ class RakutenDE extends CSVPluginGenerator
 								]);
 							}
 
-							$newShard = false;
                             $variations = array();
                             $variations[] = $variation;
                             $previousItemId = $variation['data']['item']['id'];
                         }
-                    }
-
-                    // Write the last batch of variations
-                    if (is_array($variations) && count($variations) > 0)
-                    {
-                    	try
-						{
-							$this->buildRows($settings, $variations, $newShard);
-						}
-						catch(\Throwable $exception)
-						{
-							$this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.buildRowError', [
-								'error' => $exception->getMessage(),
-								'line' => $exception->getLine(),
-							]);
-						}
-
-						$newShard = true;
-						unset($variations);
                     }
 
                     $this->getLogger(__METHOD__)->debug('ElasticExportRakutenDE::log.buildRowDuration', [
@@ -358,6 +337,24 @@ class RakutenDE extends CSVPluginGenerator
             } while ($elasticSearch->hasNext());
         }
 
+		// Write the last batch of variations
+		if (is_array($variations) && count($variations) > 0)
+		{
+			try
+			{
+				$this->buildRows($settings, $variations);
+			}
+			catch(\Throwable $exception)
+			{
+				$this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.buildRowError', [
+					'error' => $exception->getMessage(),
+					'line' => $exception->getLine(),
+				]);
+			}
+
+			unset($variations);
+		}
+
         $this->getLogger(__METHOD__)->debug('ElasticExportRakutenDE::log.fileGenerationDuration', [
             'Whole file generation duration' => microtime(true) - $startTime,
         ]);
@@ -366,9 +363,8 @@ class RakutenDE extends CSVPluginGenerator
     /**
      * @param $settings
      * @param array $variations
-	 * @param bool $crossShardConnection
      */
-    private function buildRows($settings, $variations, $crossShardConnection = false)
+    private function buildRows($settings, $variations)
     {
     	$potentialParent = null;
     	$parentWithoutChildren = array();
@@ -434,15 +430,6 @@ class RakutenDE extends CSVPluginGenerator
 					$this->buildChildRow($variation, $settings, $attributeValue);
 
 					unset($potentialParent);
-				}
-
-				/**
-				 * If it is a new elastic search shard and the first entries are variations from the
-				 * last entries of the shard before, the connected variations will be added as children.
-				 */
-				elseif($crossShardConnection === true)
-				{
-					$this->buildChildRow($variation, $settings, $attributeValue);
 				}
 
 				//isMain can be true or false, this does not matter in this case

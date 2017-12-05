@@ -169,7 +169,6 @@ class ItemUpdateService
 		$currentItemId = null;
 		$previousItemId = null;
 		$variations = array();
-		$newShard = false;
 		$shardIterator = 0;
 		$elasticSearch = pluginApp(VariationElasticSearchScrollRepositoryContract::class);
 		$exportList = $this->exportRepositoryContract->search(['formatKey' => 'RakutenDE-Plugin']);
@@ -261,23 +260,12 @@ class ItemUpdateService
 												}
 												else
 												{
-													$this->parentChildSorting($variations, $newShard, $settings);
+													$this->parentChildSorting($variations, $settings);
 
-													$newShard = false;
 													$variations = array();
 													$variations[] = $variation;
 													$previousItemId = $variation['data']['item']['id'];
 												}
-											}
-											// Write the last batch of variations
-											if (is_array($variations) && count($variations) > 0)
-											{
-												$content = array();
-												$content['stock'] = 0;
-												$this->parentChildSorting($variations, $newShard, $settings);
-
-												$newShard = true;
-												unset($variations);
 											}
 										}
 
@@ -289,6 +277,16 @@ class ItemUpdateService
 										}
 
 									} while ($elasticSearch->hasNext());
+
+									// Write the last batch of variations
+									if (is_array($variations) && count($variations) > 0)
+									{
+										$content = array();
+										$content['stock'] = 0;
+										$this->parentChildSorting($variations, $settings);
+
+										unset($variations);
+									}
 								}
 							}
 						}
@@ -322,9 +320,14 @@ class ItemUpdateService
 			$content[Client::PRODUCT_ART_NO] = $sku;
 			$this->endpoint = Client::EDIT_PRODUCT;
 		}
+		elseif(!is_null($itemLevel) && strlen($itemLevel) && $itemLevel == Client::EDIT_PRODUCT_MULTI_VARIANT)
+		{
+			$content[Client::VARIANT_ART_NO] = $sku;
+			$this->endpoint = Client::EDIT_PRODUCT_MULTI_VARIANT;
+		}
 		else
 		{
-			$this->getLogger(__METHOD__)->addReference('variationId', $variation->id)->error('ElasticExportRakutenDE::log.missingEndpoint');
+			$this->getLogger(__METHOD__)->addReference('variationId', $variation['id'])->error('ElasticExportRakutenDE::log.missingEndpoint');
 			return null;
 		}
 
@@ -452,11 +455,10 @@ class ItemUpdateService
 
 	/**
 	 * @param array $variations
-	 * @param bool $crossShardConnection
 	 * @param KeyValue|null $settings
 	 * @return void
 	 */
-	private function parentChildSorting($variations, $crossShardConnection = false, $settings = null)
+	private function parentChildSorting($variations, $settings = null)
 	{
 		$potentialParent = null;
 		$parentWithoutChildren = array();
@@ -531,16 +533,6 @@ class ItemUpdateService
 					unset($potentialParent);
 				}
 
-				/**
-				 * If it is a new elastic search shard and the first entries are variations from the
-				 * last entries of the shard before, the connected variations will be added as children.
-				 */
-				elseif($crossShardConnection === true)
-				{
-					$itemLevel = Client::EDIT_PRODUCT_MULTI_VARIANT;
-					$this->sendRequest($variation, $itemLevel, $settings);
-				}
-
 				//isMain can be true or false, this does not matter in this case
 				elseif(strlen($attributeValue) == 0 && count($variations) == 1)
 				{
@@ -582,6 +574,12 @@ class ItemUpdateService
 				elseif(strlen($attributeValue) == 0)
 				{
 					$parentWithoutChildren[] = $variation;
+				}
+
+				elseif(strlen($attributeValue) > 0 && count($variations) > 2)
+				{
+					$itemLevel = Client::EDIT_PRODUCT_MULTI_VARIANT;
+					$this->sendRequest($variation, $itemLevel, $settings);
 				}
 
 				else

@@ -1,5 +1,11 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## 1.2.13 (2017-12-05)
+
+### Fixed
+- An issue was fixed which caused the item update to fail because of a missing endpoint.
+- An issue was fixed which caused main variations to be exported as single items even though item variations exist.
+
 ## 1.2.12 (2017-11-24)
 
 ### Fixed
