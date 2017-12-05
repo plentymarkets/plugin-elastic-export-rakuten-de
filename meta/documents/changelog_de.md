@@ -1,5 +1,11 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## 1.2.13 (2017-12-05)
+
+### Behoben
+- Ein Fehler wurde behoben, welcher dazu führte, dass der Bestands- und Preisabgleich nicht funktionierte, da ein Endpoint gefehlt hat.
+- Ein Fehler wurde behoben, welcher dazu führte, dass Hauptvarianten als Einzelartikel übertragen wurden. Obwohl der Artikel weitere Varianten hatte.
+
 ## 1.2.12 (2017-11-24)
 
 ### Behoben
