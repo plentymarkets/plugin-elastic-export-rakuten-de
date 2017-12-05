@@ -287,6 +287,8 @@ class ItemUpdateService
 
 										unset($variations);
 									}
+									
+									$this->client->writeLogs();
 								}
 							}
 						}

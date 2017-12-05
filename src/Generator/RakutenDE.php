@@ -33,7 +33,6 @@ class RakutenDE extends CSVPluginGenerator
     const TRANSFER_OFFER_PRICE_YES = 1;
 
 
-
     /**
      * @var ElasticExportCoreHelper
      */
@@ -59,8 +58,6 @@ class RakutenDE extends CSVPluginGenerator
 	 */
 	private $elasticExportStockHelper;
 
-
-
 	/**
 	 * MarketPropertyHelperRepositoryContract $marketPropertyHelperRepository
 	 */
@@ -80,8 +77,6 @@ class RakutenDE extends CSVPluginGenerator
 	 * @var ConfigRepository
 	 */
 	private $configRepository;
-
-
 
     /**
      * @var array
@@ -107,6 +102,16 @@ class RakutenDE extends CSVPluginGenerator
 	 * @var StockHelper
 	 */
 	private $stockHelper;
+
+	/**
+	 * @var array
+	 */
+	private $errorBatch = [];
+
+	/**
+	 * @var int
+	 */
+	private $errorIterator = 0;
 
 	/**
 	 * RakutenDE constructor.
@@ -317,10 +322,21 @@ class RakutenDE extends CSVPluginGenerator
 							}
 							catch(\Throwable $exception)
 							{
-								$this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.buildRowError', [
+								$this->errorBatch['rowError'][] = [
 									'error' => $exception->getMessage(),
 									'line' => $exception->getLine(),
-								]);
+								]; 
+								
+								$this->errorIterator++;
+								
+								if($this->errorIterator = 100)
+								{
+									$this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.buildRowError', [
+										$this->errorBatch['rowError']
+									]);
+									
+									$this->errorIterator = 0;
+								}
 							}
 
                             $variations = array();
@@ -346,13 +362,29 @@ class RakutenDE extends CSVPluginGenerator
 			}
 			catch(\Throwable $exception)
 			{
-				$this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.buildRowError', [
-					'error' => $exception->getMessage(),
-					'line' => $exception->getLine(),
-				]);
+				$this->errorIterator++;
+
+				if($this->errorIterator = 100)
+				{
+					$this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.buildRowError', [
+						'error' => $exception->getMessage(),
+						'line' => $exception->getLine(),
+					]);
+
+					$this->errorIterator = 0;
+				}
 			}
 
 			unset($variations);
+		}
+		
+		if(is_array($this->errorBatch) && count($this->errorBatch['rowError']))
+		{
+			$this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.buildRowError', [
+				$this->errorBatch['rowError']
+			]);
+
+			$this->errorIterator = 0;
 		}
 
         $this->getLogger(__METHOD__)->debug('ElasticExportRakutenDE::log.fileGenerationDuration', [
