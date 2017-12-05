@@ -329,10 +329,10 @@ class RakutenDE extends CSVPluginGenerator
 								
 								$this->errorIterator++;
 								
-								if($this->errorIterator = 100)
+								if($this->errorIterator == 100)
 								{
 									$this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.buildRowError', [
-										$this->errorBatch['rowError']
+										'errorList'	=> $this->errorBatch['rowError']
 									]);
 									
 									$this->errorIterator = 0;
@@ -364,7 +364,7 @@ class RakutenDE extends CSVPluginGenerator
 			{
 				$this->errorIterator++;
 
-				if($this->errorIterator = 100)
+				if($this->errorIterator == 100)
 				{
 					$this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.buildRowError', [
 						'error' => $exception->getMessage(),
@@ -381,7 +381,7 @@ class RakutenDE extends CSVPluginGenerator
 		if(is_array($this->errorBatch) && count($this->errorBatch['rowError']))
 		{
 			$this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.buildRowError', [
-				$this->errorBatch['rowError']
+				'errorList'	=> $this->errorBatch['rowError']
 			]);
 
 			$this->errorIterator = 0;

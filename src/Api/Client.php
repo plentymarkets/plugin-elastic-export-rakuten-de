@@ -112,7 +112,7 @@ class Client
 		if(is_array($this->errorBatch) && count($this->errorBatch))
 		{
 			$this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.apiError', [
-				$this->errorBatch
+				'errorList'	=> $this->errorBatch
 			]);
 		}
 		
