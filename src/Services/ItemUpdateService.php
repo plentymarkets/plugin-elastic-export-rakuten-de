@@ -169,7 +169,6 @@ class ItemUpdateService
 		$currentItemId = null;
 		$previousItemId = null;
 		$variations = array();
-		$newShard = false;
 		$shardIterator = 0;
 		$elasticSearch = pluginApp(VariationElasticSearchScrollRepositoryContract::class);
 		$exportList = $this->exportRepositoryContract->search(['formatKey' => 'RakutenDE-Plugin']);
