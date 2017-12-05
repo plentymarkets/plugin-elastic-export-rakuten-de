@@ -3,8 +3,8 @@
 ## 1.2.13 (2017-12-05)
 
 ### Behoben
-- Ein Fehler wurde behoben, welcher dazu führte, dass der Bestands- und Preisabgleich nicht funktionierte, da ein Endpoint gefehlt hat.
-- Ein Fehler wurde behoben, welcher dazu führte, dass Hauptvarianten als Einzelartikel übertragen wurden. Obwohl der Artikel weitere Varianten hatte.
+- Ein Fehler wurde behoben, welcher dazu führte, dass der Bestands- und Preisabgleich nicht funktionierte.
+- Ein Fehler wurde behoben, welcher dazu führte, dass Hauptvarianten, trotz vorhandenen Artikelvarianten, als Einzelartikel übertragen wurden.
 
 ## 1.2.12 (2017-11-24)
 
