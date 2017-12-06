@@ -3,7 +3,7 @@
 ## 1.2.14 (2017-12-05)
 
 ### Changed
-- The logs for the stock and price update and for the export will now be saved as batches of 100.
+- Logs for the stock and price update as well as for the export will now be saved as batches of 100.
 
 ## 1.2.13 (2017-12-05)
 
