@@ -24,6 +24,16 @@ class Client
 	const VARIANT_ART_NO = 'variant_art_no';
 
 	/**
+	 * @var array
+	 */
+	private $errorBatch = [];
+
+	/**
+	 * @var int
+	 */
+	private $errorIterator = 0;
+
+	/**
 	 * ApiClient constructor.
 	 */
 	public function __construct()
@@ -63,23 +73,49 @@ class Client
 
 			if($response->success == "-1" && count($response->errors))
 			{
-				$this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.apiError', [
-				    'endpoint'          => $endPoint,
+				if($this->errorIterator == 100)
+				{
+					$this->writeLogs();
+				}
+				
+				$this->errorBatch[] = [
+					'endpoint'          => $endPoint,
 					'error code' 		=> $response->errors->error->code,
 					'message'			=> $response->errors->error->message,
 					'request content'	=> $content
-				]);
+				];
+				
+				$this->errorIterator++;
 			}
 
 		}
 		catch (\Throwable $throwable)
 		{
-			$this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.apiError', [
+			if($this->errorIterator == 100)
+			{
+				$this->writeLogs();
+			}
+			
+			$this->errorBatch[] = [
 				'message'	=> $throwable->getMessage(),
 				'line'	=> $throwable->getLine(),
-			]);
+			];
+
+			$this->errorIterator++;
 		}
 
 		return $response;
+	}
+	
+	public function writeLogs()
+	{
+		if(is_array($this->errorBatch) && count($this->errorBatch))
+		{
+			$this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.apiError', [
+				'errorList'	=> $this->errorBatch
+			]);
+		}
+		
+		$this->errorIterator = 0;
 	}
 }
