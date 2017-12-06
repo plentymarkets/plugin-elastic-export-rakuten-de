@@ -3,7 +3,7 @@
 ## 1.2.14 (2017-12-05)
 
 ### Geändert
-- Die Logs für den Bestands- und Preisabgleich und dem Export werden nun in 100 Bündel gespeichert und in das Log geschrieben.
+- Die Logs für den Bestands- und Preisabgleich und dem Export werden nun in 100er Bündel gespeichert und in das Log geschrieben.
 
 ## 1.2.13 (2017-12-05)
 
