@@ -362,13 +362,17 @@ class RakutenDE extends CSVPluginGenerator
 			}
 			catch(\Throwable $exception)
 			{
+				$this->errorBatch['rowError'][] = [
+					'error' => $exception->getMessage(),
+					'line' => $exception->getLine(),
+				];
+				
 				$this->errorIterator++;
 
 				if($this->errorIterator == 100)
 				{
 					$this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.buildRowError', [
-						'error' => $exception->getMessage(),
-						'line' => $exception->getLine(),
+						'errorList'	=> $this->errorBatch['rowError']
 					]);
 
 					$this->errorIterator = 0;
