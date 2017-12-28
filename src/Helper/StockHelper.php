@@ -36,7 +36,7 @@ class StockHelper
 		$stockUpdatedAt = '';
 
 		$this->stockRepository->setFilters(['variationId' => $item['id']]);
-		$stockResult = $this->stockRepository->listStockByWarehouseType('sales', ['stockNet'], 1, 1);
+		$stockResult = $this->stockRepository->listStockByWarehouseType('sales', ['*'], 1, 1);
 
 		if($stockResult instanceof PaginatedResult)
 		{

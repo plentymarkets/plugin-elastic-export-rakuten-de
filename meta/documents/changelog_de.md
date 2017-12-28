@@ -1,5 +1,10 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## 1.2.15 (2017-12-28)
+
+### Geändert
+- Für den Bestands- und Preisabgleich wurde die delta Zeit auf 2 Stunden verkürzt.
+
 ## 1.2.14 (2017-12-05)
 
 ### Geändert

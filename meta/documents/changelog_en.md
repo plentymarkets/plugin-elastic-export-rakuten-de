@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## 1.2.15 (2017-12-28)
+
+### Changed
+- The delta time for the stock and price update was reduced to 2h.
+
 ## 1.2.14 (2017-12-05)
 
 ### Changed
