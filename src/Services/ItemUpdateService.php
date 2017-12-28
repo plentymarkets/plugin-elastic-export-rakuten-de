@@ -33,6 +33,9 @@ class ItemUpdateService
 	
 	const BOOL_TRUE = 'true';
 	const BOOL_FALSE = 'false';
+
+	// 2h
+	const DELTA_TIME = 7200;
 	
 	/**
 	 * @var MarketAttributeHelperRepositoryContract $marketAttributeHelperRepositoryContract
@@ -358,7 +361,7 @@ class ItemUpdateService
 					}
 				}
 
-				if((!is_null($stockList['updatedAt']) && $stockList['updatedAt'] > strtotime($variation['data']['skus'][0]['exportedAt'])))
+				if(!is_null($stockList['updatedAt']) && $stockList['updatedAt'] > time() - self::DELTA_TIME)
 				{
 					$this->transferData = true;
 				}
@@ -391,7 +394,7 @@ class ItemUpdateService
 					$price = '';
 				}
 
-				if(!is_null($priceResponse->updatedAt) && $priceResponse->updatedAt > strtotime($variation['data']['skus'][0]['exportedAt']))
+				if(!is_null($priceResponse->updatedAt) && $priceResponse->updatedAt > time() - self::DELTA_TIME)
 				{
 					$this->transferData = true;
 				}
