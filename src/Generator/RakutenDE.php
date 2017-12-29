@@ -16,10 +16,8 @@ use Plenty\Modules\Item\Search\Contracts\VariationElasticSearchScrollRepositoryC
 use Plenty\Modules\Item\VariationSku\Contracts\VariationSkuRepositoryContract;
 use Plenty\Modules\Item\VariationSku\Models\VariationSku;
 use Plenty\Modules\Market\Helper\Contracts\MarketPropertyHelperRepositoryContract;
-use Plenty\Modules\StockManagement\Stock\Contracts\StockRepositoryContract;
 use Plenty\Plugin\ConfigRepository;
 use Plenty\Plugin\Log\Loggable;
-use Plenty\Repositories\Models\PaginatedResult;
 
 class RakutenDE extends CSVPluginGenerator
 {
@@ -153,8 +151,10 @@ class RakutenDE extends CSVPluginGenerator
         $this->elasticExportHelper = pluginApp(ElasticExportCoreHelper::class);
         $this->elasticExportItemHelper = pluginApp(ElasticExportItemHelper::class, [1 => true]);
 
-        $settings = $this->arrayHelper->buildMapFromObjectList($formatSettings, 'key', 'value');
-
+        $settings = $this->arrayHelper->buildMapFromObjectList($formatSettings, 'key', 'value');#
+		
+		$this->stockHelper->setAdditionalStockInformation($settings);
+        
         $this->setDelimiter(";");
 
         $this->addCSVContent([

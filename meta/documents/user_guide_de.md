@@ -103,6 +103,30 @@ In der folgenden Tabelle finden Sie spezifische Hinweise zu den Einstellungen, F
         </td>        
     </tr>
     <tr>
+    	<td>
+    		Bestandspuffer
+    	</td>
+    	<td>
+    		Der Bestandspuffer für Varianten mit der Beschränkung auf den Netto Warenbestand.
+    	</td>        
+    </tr>
+    <tr>
+    	<td>
+    		Bestand für Varianten ohne Bestandsbeschränkung
+    	</td>
+    	<td>
+    		Der Bestand für Varianten ohne Bestandsbeschränkung.
+    	</td>        
+    </tr>
+    <tr>
+    	<td>
+    		Bestand für Varianten ohne Bestandsführung
+    	</td>
+    	<td>
+    		Der Bestand für Varianten ohne Bestandsführung.
+    	</td>        
+    </tr>
+    <tr>
         <td>
             Versandkosten
         </td>
