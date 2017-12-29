@@ -121,13 +121,13 @@ class StockHelper
 			}	
 			else
 			{
-				if(!is_null($this->stockForVariationsWithoutStockLimitation))
-				{
-					$stock = $this->stockForVariationsWithoutStockLimitation;
-				}
-				elseif($stockNet > 0)
+				if($stockNet > 0)
 				{
 					$stock = $stockNet;
+				}
+				elseif(!is_null($this->stockForVariationsWithoutStockLimitation))
+				{
+				$stock = $this->stockForVariationsWithoutStockLimitation;
 				}
 				else
 				{
