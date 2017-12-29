@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.3.0 (2017-12-28)
+
+### Added
+- The StockHelper takes the new fields "Stockbuffer", "Stock for variations without stock limitation" and "Stock for variations with not stock administration" into account.
+
 ## 1.2.15 (2017-12-28)
 
 ### Changed

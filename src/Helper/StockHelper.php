@@ -2,13 +2,19 @@
 
 namespace ElasticExportRakutenDE\Helper;
 
-
 use Plenty\Modules\StockManagement\Stock\Contracts\StockRepositoryContract;
 use Plenty\Modules\StockManagement\Stock\Models\Stock;
 use Plenty\Repositories\Models\PaginatedResult;
+use Plenty\Modules\Helper\Models\KeyValue;
 
 class StockHelper
 {
+	private $stockBuffer = 0;
+
+	private $stockForVariationsWithoutStockLimitation = null;
+
+	private $stockForVariationsWithoutStockAdministration = null;
+	
 	/**
 	 * @var StockRepositoryContract
 	 */
@@ -65,7 +71,15 @@ class StockHelper
 		{
 			$variationAvailable = 1;
 			$inventoryManagementActive = 0;
-			$stock = 999;
+			
+			if(!is_null($this->stockForVariationsWithoutStockAdministration))
+			{
+				$stock = $this->stockForVariationsWithoutStockAdministration;
+			}
+			else
+			{
+				$stock = 999;
+			}
 		}
 		
 		// stock limitation use nett stock
@@ -75,15 +89,22 @@ class StockHelper
 
 			if($stockNet > 0)
 			{
-				$variationAvailable = 1;
-
 				if($stockNet > 999)
 				{
 					$stock = 999;
 				}
 				else
 				{
-					$stock = $stockNet;
+					$stock = $stockNet - $this->stockBuffer;
+				}
+
+				if($stock < 0)
+				{
+					$stock = 0;
+				}
+				else
+				{
+					$variationAvailable = 1;
 				}
 			}
 		}
@@ -97,10 +118,14 @@ class StockHelper
 			if($stockNet > 999)
 			{
 				$stock = 999;
-			}
+			}	
 			else
 			{
-				if($stockNet > 0)
+				if(!is_null($this->stockForVariationsWithoutStockLimitation))
+				{
+					$stock = $this->stockForVariationsWithoutStockLimitation;
+				}
+				elseif($stockNet > 0)
 				{
 					$stock = $stockNet;
 				}
@@ -117,5 +142,26 @@ class StockHelper
 			'variationAvailable'        =>  $variationAvailable,
 			'inventoryManagementActive' =>  $inventoryManagementActive,
 		);
+	}
+
+	/**
+	 * @param KeyValue $settings
+	 */
+	public function setAdditionalStockInformation(KeyValue $settings)
+	{
+		if(!is_null($settings->get('stockBuffer')) && $settings->get('stockBuffer') > 0)
+		{
+			$this->stockBuffer = $settings->get('stockBuffer');
+		}
+
+		if(!is_null($settings->get('stockForVariationsWithoutStockAdministration')) && $settings->get('stockForVariationsWithoutStockAdministration') > 0)
+		{
+			$this->stockForVariationsWithoutStockAdministration = $settings->get('stockForVariationsWithoutStockAdministration');
+		}
+
+		if(!is_null($settings->get('stockForVariationsWithoutStockLimitation')) && $settings->get('stockForVariationsWithoutStockLimitation') > 0)
+		{
+			$this->stockForVariationsWithoutStockLimitation = $settings->get('stockForVariationsWithoutStockLimitation');
+		}
 	}
 }

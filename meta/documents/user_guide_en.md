@@ -103,6 +103,30 @@ The following table lists details for settings, format settings and recommended 
         </td>        
     </tr>
     <tr>
+    	<td>
+    		Stockbuffer
+    	</td>
+    	<td>
+    		The stock buffer for variations with the limitation to the netto stock.
+    	</td>        
+    </tr>
+    <tr>
+    	<td>
+    		Stock for Variations without stock limitation
+    	</td>
+    	<td>
+    		The stock for variations without stock limitation.
+    	</td>        
+    </tr>
+    <tr>
+    	<td>
+    		The stock for variations with not stock administration
+    	</td>
+    	<td>
+    		The stock for variations without stock administration.
+    	</td>        
+    </tr>
+    <tr>
         <td>
             Shipping costs
         </td>
