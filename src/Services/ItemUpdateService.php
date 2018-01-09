@@ -207,6 +207,9 @@ class ItemUpdateService
 						{
 							$settings = $export->formatSettings->all();
 							$settings = pluginApp(ArrayHelper::class)->buildMapFromObjectList($settings, 'key', 'value');
+							
+							$this->stockHelper->setAdditionalStockInformation($settings);
+							
 							if($rakutenCredential instanceof Credentials)
 							{
 								if((int)$rakutenCredential->id != (int)$settings->get('marketAccountId'))
@@ -331,6 +334,11 @@ class ItemUpdateService
 		$stillActive = $this->stillActive($variation);
 		$sku = $variation['data']['skus'][0]['sku'];
 
+		if($stillActive === false && $variation['data']['skus'][0]['status'] == self::INACTIVE)
+		{
+			return $content;
+		}
+		
 		if(!is_null($itemLevel) && strlen($itemLevel) && $itemLevel == Client::EDIT_PRODUCT_VARIANT)
 		{
 			$content[Client::VARIANT_ART_NO] = $sku;
@@ -395,7 +403,12 @@ class ItemUpdateService
 			
 			$this->transferData = true;
 
-			$this->variationSkuRepository->update(['status'	=> self::INACTIVE], $variation['data']['skus'][0]['id']);
+			$skuRepositoryInformation = [
+				'status'			=> self::INACTIVE,
+				'updatedAt'			=> date("Y-m-d H:i:s"),
+			];
+            
+			$this->variationSkuRepository->update($skuRepositoryInformation, $variation['data']['skus'][0]['id']);
 			
 			$this->statusWasUpdated = true;
 		}
@@ -646,23 +659,34 @@ class ItemUpdateService
 			$response = $this->client->call($this->endpoint, Client::POST, $content);
 			if($response instanceof \SimpleXMLElement)
 			{
-				if($response->success == "1" && $this->statusWasUpdated === false)
+				if($response->success == "1")
 				{
 				    $this->getLogger(__METHOD__)->info('ElasticExportRakutenDE::log.stockUpdatedSuccessfully', [
                         'endpoint'          => $this->endpoint,
                         'request content'	=> $content
                     ]);
-				    
-				    $skuRepositoryInformation = [
-						'stockUpdatedAt'	=> date("Y-m-d H:i:s"),
-						'status'			=> self::ACTIVE
-					];
-					$this->variationSkuRepository->update($skuRepositoryInformation, $variation['data']['skus'][0]['id']);
+
+				    if($this->statusWasUpdated === false)
+				    {
+						$skuRepositoryInformation = [
+							'stockUpdatedAt'	=> date("Y-m-d H:i:s"),
+							'status'			=> self::ACTIVE,
+							'updatedAt'			=> date("Y-m-d H:i:s"),
+						];
+
+						$this->variationSkuRepository->update($skuRepositoryInformation, $variation['data']['skus'][0]['id']);
+					}
 				}
 				//will only be set if the variation was not found at rakuten.
 				elseif(in_array($response->errors->error->code, $this->notFoundErrorCodes) && $this->statusWasUpdated === false)
 				{
-					$this->variationSkuRepository->update(['status'	=> self::INACTIVE], $variation['data']['skus'][0]['id']);
+					$skuRepositoryInformation = [
+						'status'			=> self::INACTIVE,
+						'updatedAt'			=> date("Y-m-d H:i:s"),
+					];
+
+
+					$this->variationSkuRepository->update($skuRepositoryInformation, $variation['data']['skus'][0]['id']);
 				}
 			}
 		}
