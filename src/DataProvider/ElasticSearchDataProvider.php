@@ -136,6 +136,7 @@ class ElasticSearchDataProvider
 			'skus.sku',
 			'skus.exportedAt',
 			'skus.id',
+			'skus.status',
 
 			//attributes
 			'attributes.attributeValueSetId',

@@ -33,6 +33,9 @@ class ItemUpdateService
 	
 	const BOOL_TRUE = 'true';
 	const BOOL_FALSE = 'false';
+	
+	const ACTIVE = 'ACTIVE';
+	const INACTIVE = 'INACTIVE';
 
 	// 2h
 	const DELTA_TIME = 7200;
@@ -125,6 +128,19 @@ class ItemUpdateService
 	 * @var string
 	 */
 	private $apiKey = '';
+
+	/**
+	 * @var array
+	 */
+	private $notFoundErrorCodes = [
+		2210,
+		2310
+	];
+
+	/**
+	 * @var bool
+	 */
+	private $statusWasUpdated = false;
 
 	/**
 	 * ItemUpdateService constructor.
@@ -367,7 +383,7 @@ class ItemUpdateService
 				}
 			}
 		}
-		elseif($this->stockUpdate == self::BOOL_TRUE && $stillActive === false)
+		elseif($this->stockUpdate == self::BOOL_TRUE && $stillActive === false && $variation['data']['skus'][0]['status'] == self::ACTIVE)
 		{
 			$content['available'] = 0;
 			$content['stock'] = 0;
@@ -378,6 +394,10 @@ class ItemUpdateService
             }
 			
 			$this->transferData = true;
+
+			$this->variationSkuRepository->update(['status'	=> self::INACTIVE], $variation['data']['skus'][0]['id']);
+			
+			$this->statusWasUpdated = true;
 		}
 
 		if($this->priceUpdate == self::BOOL_TRUE && $stillActive === true)
@@ -626,15 +646,27 @@ class ItemUpdateService
 			$response = $this->client->call($this->endpoint, Client::POST, $content);
 			if($response instanceof \SimpleXMLElement)
 			{
-				if($response->success == "1")
+				if($response->success == "1" && $this->statusWasUpdated === false)
 				{
 				    $this->getLogger(__METHOD__)->info('ElasticExportRakutenDE::log.stockUpdatedSuccessfully', [
                         'endpoint'          => $this->endpoint,
                         'request content'	=> $content
                     ]);
-					$this->variationSkuRepository->update(['exportedAt' => date("Y-m-d H:i:s")], $variation['data']['skus'][0]['id']);
+				    
+				    $skuRepositoryInformation = [
+						'stockUpdatedAt'	=> date("Y-m-d H:i:s"),
+						'status'			=> self::ACTIVE
+					];
+					$this->variationSkuRepository->update($skuRepositoryInformation, $variation['data']['skus'][0]['id']);
+				}
+				//will only be set if the variation was not found at rakuten.
+				elseif(in_array($response->errors->error->code, $this->notFoundErrorCodes) && $this->statusWasUpdated === false)
+				{
+					$this->variationSkuRepository->update(['status'	=> self::INACTIVE], $variation['data']['skus'][0]['id']);
 				}
 			}
 		}
+		
+		$this->statusWasUpdated = false;
 	}
 }
