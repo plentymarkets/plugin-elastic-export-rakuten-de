@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.3.1 (2017-01-09)
+
+### Changed
+- Inactive variations will now be send only once within the stock update.
+
 ## v1.3.0 (2017-12-28)
 
 ### Added
