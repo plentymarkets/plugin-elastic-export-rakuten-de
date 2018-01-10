@@ -37,9 +37,6 @@ class ItemUpdateService
 	const ACTIVE = 'ACTIVE';
 	const INACTIVE = 'INACTIVE';
 
-	// 2h
-	const DELTA_TIME = 7200;
-	
 	/**
 	 * @var MarketAttributeHelperRepositoryContract $marketAttributeHelperRepositoryContract
 	 */
@@ -184,7 +181,7 @@ class ItemUpdateService
 	public function generateContent()
 	{
 		$this->elasticExportHelper = pluginApp(ElasticExportCoreHelper::class);
-
+		
 		$currentItemId = null;
 		$previousItemId = null;
 		$variations = array();
@@ -333,6 +330,8 @@ class ItemUpdateService
 		$content = null;
 		$stillActive = $this->stillActive($variation);
 		$sku = $variation['data']['skus'][0]['sku'];
+		
+		$lastStockUpdateTimestamp = strtotime($variation['data']['skus'][0]['stockUpdatedAt']);
 
 		if($stillActive === false && $variation['data']['skus'][0]['status'] == self::INACTIVE)
 		{
@@ -385,7 +384,9 @@ class ItemUpdateService
 					}
 				}
 
-				if(!is_null($stockList['updatedAt']) && $stockList['updatedAt'] > time() - self::DELTA_TIME)
+				if(!is_null($stockList['updatedAt']) && 
+					($stockList['updatedAt'] > $lastStockUpdateTimestamp ||
+					is_null($variation['data']['skus'][0]['stockUpdatedAt'])))
 				{
 					$this->transferData = true;
 				}
@@ -427,7 +428,11 @@ class ItemUpdateService
 					$price = '';
 				}
 
-				if(!is_null($priceResponse->updatedAt) && $priceResponse->updatedAt > time() - self::DELTA_TIME)
+				$priceUpdateTime = strtotime($priceResponse->updatedAt);
+				
+				if(!is_null($priceResponse->updatedAt) &&
+					($priceUpdateTime > $lastStockUpdateTimestamp ||
+					is_null($variation['data']['skus'][0]['stockUpdatedAt'])))
 				{
 					$this->transferData = true;
 				}
