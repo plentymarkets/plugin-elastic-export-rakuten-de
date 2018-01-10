@@ -1,5 +1,10 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## v1.3.2 (2017-01-11)
+
+### Geändert
+- Es werden nun alle Kategoriepfade einer Variante übertragen, wenn sie für den Mandanten freigegeben sind und die dementsprechenden Spracheinstellungen haben.
+
 ## v1.3.1 (2017-01-09)
 
 ### Geändert

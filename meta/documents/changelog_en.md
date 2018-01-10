@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.3.2 (2017-01-11)
+
+### Changed
+- Every category path of a variation will be transmitted, as long as it is enabled for the client and the corresponding language is configured.
+
 ## v1.3.1 (2017-01-09)
 
 ### Changed
