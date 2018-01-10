@@ -12,6 +12,7 @@ use Plenty\Modules\DataExchange\Models\Export;
 use Plenty\Modules\Helper\Services\ArrayHelper;
 use Plenty\Modules\Item\SalesPrice\Models\SalesPriceSearchResponse;
 use Plenty\Modules\Item\Search\Contracts\VariationElasticSearchScrollRepositoryContract;
+use Plenty\Modules\Item\VariationSku\Models\VariationSku;
 use Plenty\Modules\Market\Credentials\Contracts\CredentialsRepositoryContract;
 use Plenty\Modules\Market\Credentials\Models\Credentials;
 use Plenty\Modules\Market\Helper\Contracts\MarketAttributeHelperRepositoryContract;
@@ -34,9 +35,6 @@ class ItemUpdateService
 	const BOOL_TRUE = 'true';
 	const BOOL_FALSE = 'false';
 	
-	const ACTIVE = 'ACTIVE';
-	const INACTIVE = 'INACTIVE';
-
 	/**
 	 * @var MarketAttributeHelperRepositoryContract $marketAttributeHelperRepositoryContract
 	 */
@@ -333,7 +331,7 @@ class ItemUpdateService
 		
 		$lastStockUpdateTimestamp = strtotime($variation['data']['skus'][0]['stockUpdatedAt']);
 
-		if($stillActive === false && $variation['data']['skus'][0]['status'] == self::INACTIVE)
+		if($stillActive === false && $variation['data']['skus'][0]['status'] == VariationSku::MARKET_STATUS_INACTIVE)
 		{
 			return $content;
 		}
@@ -392,7 +390,7 @@ class ItemUpdateService
 				}
 			}
 		}
-		elseif($this->stockUpdate == self::BOOL_TRUE && $stillActive === false && $variation['data']['skus'][0]['status'] == self::ACTIVE)
+		elseif($this->stockUpdate == self::BOOL_TRUE && $stillActive === false && $variation['data']['skus'][0]['status'] == VariationSku::MARKET_STATUS_ACTIVE)
 		{
 			$content['available'] = 0;
 			$content['stock'] = 0;
@@ -405,7 +403,7 @@ class ItemUpdateService
 			$this->transferData = true;
 
 			$skuRepositoryInformation = [
-				'status'			=> self::INACTIVE,
+				'status'			=> VariationSku::MARKET_STATUS_INACTIVE,
 				'updatedAt'			=> date("Y-m-d H:i:s"),
 			];
             
@@ -675,7 +673,7 @@ class ItemUpdateService
 				    {
 						$skuRepositoryInformation = [
 							'stockUpdatedAt'	=> date("Y-m-d H:i:s"),
-							'status'			=> self::ACTIVE,
+							'status'			=> VariationSku::MARKET_STATUS_ACTIVE,
 							'updatedAt'			=> date("Y-m-d H:i:s"),
 						];
 
@@ -686,7 +684,7 @@ class ItemUpdateService
 				elseif(in_array($response->errors->error->code, $this->notFoundErrorCodes) && $this->statusWasUpdated === false)
 				{
 					$skuRepositoryInformation = [
-						'status'			=> self::INACTIVE,
+						'status'			=> VariationSku::MARKET_STATUS_INACTIVE,
 						'updatedAt'			=> date("Y-m-d H:i:s"),
 					];
 
