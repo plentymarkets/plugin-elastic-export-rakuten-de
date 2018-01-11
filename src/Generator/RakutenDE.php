@@ -2,6 +2,7 @@
 
 namespace ElasticExportRakutenDE\Generator;
 
+use ElasticExport\Helper\ElasticExportCategoryHelper;
 use ElasticExport\Helper\ElasticExportCoreHelper;
 use ElasticExport\Helper\ElasticExportItemHelper;
 use ElasticExportRakutenDE\Helper\PriceHelper;
@@ -57,9 +58,14 @@ class RakutenDE extends CSVPluginGenerator
 	private $elasticExportStockHelper;
 
 	/**
-	 * MarketPropertyHelperRepositoryContract $marketPropertyHelperRepository
+	 * @var MarketPropertyHelperRepositoryContract $marketPropertyHelperRepository
 	 */
 	private $marketPropertyHelperRepository;
+
+	/**
+	 * @var ElasticExportCategoryHelper $elasticExportCategoryHelper
+	 */
+	private $elasticExportCategoryHelper;
 
 	/**
 	 * @var SalesPriceSearchRepository
@@ -150,8 +156,9 @@ class RakutenDE extends CSVPluginGenerator
     	$this->elasticExportStockHelper = pluginApp(ElasticExportStockHelper::class);
         $this->elasticExportHelper = pluginApp(ElasticExportCoreHelper::class);
         $this->elasticExportItemHelper = pluginApp(ElasticExportItemHelper::class, [1 => true]);
+        $this->elasticExportCategoryHelper = pluginApp(ElasticExportCategoryHelper::class);
 
-        $settings = $this->arrayHelper->buildMapFromObjectList($formatSettings, 'key', 'value');#
+        $settings = $this->arrayHelper->buildMapFromObjectList($formatSettings, 'key', 'value');
 		
 		$this->stockHelper->setAdditionalStockInformation($settings);
         
@@ -564,6 +571,8 @@ class RakutenDE extends CSVPluginGenerator
         $stockList = $this->stockHelper->getStockList($item);
 
         $basePriceComponentList = $this->getBasePriceComponentList($item);
+        
+        $categories = $this->getCategories($item, $settings);
 
         $data = [
             'id'						=> '',
@@ -591,7 +600,7 @@ class RakutenDE extends CSVPluginGenerator
             'bild3'						=> $this->getImageByPosition($item, $settings, 2),
             'bild4'						=> $this->getImageByPosition($item, $settings, 3),
             'bild5'						=> $this->getImageByPosition($item, $settings, 4),
-            'kategorien'				=> $this->elasticExportHelper->getCategory((int)$item['data']['defaultCategories'][0]['id'], $settings->get('lang'), $settings->get('plentyId')),
+            'kategorien'				=> $categories,
             'lieferzeit'				=> $this->elasticExportHelper->getAvailability($item, $settings, false),
             'tradoria_kategorie'		=> $item['data']['item']['rakutenCategoryId'],
             'sichtbar'					=> 1,
@@ -669,6 +678,8 @@ class RakutenDE extends CSVPluginGenerator
 
         $stockList = $this->stockHelper->getStockList($item);
 
+		$categories = $this->getCategories($item, $settings);
+
         $data = [
             'id'						=> '#'.$item['data']['item']['id'],
             'variante_zu_id'			=> '',
@@ -693,7 +704,7 @@ class RakutenDE extends CSVPluginGenerator
             'bild3'						=> $this->getImageByPosition($item, $settings, 2),
             'bild4'						=> $this->getImageByPosition($item, $settings, 3),
             'bild5'						=> $this->getImageByPosition($item, $settings, 4),
-            'kategorien'				=> $this->elasticExportHelper->getCategory((int)$item['data']['defaultCategories'][0]['id'], $settings->get('lang'), $settings->get('plentyId')),
+            'kategorien'				=> $categories,
             'lieferzeit'				=> '',
             'tradoria_kategorie'		=> $item['data']['item']['rakutenCategoryId'],
             'sichtbar'					=> 1,
@@ -996,7 +1007,8 @@ class RakutenDE extends CSVPluginGenerator
     }
 
     /**
-     * Get necessary components to enable Rakuten to calculate a base price for the variation
+     * Get necessary components to enable Rakuten to calculate a base price for the variation.
+	 * 
      * @param array $item
      * @return array
      */
@@ -1017,4 +1029,36 @@ class RakutenDE extends CSVPluginGenerator
             'unit'      =>  $unit,
         );
     }
+
+	/**
+	 * Get all category paths in one string, separated by || .
+	 * 
+	 * @param $variation
+	 * @param $settings
+	 * 
+	 * @return string
+	 */
+    private function getCategories($variation, $settings)
+	{
+		$allCategories = '';
+		
+		foreach($variation['data']['ids']['categories']['branches'] as $categoryId)
+		{
+			$categoryPath = $this->elasticExportCategoryHelper->getCategoryPath($categoryId, $settings, '>');
+			
+			if(strlen($categoryPath) > 0)
+			{
+				if(strlen($allCategories) > 0)
+				{
+					$allCategories = $allCategories.' || '.$categoryPath;
+				}
+				else
+				{
+					$allCategories = $categoryPath;
+				}
+			}
+		}
+		
+		return $allCategories;
+	}
 }
