@@ -1,5 +1,10 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## 1.3.3 (2018-01-19)
+
+### Behoben
+- Ein Fehler wurde behoben, bei dem Attributswerte mit dem Trennzeichen **"|"** im Namen Fehler bei Rakuten verursachten.
+
 ## v1.3.2 (2017-01-11)
 
 ### Geändert

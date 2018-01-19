@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## 1.3.3 (2018-01-19)
+
+### Fixed
+- An issue was fixed which caused the attribute values which contained the delimeter **"|"** to cause an error on Rakuten. 
+
 ## v1.3.2 (2017-01-11)
 
 ### Changed

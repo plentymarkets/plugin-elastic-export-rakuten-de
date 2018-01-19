@@ -464,7 +464,7 @@ class RakutenDE extends CSVPluginGenerator
                  * gets the attribute value name of each attribute value which is linked with the variation in a specific order,
                  * which depends on the $attributeNameCombination
                  */
-                $attributeValue = $this->elasticExportHelper->getAttributeValueSetShortFrontendName($variation, $settings, '|', $this->attributeNameCombination[$variation['data']['item']['id']]);
+                $attributeValue = $this->elasticExportHelper->getAttributeValueSetShortFrontendName($variation, $settings, '|', $this->attributeNameCombination[$variation['data']['item']['id']], '/');
 
 
                 if(!is_null($potentialParent) && strlen($attributeValue))
