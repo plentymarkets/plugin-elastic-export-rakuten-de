@@ -3,7 +3,7 @@
 ## 1.3.3 (2018-01-19)
 
 ### Behoben
-- An issue was fixed which caused the attribute value names to be wrong displayed because of the preset delimiter.
+- Ein Fehler wurde behoben, bei dem Attributswerte mit dem Trennzeichen **|** im Namen Fehler bei Rakuten verursachten.
 
 ## v1.3.2 (2017-01-11)
 
