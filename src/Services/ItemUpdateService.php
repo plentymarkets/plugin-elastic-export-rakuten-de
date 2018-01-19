@@ -12,6 +12,7 @@ use Plenty\Modules\DataExchange\Models\Export;
 use Plenty\Modules\Helper\Services\ArrayHelper;
 use Plenty\Modules\Item\SalesPrice\Models\SalesPriceSearchResponse;
 use Plenty\Modules\Item\Search\Contracts\VariationElasticSearchScrollRepositoryContract;
+use Plenty\Modules\Item\VariationSku\Models\VariationSku;
 use Plenty\Modules\Market\Credentials\Contracts\CredentialsRepositoryContract;
 use Plenty\Modules\Market\Credentials\Models\Credentials;
 use Plenty\Modules\Market\Helper\Contracts\MarketAttributeHelperRepositoryContract;
@@ -33,9 +34,6 @@ class ItemUpdateService
 	
 	const BOOL_TRUE = 'true';
 	const BOOL_FALSE = 'false';
-
-	// 2h
-	const DELTA_TIME = 7200;
 	
 	/**
 	 * @var MarketAttributeHelperRepositoryContract $marketAttributeHelperRepositoryContract
@@ -127,6 +125,19 @@ class ItemUpdateService
 	private $apiKey = '';
 
 	/**
+	 * @var array
+	 */
+	private $notFoundErrorCodes = [
+		2210,
+		2310
+	];
+
+	/**
+	 * @var bool
+	 */
+	private $statusWasUpdated = false;
+
+	/**
 	 * ItemUpdateService constructor.
 	 * @param MarketAttributeHelperRepositoryContract $marketAttributeHelperRepositoryContract
 	 * @param ElasticSearchDataProvider $elasticSearchDataProvider
@@ -168,7 +179,7 @@ class ItemUpdateService
 	public function generateContent()
 	{
 		$this->elasticExportHelper = pluginApp(ElasticExportCoreHelper::class);
-
+		
 		$currentItemId = null;
 		$previousItemId = null;
 		$variations = array();
@@ -191,6 +202,9 @@ class ItemUpdateService
 						{
 							$settings = $export->formatSettings->all();
 							$settings = pluginApp(ArrayHelper::class)->buildMapFromObjectList($settings, 'key', 'value');
+							
+							$this->stockHelper->setAdditionalStockInformation($settings);
+							
 							if($rakutenCredential instanceof Credentials)
 							{
 								if((int)$rakutenCredential->id != (int)$settings->get('marketAccountId'))
@@ -314,7 +328,14 @@ class ItemUpdateService
 		$content = null;
 		$stillActive = $this->stillActive($variation);
 		$sku = $variation['data']['skus'][0]['sku'];
+		
+		$lastStockUpdateTimestamp = strtotime($variation['data']['skus'][0]['stockUpdatedAt']);
 
+		if($stillActive === false && $variation['data']['skus'][0]['status'] == VariationSku::MARKET_STATUS_INACTIVE)
+		{
+			return $content;
+		}
+		
 		if(!is_null($itemLevel) && strlen($itemLevel) && $itemLevel == Client::EDIT_PRODUCT_VARIANT)
 		{
 			$content[Client::VARIANT_ART_NO] = $sku;
@@ -361,13 +382,15 @@ class ItemUpdateService
 					}
 				}
 
-				if(!is_null($stockList['updatedAt']) && $stockList['updatedAt'] > time() - self::DELTA_TIME)
+				if(!is_null($stockList['updatedAt']) && 
+					($stockList['updatedAt'] > $lastStockUpdateTimestamp ||
+					is_null($variation['data']['skus'][0]['stockUpdatedAt'])))
 				{
 					$this->transferData = true;
 				}
 			}
 		}
-		elseif($this->stockUpdate == self::BOOL_TRUE && $stillActive === false)
+		elseif($this->stockUpdate == self::BOOL_TRUE && $stillActive === false && $variation['data']['skus'][0]['status'] == VariationSku::MARKET_STATUS_ACTIVE)
 		{
 			$content['available'] = 0;
 			$content['stock'] = 0;
@@ -378,6 +401,15 @@ class ItemUpdateService
             }
 			
 			$this->transferData = true;
+
+			$skuRepositoryInformation = [
+				'status'			=> VariationSku::MARKET_STATUS_INACTIVE,
+				'updatedAt'			=> date("Y-m-d H:i:s"),
+			];
+            
+			$this->variationSkuRepository->update($skuRepositoryInformation, $variation['data']['skus'][0]['id']);
+			
+			$this->statusWasUpdated = true;
 		}
 
 		if($this->priceUpdate == self::BOOL_TRUE && $stillActive === true)
@@ -394,7 +426,11 @@ class ItemUpdateService
 					$price = '';
 				}
 
-				if(!is_null($priceResponse->updatedAt) && $priceResponse->updatedAt > time() - self::DELTA_TIME)
+				$priceUpdateTime = strtotime($priceResponse->updatedAt);
+				
+				if(!is_null($priceResponse->updatedAt) &&
+					($priceUpdateTime > $lastStockUpdateTimestamp ||
+					is_null($variation['data']['skus'][0]['stockUpdatedAt'])))
 				{
 					$this->transferData = true;
 				}
@@ -632,9 +668,32 @@ class ItemUpdateService
                         'endpoint'          => $this->endpoint,
                         'request content'	=> $content
                     ]);
-					$this->variationSkuRepository->update(['exportedAt' => date("Y-m-d H:i:s")], $variation['data']['skus'][0]['id']);
+
+				    if($this->statusWasUpdated === false)
+				    {
+						$skuRepositoryInformation = [
+							'stockUpdatedAt'	=> date("Y-m-d H:i:s"),
+							'status'			=> VariationSku::MARKET_STATUS_ACTIVE,
+							'updatedAt'			=> date("Y-m-d H:i:s"),
+						];
+
+						$this->variationSkuRepository->update($skuRepositoryInformation, $variation['data']['skus'][0]['id']);
+					}
+				}
+				//will only be set if the variation was not found at rakuten.
+				elseif(in_array($response->errors->error->code, $this->notFoundErrorCodes) && $this->statusWasUpdated === false)
+				{
+					$skuRepositoryInformation = [
+						'status'			=> VariationSku::MARKET_STATUS_INACTIVE,
+						'updatedAt'			=> date("Y-m-d H:i:s"),
+					];
+
+
+					$this->variationSkuRepository->update($skuRepositoryInformation, $variation['data']['skus'][0]['id']);
 				}
 			}
 		}
+		
+		$this->statusWasUpdated = false;
 	}
 }

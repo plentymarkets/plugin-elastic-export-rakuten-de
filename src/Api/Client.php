@@ -115,7 +115,8 @@ class Client
 				'errorList'	=> $this->errorBatch
 			]);
 		}
-		
+
+		$this->errorBatch = [];
 		$this->errorIterator = 0;
 	}
 }

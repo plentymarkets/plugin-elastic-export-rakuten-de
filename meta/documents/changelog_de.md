@@ -1,9 +1,19 @@
 # Release Notes für Elastic Export Rakuten.de
 
-## 1.3.1 (2018-01-09)
+## 1.3.3 (2018-01-19)
 
 ### Behoben
 - An issue was fixed which caused the attribute value names to be wrong displayed because of the preset delimiter.
+
+## v1.3.2 (2017-01-11)
+
+### Geändert
+- Es werden nun alle Kategoriepfade einer Variante übertragen, wenn sie für den Mandanten freigegeben sind und die dementsprechenden Spracheinstellungen haben.
+
+## v1.3.1 (2017-01-09)
+
+### Geändert
+- Inaktive Varianten werden jetzt nur noch einmal an Rakuten im Bestandsabgleich übertragen.
 
 ## v1.3.0 (2017-12-28)
 
