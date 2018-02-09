@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## 1.3.4 (2018-02-09)
+
+### Fixed
+- An issue was fixed which caused the prefix and suffix to be missing at the parent SKU when generating items without children.
+
 ## 1.3.3 (2018-01-19)
 
 ### Fixed
