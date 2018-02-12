@@ -1,5 +1,10 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## 1.3.4 (2018-02-09)
+
+### Behoben
+- Ein Fehler wurde behoben, bei dem der Prefix und Suffix für die Parent-SKU bei Einzelartikel nicht gesetzt wurde.
+
 ## 1.3.3 (2018-01-19)
 
 ### Behoben

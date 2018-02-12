@@ -543,7 +543,10 @@ class RakutenDE extends CSVPluginGenerator
     private function buildParentWithoutChildrenRow($item, KeyValue $settings)
     {
     	$sku = null;
-    	$parentSku = null;
+
+       $parentPrefix = $this->configRepository->get('ElasticExportRakutenDE.parent_sku.prefix');
+       $parentSuffix = $this->configRepository->get('ElasticExportRakutenDE.parent_sku.suffix');
+       $parentSku = $parentPrefix . $item['data']['item']['id'] . $parentSuffix;
 
     	if(isset($item['data']['skus'][0]['sku']) && strlen($item['data']['skus'][0]['sku']) > 0)
     	{
