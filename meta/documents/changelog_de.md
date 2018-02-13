@@ -1,5 +1,9 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## v1.3.5 (2018-02-13)
+
+### Hinzugefügt
+- Der PriceHelper berücksichtigt nun die Einstellung "Verkaufspreis".
 ## 1.3.4 (2018-02-09)
 
 ### Behoben

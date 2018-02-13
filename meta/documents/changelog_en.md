@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.3.5 (2018-02-13)
+
+### Added
+- The PriceHelper will now consider the new setting "Retail price".
+
 ## 1.3.4 (2018-02-09)
 
 ### Fixed

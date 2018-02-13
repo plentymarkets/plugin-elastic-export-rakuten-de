@@ -13,6 +13,8 @@ class PriceHelper
 {
 	const TRANSFER_RRP_YES = 1;
 	const TRANSFER_OFFER_PRICE_YES = 1;
+	const NET_PRICE = 'netPrice';
+	const GROSS_PRICE = 'grossPrice';
 
 	const RAKUTEN_DE = 106.00;
 	/**
@@ -76,6 +78,7 @@ class PriceHelper
 	 */
 	public function getPriceList($item, KeyValue $settings):array
 	{
+		$variationPrice = '';
 		$countryId = $settings->get('destination');
 		$currency = $this->currencyRepositoryContract->getCountryCurrency($countryId)->currency;
 
@@ -95,14 +98,36 @@ class PriceHelper
 		}
 
 		$salesPriceSearch  = $this->salesPriceSearchRepositoryContract->search($salesPriceSearchRequest);
-		$variationPrice = $salesPriceSearch->price;
+
+		if(isset($salesPriceSearch->price) &&
+		   ($settings->get('retailPrice') == self::GROSS_PRICE || is_null($settings->get('retailPrice'))))
+		{
+			$variationPrice = $salesPriceSearch->price;
+		}
+		elseif(isset($salesPriceSearch->priceNet) && $settings->get('retailPrice') == self::NET_PRICE)
+		{
+			$variationPrice = $salesPriceSearch->priceNet;
+		}
+		
 		$vatValue = $salesPriceSearch->vatValue;
 
 		//getting the recommended retail price
 		if($settings->get('transferRrp') == self::TRANSFER_RRP_YES)
 		{
+			$variationRrp = '';
 			$salesPriceSearchRequest->type = 'rrp';
-			$variationRrp = $this->salesPriceSearchRepositoryContract->search($salesPriceSearchRequest)->price;
+			
+			$salesPriceSearch = $this->salesPriceSearchRepositoryContract->search($salesPriceSearchRequest);
+
+			if(isset($salesPriceSearch->price) &&
+				($settings->get('retailPrice') == self::GROSS_PRICE || is_null($settings->get('retailPrice'))))
+			{
+				$variationRrp = $salesPriceSearch->price;
+			}
+			elseif(isset($salesPriceSearch->priceNet) && $settings->get('retailPrice') == self::NET_PRICE)
+			{
+				$variationRrp = $salesPriceSearch->priceNet;
+			}
 		}
 		else
 		{
@@ -112,8 +137,19 @@ class PriceHelper
 		//getting the special price
 		if($settings->get('transferOfferPrice') == self::TRANSFER_OFFER_PRICE_YES)
 		{
+			$variationSpecialPrice = '';
 			$salesPriceSearchRequest->type = 'specialOffer';
-			$variationSpecialPrice = $this->salesPriceSearchRepositoryContract->search($salesPriceSearchRequest)->price;
+			$salesPriceSearch = $this->salesPriceSearchRepositoryContract->search($salesPriceSearchRequest);
+
+			if(isset($salesPriceSearch->price) &&
+				($settings->get('retailPrice') == self::GROSS_PRICE || is_null($settings->get('retailPrice'))))
+			{
+				$variationSpecialPrice = $salesPriceSearch->price;
+			}
+			elseif(isset($salesPriceSearch->priceNet) && $settings->get('retailPrice') == self::NET_PRICE)
+			{
+				$variationSpecialPrice = $salesPriceSearch->priceNet;
+			}
 		}
 		else
 		{
