@@ -417,9 +417,14 @@ class ItemUpdateService
 			$priceResponse = $this->priceHelper->getPrice($variation, $settings);
 			if($priceResponse instanceof SalesPriceSearchResponse)
 			{
-				if($priceResponse->price > 0)
+				if(isset($priceResponse->price) &&
+					($settings->get('retailPrice') == PriceHelper::GROSS_PRICE || is_null($settings->get('retailPrice'))))
 				{
 					$price = number_format((float)$priceResponse->price, 2, '.', '');
+				}
+				elseif(isset($priceResponse->priceNet) && $settings->get('retailPrice') == PriceHelper::NET_PRICE)
+				{
+					$price = $priceResponse->priceNet;
 				}
 				else
 				{
