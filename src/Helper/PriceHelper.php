@@ -2,11 +2,13 @@
 
 namespace ElasticExportRakutenDE\Helper;
 
+use Plenty\Modules\Item\SalesPrice\Contracts\SalesPriceRepositoryContract;
 use Plenty\Modules\Item\SalesPrice\Contracts\SalesPriceSearchRepositoryContract;
 use Plenty\Modules\Item\SalesPrice\Models\SalesPrice;
 use Plenty\Modules\Item\SalesPrice\Models\SalesPriceSearchRequest;
 use Plenty\Modules\Helper\Models\KeyValue;
 use Plenty\Modules\Item\SalesPrice\Models\SalesPriceSearchResponse;
+use Plenty\Modules\Order\Currency\Contracts\CurrencyConversionSettingsRepositoryContract;
 use Plenty\Modules\Order\Currency\Contracts\CurrencyRepositoryContract;
 
 class PriceHelper
@@ -17,26 +19,53 @@ class PriceHelper
 	const GROSS_PRICE = 'grossPrice';
 
 	const RAKUTEN_DE = 106.00;
+	
 	/**
 	 * @var SalesPriceSearchRepositoryContract
 	 */
 	private $salesPriceSearchRepositoryContract;
+	
 	/**
 	 * @var CurrencyRepositoryContract
 	 */
 	private $currencyRepositoryContract;
+	
+	/**
+	 * @var SalesPriceRepositoryContract
+	 */
+	private $salesPriceRepository;
+
+	/**
+	 * @var array
+	 */
+	private $salesPriceCurrencyList = [];
+
+	/**
+	 * @var array
+	 */
+	private $currencyConversionList = [];
+	/**
+	 * @var CurrencyConversionSettingsRepositoryContract
+	 */
+	private $currencyConversionSettingsRepositoryContract;
 
 	/**
 	 * PriceHelper constructor.
 	 * @param SalesPriceSearchRepositoryContract $salesPriceSearchRepositoryContract
 	 * @param CurrencyRepositoryContract $currencyRepositoryContract
+	 * @param SalesPriceRepositoryContract $salesPriceRepository
+	 * @param CurrencyConversionSettingsRepositoryContract $currencyConversionSettingsRepositoryContract
 	 */
 	public function __construct(
 		SalesPriceSearchRepositoryContract $salesPriceSearchRepositoryContract,
-		CurrencyRepositoryContract $currencyRepositoryContract)
+		CurrencyRepositoryContract $currencyRepositoryContract,
+		SalesPriceRepositoryContract $salesPriceRepository, 
+		CurrencyConversionSettingsRepositoryContract $currencyConversionSettingsRepositoryContract)
 	{
 		$this->salesPriceSearchRepositoryContract = $salesPriceSearchRepositoryContract;
 		$this->currencyRepositoryContract = $currencyRepositoryContract;
+		$this->salesPriceRepository = $salesPriceRepository;
+		$this->currencyConversionSettingsRepositoryContract = $currencyConversionSettingsRepositoryContract;
 	}
 
 	/**
@@ -78,9 +107,15 @@ class PriceHelper
 	 */
 	public function getPriceList($item, KeyValue $settings):array
 	{
-		$variationPrice = '';
 		$countryId = $settings->get('destination');
 		$currency = $this->currencyRepositoryContract->getCountryCurrency($countryId)->currency;
+
+		if(!is_null($settings->get('liveConversion')) &&
+			$settings->get('liveConversion') == true &&
+			count($this->currencyConversionList) == 0)
+		{
+			$this->currencyConversionList = $this->currencyConversionSettingsRepositoryContract->getCurrencyConversionList();
+		}
 
 		//getting the retail price
 		/**
@@ -99,35 +134,18 @@ class PriceHelper
 
 		$salesPriceSearch  = $this->salesPriceSearchRepositoryContract->search($salesPriceSearchRequest);
 
-		if(isset($salesPriceSearch->price) &&
-		   ($settings->get('retailPrice') == self::GROSS_PRICE || is_null($settings->get('retailPrice'))))
-		{
-			$variationPrice = $salesPriceSearch->price;
-		}
-		elseif(isset($salesPriceSearch->priceNet) && $settings->get('retailPrice') == self::NET_PRICE)
-		{
-			$variationPrice = $salesPriceSearch->priceNet;
-		}
+		$variationPrice = $this->getPriceByRetailPriceSettings($salesPriceSearch, $settings);
 		
 		$vatValue = $salesPriceSearch->vatValue;
 
 		//getting the recommended retail price
 		if($settings->get('transferRrp') == self::TRANSFER_RRP_YES)
 		{
-			$variationRrp = '';
 			$salesPriceSearchRequest->type = 'rrp';
 			
 			$salesPriceSearch = $this->salesPriceSearchRepositoryContract->search($salesPriceSearchRequest);
 
-			if(isset($salesPriceSearch->price) &&
-				($settings->get('retailPrice') == self::GROSS_PRICE || is_null($settings->get('retailPrice'))))
-			{
-				$variationRrp = $salesPriceSearch->price;
-			}
-			elseif(isset($salesPriceSearch->priceNet) && $settings->get('retailPrice') == self::NET_PRICE)
-			{
-				$variationRrp = $salesPriceSearch->priceNet;
-			}
+			$variationRrp = $this->getPriceByRetailPriceSettings($salesPriceSearch, $settings);
 		}
 		else
 		{
@@ -137,19 +155,10 @@ class PriceHelper
 		//getting the special price
 		if($settings->get('transferOfferPrice') == self::TRANSFER_OFFER_PRICE_YES)
 		{
-			$variationSpecialPrice = '';
 			$salesPriceSearchRequest->type = 'specialOffer';
 			$salesPriceSearch = $this->salesPriceSearchRepositoryContract->search($salesPriceSearchRequest);
 
-			if(isset($salesPriceSearch->price) &&
-				($settings->get('retailPrice') == self::GROSS_PRICE || is_null($settings->get('retailPrice'))))
-			{
-				$variationSpecialPrice = $salesPriceSearch->price;
-			}
-			elseif(isset($salesPriceSearch->priceNet) && $settings->get('retailPrice') == self::NET_PRICE)
-			{
-				$variationSpecialPrice = $salesPriceSearch->priceNet;
-			}
+			$variationSpecialPrice = $this->getPriceByRetailPriceSettings($salesPriceSearch, $settings);
 		}
 		else
 		{
@@ -195,5 +204,80 @@ class PriceHelper
 			'referenceReducedPrice'     =>  $referenceReducedPrice,
 			'vatValue'                  =>  $vatValue
 		);
+	}
+
+	/**
+	 * Gets the price by the format setting for the retail price.
+	 *
+	 * @param SalesPriceSearchResponse $salesPriceSearch
+	 * @param KeyValue $settings
+	 * @return string
+	 */
+	private function getPriceByRetailPriceSettings(SalesPriceSearchResponse $salesPriceSearch, KeyValue $settings)
+	{
+		if(isset($salesPriceSearch->price) &&
+			($settings->get('retailPrice') == self::GROSS_PRICE || is_null($settings->get('retailPrice'))))
+		{
+			$price = $this->calculatePriceByCurrency($salesPriceSearch, $salesPriceSearch->price, $settings);
+			return $price;
+		}
+		elseif(isset($salesPriceSearch->priceNet) && $settings->get('retailPrice') == self::NET_PRICE)
+		{
+			$priceNet = $this->calculatePriceByCurrency($salesPriceSearch, $salesPriceSearch->priceNet, $settings);
+			return $priceNet;
+		}
+
+		return '';
+	}
+
+	/**
+	 * Gets the calculated price for a given currency.
+	 *
+	 * @param SalesPriceSearchResponse $salesPriceSearch
+	 * @param $price
+	 * @param KeyValue $settings
+	 * @return mixed
+	 */
+	private function calculatePriceByCurrency(SalesPriceSearchResponse $salesPriceSearch, $price, KeyValue $settings)
+	{
+		if(!is_null($settings->get('liveConversion')) &&
+			$settings->get('liveConversion') == true &&
+			count($this->currencyConversionList) > 0 &&
+			$price > 0)
+		{
+			if(array_key_exists($salesPriceSearch->salesPriceId, $this->salesPriceCurrencyList) &&
+				$this->salesPriceCurrencyList[$salesPriceSearch->salesPriceId] === true)
+			{
+				$price = $price * $this->currencyConversionList['list'][$salesPriceSearch->currency]['exchange_ratio'];
+				return $price;
+			}
+			elseif(array_key_exists($salesPriceSearch->salesPriceId, $this->salesPriceCurrencyList) &&
+				$this->salesPriceCurrencyList[$salesPriceSearch->salesPriceId] === false)
+			{
+				return $price;
+			}
+
+			$salesPriceData = $this->salesPriceRepository->findById($salesPriceSearch->salesPriceId);
+
+			if($salesPriceData instanceof SalesPrice)
+			{
+				$salePriceCurrencyData = $salesPriceData->currencies->whereIn('currency', [$this->currencyConversionList['default'], "-1"]);
+
+				if(count($salePriceCurrencyData))
+				{
+					$this->salesPriceCurrencyList[$salesPriceSearch->salesPriceId] = true;
+
+					$price = $price * $this->currencyConversionList['list'][$salesPriceSearch->currency]['exchange_ratio'];
+
+					return $price;
+				}
+				else
+				{
+					$this->salesPriceCurrencyList[$salesPriceSearch->salesPriceId] = false;
+				}
+			}
+		}
+
+		return $price;
 	}
 }

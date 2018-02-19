@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.3.6 (2018-02-19)
+
+### Added
+- The PriceHelper will now consider the new setting "Live currency conversion".
+
 ## v1.3.5 (2018-02-13)
 
 ### Added
