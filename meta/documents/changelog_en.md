@@ -6,7 +6,7 @@
 - The PriceHelper will now consider the new setting "Live currency conversion".
 
 ### Changed
-- The SKU logic prefers the database data.
+- The SKU logic uses data from the database.
 
 ## v1.3.5 (2018-02-13)
 
