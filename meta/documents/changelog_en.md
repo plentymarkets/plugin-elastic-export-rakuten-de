@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.3.7 (2018-03-01)
+
+### Changed
+- The SKU logic prefers the database data.
+
 ## v1.3.6 (2018-02-19)
 
 ### Added
