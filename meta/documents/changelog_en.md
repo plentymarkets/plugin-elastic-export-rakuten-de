@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.3.7 (2018-03-06)
+
+### Fixed
+- Changed tables in the user guide from html to markdown.
+
 ## v1.3.6 (2018-02-21)
 
 ### Changed

@@ -1,6 +1,11 @@
 # Release Notes für Elastic Export Rakuten.de
 
-## v1.3.5 (2018-02-21)
+## v1.3.7 (2018-03-06)
+
+### Behoben
+- Die Tabellen des User Guides wurden von html zu markdown geändert.
+
+## v1.3.6 (2018-02-21)
 
 ### Geändert
 - Plugin-Kurzbeschreibung wurde angepasst.
