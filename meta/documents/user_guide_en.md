@@ -28,12 +28,12 @@ The following table lists details for settings, format settings and recommended 
 | Product URL                                       | This option does not affect this format. |
 | URL parameter                                     | This option does not affect this format. |
 | Image                                             | Choose **First image**. |
-| Stock buffer                                      | The stock buffer for variations with the limitation to the netto stock. |
+| Stockbuffer                                       | The stock buffer for variations with the limitation to the netto stock. |
 | Stock for variations without stock limitation     | The stock for variations without stock limitation.|
 | Stock for variations without stock administration | The stock for variations without stock administration. |
 | Shipping costs                                    | This option does not affect this format. |
-| MwSt.-Hinweis                                     | This option does not affect this format. |
-| Override item availability                        | This option has to be activated as Rakuten.de only accepts specific values which have to be set here. <br />Additional information is provided in **3 Overview of available columns** in the column **lieferzeit**. |
+| VAT note .                                        | This option does not affect this format. |
+| Overwrite item availability                       | This option has to be activated as Rakuten.de only accepts specific values which have to be set here. <br />Additional information is provided in **3 Overview of available columns** in the column **lieferzeit**. |
  
  ## 3 Overview of available columns
  
@@ -54,7 +54,7 @@ The following table lists details for settings, format settings and recommended 
 | grundpreis_inhalt        | **Limitation**: max. 3 predecimals and decimals <br />**Content**: The **content** of the variation. |
 | grundpreis_einheit       | **Limitation**: ml, l, kg, g, m, m², m³<br />**Content**: The **unit** of the content of the variation. |
 | reduzierter_preis        | **Limitation**: max. 5 predecimals <br />**Content**: If the format setting **RRP** and/or **offer price** was activated, the sales price or offer price will be used here. |
-| bezug_reduzierter_preis  | **UVP** oder **VK**. This will be set in dependency to the column **preis**. |
+| bezug_reduzierter_preis  | **RRP** or **RP**. This will be set in dependency to the column **preis**. |
 | mwst_klasse              | **Required** <br />**Limitation**: 1,2,3,4 (1 = 19%, 2 = 7%, 3 = 0%, 4 = 10,7%) <br />**Content**: Will be translated on basis of the vate rate. |
 | bestandsverwaltung_aktiv | **Content**: **1**, if the variation is limited to net stock. Otherwise **0**. |
 | bild1                    | **Required**: <br />**Content**: The first image of the variation. |
