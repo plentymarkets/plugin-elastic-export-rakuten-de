@@ -29,7 +29,7 @@ The following table lists details for settings, format settings and recommended 
 | URL parameter                                     | This option does not affect this format. |
 | Image                                             | Choose **First image**. |
 | Stock buffer                                      | The stock buffer for variations with the limitation to the netto stock. |
-| Stock for variations without stock limitation     | The stock for variations without stock administration.|
+| Stock for variations without stock limitation     | The stock for variations without stock limitation.|
 | Stock for variations without stock administration | The stock for variations without stock administration. |
 | Shipping costs                                    | This option does not affect this format. |
 | MwSt.-Hinweis                                     | This option does not affect this format. |
@@ -59,7 +59,7 @@ The following table lists details for settings, format settings and recommended 
 | bestandsverwaltung_aktiv | **Content**: **1**, if the variation is limited to net stock. Otherwise **0**. |
 | bild1                    | **Required**: <br />**Content**: The first image of the variation. |
 | bild2-10                 | **Content**: The corresponding images of the variation. |
-| kategorien               | **Required** <br />**Content**: **Category path of the standard category** for the **client** donfigured in the format settings. |
+| kategorien               | **Required** <br />**Content**: **Category path of the standard category** for the **client** configured in the format settings. |
 | lieferzeit               | **Required** <br />**Limitation**: 0,3,5,7,10,15,20,30,40,50,60 <br />**Content**: Translation according to the format setting **Override item availability**. |
 | tradoria_kategorie       | **Content**: The **category path of the default category** for the defined **client** in the default settings. |
 | sichtbar                 | **Content**: Always set to **1**. |
@@ -68,7 +68,7 @@ The following table lists details for settings, format settings and recommended 
 | technical_data           | **Content**: The **technical data** of the item. |
 | energie_klassen_gruppe   | **Limitation**: Fixed value as given for the property link. <br />**Content**: Value is set through a property of type **No**. The value has to be set in the menu **Settings » Item » Properties » Open property** through the option **Rakuten.de property**. |
 | energie_klasse           | **Limitation**: Fixed value as given for the property link. <br />**Content**: Value is set through a property of type **No**. The value has to be set in the menu **Settings » Item » Properties » Open property** through the option **Rakuten.de property**. |
-| energie_klasse_bis       | **Limitation**: Fixed value as given for the property. <br />**Content**: Value is set through a property of type **No**. The value has to be set in the menu **Settings » Item » Properties » Open property** through the option **Rakuten.de property**. |
+| energie_klasse_bis       | **Limitation**: Fixed value as given for the property link. <br />**Content**: Value is set through a property of type **No**. The value has to be set in the menu **Settings » Item » Properties » Open property** through the option **Rakuten.de property**. |
 | energie_klassen_bild     | **Content**: The image with the position corresponding to the format settings **Image position of the energy efficiency label** if given. |
 
 ## 4 Licence
