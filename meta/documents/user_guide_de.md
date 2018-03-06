@@ -33,7 +33,7 @@ In der folgenden Tabelle finden Sie spezifische Hinweise zu den Einstellungen, F
 | Bestand für Varianten ohne Bestandsführung      | Der Bestand für Varianten ohne Bestandsführung. |
 | Versandkosten                                   | Diese Option ist für dieses Format nicht relevant. |
 | MwSt.-Hinweis                                   | Diese Option ist für dieses Format nicht relevant. |
-| Artikelverfügbarkeit überschreiben              | Diese Einstellung muss aktiviert sein, da Rakuten.de nur spezifische Werte akzeptiert, die hier eingetragen werden müssen. <br />Weitere Informationen dazu im Abschnitt **3 Übersicht der verfügbaren Spalten** bei **Lieferzeit**. |
+| Artikelverfügbarkeit überschreiben              | Diese Einstellung muss aktiviert sein, da Rakuten.de nur spezifische Werte akzeptiert, die hier eingetragen werden müssen. <br />Weitere Informationen dazu im Abschnitt **3 Übersicht der verfügbaren Spalten** bei **lieferzeit**. |
  
  ## 3 Übersicht der verfügbaren Spalten
  
