@@ -17,13 +17,16 @@ In der folgenden Tabelle finden Sie spezifische Hinweise zu den Einstellungen, F
 
 | **Einstellung**                                 | **Erläuterung**|
 | ---                                             | --- |
+| :-                                              |
 | **Einstellungen**                               |
 | Format                                          | Das Format **RakutenDE-Plugin** wählen. |
 | Bereitstellung                                  | Die Bereitstellung **URL** wählen. |
 | Dateiname                                       | Der Dateiname muss auf **.csv** enden, damit Rakuten.de die Datei erfolgreich importieren kann. |
+| :-                                              |
 | **Artikelfilter**                               |
 | Aktiv                                           | **Aktiv** wählen. |
 | Märkte                                          | **Rakuten.de** wählen. |
+| :-                                              |
 | **Formateinstellungen**                         |
 | Produkt-URL                                     | Diese Option ist für dieses Format nicht relevant. |
 | URL-Parameter                                   | Diese Option ist für dieses Format nicht relevant. |
