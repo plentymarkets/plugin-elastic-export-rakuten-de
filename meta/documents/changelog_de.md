@@ -3,7 +3,7 @@
 ## v1.3.7 (2018-03-06)
 
 ### Behoben
-- Die Tabellen des User Guides wurden von html zu markdown geändert.
+- Die Tabellen des User Guides wurden angepasst.
 
 ## v1.3.6 (2018-02-21)
 
