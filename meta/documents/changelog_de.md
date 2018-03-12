@@ -3,7 +3,10 @@
 ## v1.3.6 (2018-02-19)
 
 ### Hinzugefügt
-- Der PriceHelper berücksichtigt nun die Einstellung "Währung live umrechnen".
+- Der PriceHelper berücksichtigt die Einstellung **Währung live umrechnen**.
+
+### Geändert
+- Die SKU-Logik verwendet nur Daten aus der Datenbank.
 
 ## v1.3.5 (2018-02-13)
 

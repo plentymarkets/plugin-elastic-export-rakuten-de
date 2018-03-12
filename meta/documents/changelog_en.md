@@ -3,7 +3,10 @@
 ## v1.3.6 (2018-02-19)
 
 ### Added
-- The PriceHelper will now consider the new setting "Live currency conversion".
+- The PriceHelper consider the new setting **Live currency conversion**.
+
+### Changed
+- The SKU logic uses data from the database.
 
 ## v1.3.5 (2018-02-13)
 
