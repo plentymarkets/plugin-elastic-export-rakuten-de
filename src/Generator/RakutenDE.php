@@ -5,6 +5,7 @@ namespace ElasticExportRakutenDE\Generator;
 use ElasticExport\Helper\ElasticExportCategoryHelper;
 use ElasticExport\Helper\ElasticExportCoreHelper;
 use ElasticExport\Helper\ElasticExportItemHelper;
+use ElasticExport\Services\FiltrationService;
 use ElasticExportRakutenDE\Helper\PriceHelper;
 use ElasticExport\Helper\ElasticExportStockHelper;
 use ElasticExportRakutenDE\Helper\StockHelper;
@@ -31,6 +32,10 @@ class RakutenDE extends CSVPluginGenerator
     const TRANSFER_RRP_YES = 1;
     const TRANSFER_OFFER_PRICE_YES = 1;
 
+    /**
+     * @var FiltrationService
+     */
+    private $filtrationService;
 
     /**
      * @var ElasticExportCoreHelper
@@ -159,6 +164,7 @@ class RakutenDE extends CSVPluginGenerator
         $this->elasticExportCategoryHelper = pluginApp(ElasticExportCategoryHelper::class);
 
         $settings = $this->arrayHelper->buildMapFromObjectList($formatSettings, 'key', 'value');
+        $this->filtrationService = pluginApp(FiltrationService::class, [$settings, $filter]);
 		
 		$this->stockHelper->setAdditionalStockInformation($settings);
         
@@ -301,7 +307,7 @@ class RakutenDE extends CSVPluginGenerator
                             break;
                         }
 
-						if($this->elasticExportStockHelper->isFilteredByStock($variation, $filter) === true)
+						if($this->filtrationService->filter($variation) === true)
 						{
 							continue;
 						}
@@ -546,22 +552,6 @@ class RakutenDE extends CSVPluginGenerator
      */
     private function buildParentWithoutChildrenRow($item, KeyValue $settings)
     {
-    	$sku = null;
-
-       $parentPrefix = $this->configRepository->get('ElasticExportRakutenDE.parent_sku.prefix');
-       $parentSuffix = $this->configRepository->get('ElasticExportRakutenDE.parent_sku.suffix');
-       $parentSku = $parentPrefix . $item['data']['item']['id'] . $parentSuffix;
-
-    	if(isset($item['data']['skus'][0]['sku']) && strlen($item['data']['skus'][0]['sku']) > 0)
-    	{
-			$sku = $item['data']['skus'][0]['sku'];
-		}
-
-		if(isset($item['data']['skus'][0]['parentSku']) && strlen($item['data']['skus'][0]['parentSku']) > 0)
-		{
-			$parentSku = $item['data']['skus'][0]['parentSku'];
-		}
-
         $priceList = $this->priceHelper->getPriceList($item, $settings);
 
 		if(isset($priceList['price']) && $priceList['price'] > 0)
@@ -572,6 +562,13 @@ class RakutenDE extends CSVPluginGenerator
 		{
 			$price = '';
 		}
+
+	    $skuData = $this->setSku($item, $settings);
+
+	    if(is_null($skuData))
+	    {
+		    return;
+	    }
 
         $vat = $this->getVatClassId($priceList['vatValue']);
 
@@ -584,7 +581,7 @@ class RakutenDE extends CSVPluginGenerator
         $data = [
             'id'						=> '',
             'variante_zu_id'			=> '',
-            'artikelnummer'				=> $this->variationSkuRepository->generateSkuWithParent($item, self::RAKUTEN_DE, (int) $settings->get('marketAccountId'), $sku, $parentSku),
+            'artikelnummer'				=> $skuData->sku,
             'produkt_bestellbar'		=> $stockList['variationAvailable'],
             'produktname'				=> $this->elasticExportHelper->getMutatedName($item, $settings, 150),
             'hersteller'				=> $this->elasticExportHelper->getExternalManufacturerName((int)$item['data']['item']['manufacturer']['id']),
@@ -655,29 +652,16 @@ class RakutenDE extends CSVPluginGenerator
      */
     private function buildParentWithChildrenRow($item, KeyValue $settings, array $attributeName)
     {
-		$sku = null;
+	    $this->parentSku = '';
 
-		$parentPrefix = $this->configRepository->get('ElasticExportRakutenDE.parent_sku.prefix');
-		$parentSuffix = $this->configRepository->get('ElasticExportRakutenDE.parent_sku.suffix');
-		$parentSku = $parentPrefix . $item['data']['item']['id'] . $parentSuffix;
+	    $skuData = $this->setSku($item, $settings);
 
-		if(isset($item['data']['skus'][0]['sku']) && strlen($item['data']['skus'][0]['sku']) > 0)
-		{
-			$sku = $item['data']['skus'][0]['sku'];
-		}
+	    if(is_null($skuData))
+	    {
+		    return;
+	    }
 
-		if(isset($item['data']['skus'][0]['parentSku']) && strlen($item['data']['skus'][0]['parentSku']) > 0)
-		{
-			$parentSku = $item['data']['skus'][0]['parentSku'];
-		}
-
-		$this->parentSku = '';
-		$variationSkuData = $this->variationSkuRepository->generateSkuWithParent($item, self::RAKUTEN_DE, (int) $settings->get('marketAccountId'), $sku, $parentSku, true, true);
-
-		if($variationSkuData instanceof VariationSku)
-		{
-			$this->parentSku = $variationSkuData->parentSku;
-		}
+	    $this->parentSku = $skuData->parentSku;
 
         $priceList = $this->priceHelper->getPriceList($item, $settings);
 
@@ -690,7 +674,7 @@ class RakutenDE extends CSVPluginGenerator
         $data = [
             'id'						=> '#'.$item['data']['item']['id'],
             'variante_zu_id'			=> '',
-            'artikelnummer'				=> $parentSku,
+            'artikelnummer'				=> $skuData->parentSku,
             'produkt_bestellbar'		=> '',
             'produktname'				=> $this->elasticExportHelper->getMutatedName($item, $settings, 150),
             'hersteller'				=> $this->elasticExportHelper->getExternalManufacturerName((int)$item['data']['item']['manufacturer']['id']),
@@ -759,20 +743,13 @@ class RakutenDE extends CSVPluginGenerator
      */
     private function buildChildRow($item, KeyValue $settings, string $attributeValue = '')
     {
+	    $skuData = $this->setSku($item, $settings);
 
-		$sku = null;
-		$parentSku = $this->parentSku;
-
-		if(isset($item['data']['skus'][0]['sku']) && strlen($item['data']['skus'][0]['sku']) > 0)
-		{
-			$sku = $item['data']['skus'][0]['sku'];
-		}
-
-		if(isset($item['data']['skus'][0]['parentSku']) && strlen($item['data']['skus'][0]['parentSku']) > 0)
-		{
-			$parentSku = $item['data']['skus'][0]['parentSku'];
-		}
-
+	    if(is_null($skuData))
+	    {
+		    return;
+	    }
+    	
         $stockList = $this->stockHelper->getStockList($item);
 
         $priceList = $this->priceHelper->getPriceList($item, $settings);
@@ -791,7 +768,7 @@ class RakutenDE extends CSVPluginGenerator
         $data = [
             'id'						=> '',
             'variante_zu_id'			=> '#'.$item['data']['item']['id'],
-            'artikelnummer'				=> $this->variationSkuRepository->generateSkuWithParent($item, self::RAKUTEN_DE, (int) $settings->get('marketAccountId'), $sku, $parentSku),
+            'artikelnummer'				=> $skuData->sku,
             'produkt_bestellbar'		=> $stockList['variationAvailable'],
             'produktname'				=> '',
             'hersteller'				=> '',
@@ -1067,5 +1044,83 @@ class RakutenDE extends CSVPluginGenerator
 		}
 		
 		return $allCategories;
+	}
+
+	/**
+	 * @param $item
+	 * @param $settings
+	 * @return array|null|VariationSku
+	 */
+	private function setSku($item, $settings)
+	{
+		$parentSku = null;
+
+		if(strlen($this->parentSku))
+		{
+			$parentSku = $this->parentSku;
+		}
+
+		$parentPrefix = $this->configRepository->get('ElasticExportRakutenDE.parent_sku.prefix');
+		$parentSuffix = $this->configRepository->get('ElasticExportRakutenDE.parent_sku.suffix');
+
+		$skuDataList = $this->variationSkuRepository->search([
+			'variationId' => $item['id'],
+			'marketId' => self::RAKUTEN_DE,
+			'accountId' => (int) $settings->get('marketAccountId')
+		]);
+
+		if(count($skuDataList))
+		{
+			foreach($skuDataList as $skuData)
+			{
+				if(strlen($skuData->sku) == 0)
+				{
+					$skuData->sku = $item['id'];
+				}
+
+				if(strlen($skuData->parentSku) == 0)
+				{
+					if(!is_null($parentSku))
+					{
+						$skuData->parentSku = $parentSku;
+					}
+					else
+					{
+						$skuData->parentSku = $parentPrefix . $item['data']['item']['id'] . $parentSuffix;
+					}
+				}
+
+				$skuData->exportedAt = date("Y-m-d H:i:s");
+
+				$skuData = $this->variationSkuRepository->update($skuData->toArray(), $skuData->id);
+
+				return $skuData;
+
+				break;
+			}
+		}
+		else
+		{
+			if(is_null($parentSku))
+			{
+				$parentSku = $parentPrefix . $item['data']['item']['id'] . $parentSuffix;
+			}
+
+			$skuData = [
+				'variationId' => $item['id'],
+				'marketId' => self::RAKUTEN_DE,
+				'accountId' => (int) $settings->get('marketAccountId'),
+				'initialSku' => $item['id'],
+				'sku' => $item['id'],
+				'parentSku' => $parentSku,
+				'createdAt' => date("Y-m-d H:i:s"),
+				'exportedAt' => date("Y-m-d H:i:s")
+			];
+			$skuData = $this->variationSkuRepository->create($skuData);
+
+			return $skuData;
+		}
+
+		return null;
 	}
 }
