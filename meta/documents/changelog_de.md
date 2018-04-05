@@ -1,12 +1,24 @@
 # Release Notes für Elastic Export Rakuten.de
 
-## v1.3.6 (2018-02-19)
+## v1.3.8 (2018-04-05)
 
 ### Hinzugefügt
 - Der PriceHelper berücksichtigt die Einstellung **Währung live umrechnen**.
 
 ### Geändert
+- Die Klasse FiltrationService übernimmt die Filtrierung der Varianten.
 - Die SKU-Logik verwendet nur Daten aus der Datenbank.
+- Vorschaubilder aktualisiert.
+
+## v1.3.7 (2018-03-06)
+
+### Behoben
+- Die Tabellen des User Guides wurden angepasst.
+
+## v1.3.6 (2018-02-21)
+
+### Geändert
+- Plugin-Kurzbeschreibung wurde angepasst.
 
 ## v1.3.5 (2018-02-13)
 

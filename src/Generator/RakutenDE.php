@@ -337,7 +337,9 @@ class RakutenDE extends CSVPluginGenerator
 							{
 								$this->errorBatch['rowError'][] = [
 									'error' => $exception->getMessage(),
-									'line' => $exception->getLine(),
+									'file' => $exception->getFile(),
+                                    'line' => $exception->getLine(),
+                                    'stack trace' => $exception->getTrace(),
 								]; 
 								
 								$this->errorIterator++;
@@ -377,7 +379,9 @@ class RakutenDE extends CSVPluginGenerator
 			{
 				$this->errorBatch['rowError'][] = [
 					'error' => $exception->getMessage(),
+                    'file' => $exception->getFile(),
 					'line' => $exception->getLine(),
+                    'stack trace' => $exception->getTrace(),
 				];
 				
 				$this->errorIterator++;
