@@ -5,6 +5,7 @@ namespace ElasticExportRakutenDE\Generator;
 use ElasticExport\Helper\ElasticExportCategoryHelper;
 use ElasticExport\Helper\ElasticExportCoreHelper;
 use ElasticExport\Helper\ElasticExportItemHelper;
+use ElasticExport\Services\FiltrationService;
 use ElasticExportRakutenDE\Helper\PriceHelper;
 use ElasticExport\Helper\ElasticExportStockHelper;
 use ElasticExportRakutenDE\Helper\StockHelper;
@@ -31,6 +32,10 @@ class RakutenDE extends CSVPluginGenerator
     const TRANSFER_RRP_YES = 1;
     const TRANSFER_OFFER_PRICE_YES = 1;
 
+    /**
+     * @var FiltrationService
+     */
+    private $filtrationService;
 
     /**
      * @var ElasticExportCoreHelper
@@ -159,6 +164,7 @@ class RakutenDE extends CSVPluginGenerator
         $this->elasticExportCategoryHelper = pluginApp(ElasticExportCategoryHelper::class);
 
         $settings = $this->arrayHelper->buildMapFromObjectList($formatSettings, 'key', 'value');
+        $this->filtrationService = pluginApp(FiltrationService::class, [$settings, $filter]);
 		
 		$this->stockHelper->setAdditionalStockInformation($settings);
         
@@ -301,7 +307,7 @@ class RakutenDE extends CSVPluginGenerator
                             break;
                         }
 
-						if($this->elasticExportStockHelper->isFilteredByStock($variation, $filter) === true)
+						if($this->filtrationService->filter($variation) === true)
 						{
 							continue;
 						}
