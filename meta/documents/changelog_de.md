@@ -1,5 +1,10 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## v1.3.9 (2018-04-30)
+
+### Geändert
+- Laravel 5.5 Update.
+
 ## v1.3.8 (2018-04-05)
 
 ### Hinzugefügt
