@@ -1,18 +1,18 @@
 [
   {
-    "tab"       : "Config.updateSettings",
+    "tab"       : "Config.tabProcesses",
     "key"       : "update_settings.price_update",
-    "label"     : "Config.updateSettingsPriceUpdate",
+    "label"     : "Config.activatePriceUpdate",
     "type"      : "checkbox"
   },
   {
     "tab"       : "Config.updateSettings",
     "key"       : "update_settings.stock_update",
-    "label"     : "Config.updateSettingsStockUpdate",
+    "label"     : "Config.activateStockUpdate",
     "type"      : "checkbox"
   },
   {
-    "tab"       : "Config.parentSku",
+    "tab"       : "Config.tabParentSku",
     "key"       : "parent_sku.prefix",
     "label"     : "Config.parentSkuPrefix",
     "type"      : "text"
