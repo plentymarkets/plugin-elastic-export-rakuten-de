@@ -1,26 +1,26 @@
 [
   {
-    "tab"       : "Update Einstellungen",
+    "tab"       : "Config.tabProcesses",
     "key"       : "update_settings.price_update",
-    "label"     : "Preis-Update",
+    "label"     : "Config.activatePriceUpdate",
     "type"      : "checkbox"
   },
   {
-    "tab"       : "Update Einstellungen",
+    "tab"       : "Config.updateSettings",
     "key"       : "update_settings.stock_update",
-    "label"     : "Bestands-Update",
+    "label"     : "Config.activateStockUpdate",
     "type"      : "checkbox"
   },
   {
-    "tab"       : "Parent-SKU",
+    "tab"       : "Config.tabParentSku",
     "key"       : "parent_sku.prefix",
-    "label"     : "Prefix",
+    "label"     : "Config.parentSkuPrefix",
     "type"      : "text"
   },
   {
-    "tab"       : "Parent-SKU",
+    "tab"       : "Config.parentSku",
     "key"       : "parent_sku.suffix",
-    "label"     : "Suffix",
+    "label"     : "Config.parentSkuSuffix",
     "type"      : "text"
   }
 ]

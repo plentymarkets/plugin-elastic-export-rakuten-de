@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.3.10 (2018-05-08)
+
+### Changed
+- The plugin config is multilingual.
+
 ## v1.3.9 (2018-04-30)
 
 ### Changed
