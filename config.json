@@ -6,7 +6,7 @@
     "type"      : "checkbox"
   },
   {
-    "tab"       : "Config.updateSettings",
+    "tab"       : "Config.tabProcesses",
     "key"       : "update_settings.stock_update",
     "label"     : "Config.activateStockUpdate",
     "type"      : "checkbox"
@@ -18,7 +18,7 @@
     "type"      : "text"
   },
   {
-    "tab"       : "Config.parentSku",
+    "tab"       : "Config.tabParentSku",
     "key"       : "parent_sku.suffix",
     "label"     : "Config.parentSkuSuffix",
     "type"      : "text"
