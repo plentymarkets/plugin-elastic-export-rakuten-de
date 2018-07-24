@@ -1,5 +1,10 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## v1.3.11 (2018-07-24)
+
+### Geändert
+- Dem User Guide wurden weitere Informationen zur Einrichtung des Plugins hinzugefügt.
+
 ## v1.3.10 (2018-05-08)
 
 ### Geändert
