@@ -110,6 +110,9 @@ class PriceHelper
 	{
 		$countryId = $settings->get('destination');
 		$currency = $this->currencyRepositoryContract->getCountryCurrency($countryId)->currency;
+		$variationPriceUpdatedTimestamp = '';
+		$rrpUpdatedTimestamp = '';
+		$specialPriceUpdatedTimestamp = '';
 
 		if(!is_null($settings->get('liveConversion')) &&
 			$settings->get('liveConversion') == true &&
@@ -136,6 +139,7 @@ class PriceHelper
 		$salesPriceSearch  = $this->salesPriceSearchRepositoryContract->search($salesPriceSearchRequest);
 
 		$variationPrice = $this->getPriceByRetailPriceSettings($salesPriceSearch, $settings);
+		$variationPriceUpdatedTimestamp = $salesPriceSearch->updatedAt;
 		
 		$vatValue = $salesPriceSearch->vatValue;
 
@@ -147,6 +151,7 @@ class PriceHelper
 			$salesPriceSearch = $this->salesPriceSearchRepositoryContract->search($salesPriceSearchRequest);
 
 			$variationRrp = $this->getPriceByRetailPriceSettings($salesPriceSearch, $settings);
+			$rrpUpdatedTimestamp = $salesPriceSearch->updatedAt;
 		}
 		else
 		{
@@ -160,6 +165,7 @@ class PriceHelper
 			$salesPriceSearch = $this->salesPriceSearchRepositoryContract->search($salesPriceSearchRequest);
 
 			$variationSpecialPrice = $this->getPriceByRetailPriceSettings($salesPriceSearch, $settings);
+			$specialPriceUpdatedTimestamp = $salesPriceSearch->updatedAt;
 		}
 		else
 		{
@@ -170,7 +176,8 @@ class PriceHelper
 		$price = $variationPrice;
 		$reducedPrice = '';
 		$referenceReducedPrice = '';
-
+		$reducedPriceUpdatedTimestamp = '';
+		
 		if ($price != '' || $price != 0.00)
 		{
 			//if recommended retail price is set and higher than retail price...
@@ -182,6 +189,9 @@ class PriceHelper
 				$reducedPrice = $variationPrice;
 				//set recommended retail price as reference
 				$referenceReducedPrice = 'UVP';
+				
+				$reducedPriceUpdatedTimestamp = $variationPriceUpdatedTimestamp;
+				$variationPriceUpdatedTimestamp = $rrpUpdatedTimestamp;
 			}
 
 			// if special offer price is set and lower than retail price and recommended retail price is already set as reference...
@@ -189,21 +199,25 @@ class PriceHelper
 			{
 				//set special offer price as reduced price
 				$reducedPrice = $variationSpecialPrice;
+				$reducedPriceUpdatedTimestamp = $specialPriceUpdatedTimestamp;
 			}
 			//if recommended retail price is not set as reference then ...
 			elseif ($variationSpecialPrice > 0 && $variationPrice > $variationSpecialPrice)
 			{
 				//set special offer price as reduced price and...
 				$reducedPrice = $variationSpecialPrice;
+				$reducedPriceUpdatedTimestamp = $specialPriceUpdatedTimestamp;
 				//set retail price as reference
 				$referenceReducedPrice = 'VK';
 			}
 		}
 		return array(
-			'price'                     =>  $price,
-			'reducedPrice'              =>  $reducedPrice,
-			'referenceReducedPrice'     =>  $referenceReducedPrice,
-			'vatValue'                  =>  $vatValue
+			'price'                     		=> $price,
+			'reducedPrice'              		=> $reducedPrice,
+			'referenceReducedPrice'     		=> $referenceReducedPrice,
+			'vatValue'                  		=> $vatValue,
+			'variationPriceUpdatedTimestamp' 	=> $variationPriceUpdatedTimestamp,
+			'reducedPriceUpdatedTimestamp' 		=> $reducedPriceUpdatedTimestamp
 		);
 	}
 
