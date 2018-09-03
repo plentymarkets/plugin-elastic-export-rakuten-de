@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.3.11 (2018-09-03)
+
+### Fixed
+- The price update consider and transmit the reduced price.
+
 ## v1.3.11 (2018-07-24)
 
 ### Changed

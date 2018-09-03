@@ -414,33 +414,30 @@ class ItemUpdateService
 
 		if($this->priceUpdate == self::BOOL_TRUE && $stillActive === true)
 		{
-			$priceResponse = $this->priceHelper->getPrice($variation, $settings);
-			if($priceResponse instanceof SalesPriceSearchResponse)
-			{
-				if(isset($priceResponse->price) &&
-					($settings->get('retailPrice') == PriceHelper::GROSS_PRICE || is_null($settings->get('retailPrice'))))
-				{
-					$price = number_format((float)$priceResponse->price, 2, '.', '');
-				}
-				elseif(isset($priceResponse->priceNet) && $settings->get('retailPrice') == PriceHelper::NET_PRICE)
-				{
-					$price = $priceResponse->priceNet;
-				}
-				else
-				{
-					$price = '';
-				}
+			$priceList = $this->priceHelper->getPriceList($variation, $settings);
+			if (isset($priceList['price']) && $priceList['price'] > 0) {
+				$price = number_format((float)$priceList['price'], 2, '.', '');
+				$priceUpdateTime = strtotime($priceList['variationPriceUpdatedTimestamp']);
 
-				$priceUpdateTime = strtotime($priceResponse->updatedAt);
-				
-				if(!is_null($priceResponse->updatedAt) &&
+				if(!is_null($priceUpdateTime) &&
 					($priceUpdateTime > $lastStockUpdateTimestamp ||
-					is_null($variation['data']['skus'][0]['stockUpdatedAt'])))
-				{
+						is_null($variation['data']['skus'][0]['stockUpdatedAt']))) {
 					$this->transferData = true;
+					$content['price'] = $price;
 				}
+			}
+			if (isset($priceList['reducedPrice']) && $priceList['reducedPrice'] > 0) {
+				$reducedPrice = number_format((float)$priceList['reducedPrice'], 2, '.', '');
+				$reducedPriceUpdateTime = strtotime($priceList['reducedPriceUpdatedTimestamp']);
+				$referenceReducedPrice = $priceList['referenceReducedPrice'];
 
-				$content['price'] = $price;
+				if(!is_null($reducedPriceUpdateTime) &&
+					($reducedPriceUpdateTime > $lastStockUpdateTimestamp ||
+						is_null($variation['data']['skus'][0]['stockUpdatedAt']))) {
+					$this->transferData = true;
+					$content['price_reduced'] = $reducedPrice;
+					$content['price_reduced_type'] = $referenceReducedPrice;
+				}
 			}
 		}
 
