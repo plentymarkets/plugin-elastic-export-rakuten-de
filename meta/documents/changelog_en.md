@@ -3,7 +3,7 @@
 ## v1.3.13 (2018-09-05)
 
 ### Fixed
-- The parent sku for parents without variants will be created correctly.
+- The parent SKU for items without variations is created correctly.
 
 ## v1.3.12 (2018-09-03)
 
