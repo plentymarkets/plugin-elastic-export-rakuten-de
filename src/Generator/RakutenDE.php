@@ -552,6 +552,8 @@ class RakutenDE extends CSVPluginGenerator
      */
     private function buildParentWithoutChildrenRow($item, KeyValue $settings)
     {
+		$this->parentSku = '';
+    	
         $priceList = $this->priceHelper->getPriceList($item, $settings);
 
 		if(isset($priceList['price']) && $priceList['price'] > 0)

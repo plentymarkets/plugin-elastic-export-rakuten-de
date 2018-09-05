@@ -1,5 +1,10 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## v1.3.13 (2018-09-05)
+
+### Behoben
+- Bei Artikeln ohne Varianten wird die Parent-Sku richtig erstellt.
+
 ## v1.3.12 (2018-09-03)
 
 ### Behoben
