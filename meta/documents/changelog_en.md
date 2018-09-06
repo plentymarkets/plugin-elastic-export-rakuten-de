@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.3.13 (2018-09-05)
+
+### Fixed
+- The parent SKU for items without variations is created correctly.
+
 ## v1.3.12 (2018-09-03)
 
 ### Fixed
