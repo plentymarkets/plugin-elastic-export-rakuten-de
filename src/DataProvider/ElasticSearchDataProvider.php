@@ -12,6 +12,7 @@ use Plenty\Modules\Item\Search\Filter\SkuFilter;
 use Plenty\Modules\Cloud\ElasticSearch\Lib\Source\IndependentSource;
 use Plenty\Modules\Item\Search\Mutators\KeyMutator;
 use Plenty\Modules\Item\Search\Mutators\SkuMutator;
+use Plenty\Modules\Item\VariationSku\Models\VariationSku;
 use Plenty\Modules\Market\Credentials\Models\Credentials;
 
 class ElasticSearchDataProvider
@@ -32,7 +33,6 @@ class ElasticSearchDataProvider
 		 * @var IndependentSource $independentSource
 		 */
 		$independentSource = pluginApp(IndependentSource::class);
-
 		if($independentSource instanceof IndependentSource)
  		{
 			//Add each Result Field from the resultColumns
@@ -98,8 +98,8 @@ class ElasticSearchDataProvider
 		if($skuFilter instanceof SkuFilter)
 		{
 			$skuFilter->hasMarketId(self::RAKUTEN_DE);
-
 			$skuFilter->hasAccountId($accountId);
+            $skuFilter->hasStatus(VariationSku::MARKET_STATUS_ACTIVE);
 
 			$documentSearch->addFilter($skuFilter);
 		}

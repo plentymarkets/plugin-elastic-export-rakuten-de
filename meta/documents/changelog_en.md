@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.3.14 (2018-09-28)
+
+### Changed
+- Performance improvements for stock and price export.
+
 ## v1.3.13 (2018-09-05)
 
 ### Fixed
