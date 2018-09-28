@@ -269,7 +269,7 @@ class ItemUpdateService
 
                                     if(is_array($resultList['documents']) && count($resultList['documents']) > 0)
                                     {
-                                        // preloads stock and price depending on settings by VariationExportServiceContract
+                                        // preloads data depending on settings by VariationExportServiceContract
                                         $this->preload($resultList['documents']);
                                         
                                         foreach($resultList['documents'] as $variation)
@@ -674,11 +674,6 @@ class ItemUpdateService
 			{
 				if($response->success == "1")
 				{
-				    $this->getLogger(__METHOD__)->alert('ElasticExportRakutenDE::log.apiError', [
-                        'endpoint'          => $this->endpoint,
-                        'request content'	=> $content
-                    ]);
-
 				    if($this->statusWasUpdated === false)
 				    {
 						$this->skuHelper->updateStatus($variation['data']['skus'][0]['id'], VariationSku::MARKET_STATUS_ACTIVE);
