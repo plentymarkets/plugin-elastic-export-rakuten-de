@@ -6,20 +6,20 @@ use ElasticExport\Helper\ElasticExportCoreHelper;
 use ElasticExportRakutenDE\Api\Client;
 use ElasticExportRakutenDE\DataProvider\ElasticSearchDataProvider;
 use ElasticExportRakutenDE\Helper\PriceHelper;
+use ElasticExportRakutenDE\Helper\SkuHelper;
 use ElasticExportRakutenDE\Helper\StockHelper;
 use Plenty\Modules\DataExchange\Contracts\ExportRepositoryContract;
 use Plenty\Modules\DataExchange\Models\Export;
 use Plenty\Modules\Helper\Services\ArrayHelper;
-use Plenty\Modules\Item\SalesPrice\Models\SalesPriceSearchResponse;
 use Plenty\Modules\Item\Search\Contracts\VariationElasticSearchScrollRepositoryContract;
+use Plenty\Modules\Item\Variation\Contracts\VariationExportServiceContract;
+use Plenty\Modules\Item\Variation\Services\ExportPreloadValue\ExportPreloadValue;
 use Plenty\Modules\Item\VariationSku\Models\VariationSku;
 use Plenty\Modules\Market\Credentials\Contracts\CredentialsRepositoryContract;
 use Plenty\Modules\Market\Credentials\Models\Credentials;
 use Plenty\Modules\Market\Helper\Contracts\MarketAttributeHelperRepositoryContract;
-use Plenty\Plugin\ConfigRepository;
 use Plenty\Plugin\Log\Loggable;
 use Plenty\Repositories\Models\PaginatedResult;
-use Plenty\Modules\Item\VariationSku\Contracts\VariationSkuRepositoryContract;
 use Plenty\Modules\Helper\Models\KeyValue;
 
 /**
@@ -61,18 +61,9 @@ class ItemUpdateService
 	private $priceHelper;
 
 	/**
-	 * @var ConfigRepository
-	 */
-	private $configRepository;
-	/**
 	 * @var ExportRepositoryContract $exportRepositoryContract
 	 */
 	private $exportRepositoryContract;
-
-	/**
-	 * @var VariationSkuRepositoryContract
-	 */
-	private $variationSkuRepository;
 
 	/**
 	 * @var StockHelper
@@ -97,12 +88,12 @@ class ItemUpdateService
 	/**
 	 * @var string
 	 */
-	private $stockUpdate = '';
+	public $stockUpdate = '';
 
 	/**
 	 * @var string
 	 */
-	private $priceUpdate = '';
+	public $priceUpdate = '';
 
 	/**
 	 * @var array
@@ -136,45 +127,53 @@ class ItemUpdateService
 	 * @var bool
 	 */
 	private $statusWasUpdated = false;
+	
+    /**
+     * @var SkuHelper
+     */
+    private $skuHelper;
+    
+    /**
+     * @var VariationExportServiceContract
+     */
+    private $variationExportService;
 
-	/**
-	 * ItemUpdateService constructor.
-	 * @param MarketAttributeHelperRepositoryContract $marketAttributeHelperRepositoryContract
-	 * @param ElasticSearchDataProvider $elasticSearchDataProvider
-	 * @param PriceHelper $priceHelper
-	 * @param Client $client
-	 * @param CredentialsRepositoryContract $credentialsRepositoryContract
-	 * @param ConfigRepository $configRepository
-	 * @param ExportRepositoryContract $exportRepositoryContract
-	 * @param VariationSkuRepositoryContract $variationSkuRepository
-	 * @param StockHelper $stockHelper
-	 */
+    /**
+     * ItemUpdateService constructor.
+     *
+     * @param MarketAttributeHelperRepositoryContract $marketAttributeHelperRepositoryContract
+     * @param ElasticSearchDataProvider $elasticSearchDataProvider
+     * @param PriceHelper $priceHelper
+     * @param Client $client
+     * @param CredentialsRepositoryContract $credentialsRepositoryContract
+     * @param ExportRepositoryContract $exportRepositoryContract
+     * @param StockHelper $stockHelper
+     * @param SkuHelper $skuHelper
+     */
 	public function __construct(
 		MarketAttributeHelperRepositoryContract $marketAttributeHelperRepositoryContract,
 		ElasticSearchDataProvider $elasticSearchDataProvider,
 		PriceHelper $priceHelper,
 		Client $client,
 		CredentialsRepositoryContract $credentialsRepositoryContract,
-		ConfigRepository $configRepository,
 		ExportRepositoryContract $exportRepositoryContract,
-		VariationSkuRepositoryContract $variationSkuRepository,
-		StockHelper $stockHelper)
+		StockHelper $stockHelper,
+        SkuHelper $skuHelper,
+        VariationExportServiceContract $variationExportServiceContract)
 	{
 		$this->marketAttributeHelperRepositoryContract = $marketAttributeHelperRepositoryContract;
 		$this->elasticSearchDataProvider = $elasticSearchDataProvider;
 		$this->client = $client;
 		$this->credentialsRepositoryContract = $credentialsRepositoryContract;
 		$this->priceHelper = $priceHelper;
-		$this->configRepository = $configRepository;
 		$this->exportRepositoryContract = $exportRepositoryContract;
-		$this->variationSkuRepository = $variationSkuRepository;
 		$this->stockHelper = $stockHelper;
-	}
+        $this->skuHelper = $skuHelper;
+        $this->variationExportService = $variationExportServiceContract;
+    }
 
 	/**
-	 * Generates the content for updating stock and price of multiple items
-	 * and variations.
-	 *
+	 * Generates the content for updating stock and price of multiple items and variations.
 	 */
 	public function generateContent()
 	{
@@ -190,128 +189,140 @@ class ItemUpdateService
 		if($elasticSearch instanceof VariationElasticSearchScrollRepositoryContract)
 		{
 			$rakutenCredentialList = $this->credentialsRepositoryContract->search(['market' => 'rakuten.de']);
-			if($rakutenCredentialList instanceof PaginatedResult)
+			if(!$rakutenCredentialList instanceof PaginatedResult)
 			{
-				foreach($rakutenCredentialList->getResult() as $rakutenCredential)
-				{
-					$successfulIteration = false;
-
-					foreach($exportList->getResult() as $export)
-					{
-						if($export instanceof Export && $successfulIteration === false)
-						{
-							$settings = $export->formatSettings->all();
-							$settings = pluginApp(ArrayHelper::class)->buildMapFromObjectList($settings, 'key', 'value');
-							
-							$this->stockHelper->setAdditionalStockInformation($settings);
-							
-							if($rakutenCredential instanceof Credentials)
-							{
-								if((int)$rakutenCredential->id != (int)$settings->get('marketAccountId'))
-								{
-									continue;
-								}
-								$successfulIteration = true;
-
-								$filters = $export->filters->toBase();
-
-								$this->filterList = [];
-								foreach($filters as $filter)
-								{
-									if(substr_count($filter['key'],'.') > 1)
-									{
-										$lastPos = strrpos($filter['key'], '.');
-										$mainKey = substr($filter['key'], 0, $lastPos);
-										$subKey  = substr($filter['key'], $lastPos + 1);
-
-										$this->filterList[$mainKey][$subKey] = $filter['value'];
-									}
-									else
-									{
-										$this->filterList[$filter['key']] = $filter['value'];
-									}
-								}
-
-								$this->apiKey = $rakutenCredential->data['key'];
-
-								$this->priceUpdate = $this->configRepository->get('ElasticExportRakutenDE.update_settings.price_update');
-								$this->stockUpdate = $this->configRepository->get('ElasticExportRakutenDE.update_settings.stock_update');
-
-								if($this->priceUpdate == self::BOOL_TRUE || $this->stockUpdate == self::BOOL_TRUE)
-								{
-									$elasticSearch = $this->elasticSearchDataProvider->prepareElasticSearchSearch($elasticSearch, $rakutenCredential);
-
-									do
-									{
-										$resultList = $elasticSearch->execute();
-										$shardIterator++;
-
-										//log the amount of the elasticsearch result once
-										if($shardIterator == 1)
-										{
-											$this->getLogger(__METHOD__)->addReference('total', (int)$resultList['total'])->info('ElasticExportRakutenDE::log.esResultAmount');
-										}
-
-										if(count($resultList['error']) > 0)
-										{
-											$this->getLogger(__METHOD__)->addReference('failedShard', $shardIterator)->error('ElasticExportRakutenDE::log.occurredElasticSearchErrors', [
-												'error message' => $resultList['error'],
-											]);
-										}
-
-										if(is_array($resultList['documents']) && count($resultList['documents']) > 0)
-										{
-											foreach($resultList['documents'] as $variation)
-											{
-												if ($currentItemId === null)
-												{
-													$previousItemId = $variation['data']['item']['id'];
-												}
-
-												$currentItemId = $variation['data']['item']['id'];
-
-												// Check if it's the same item
-												if ($currentItemId == $previousItemId)
-												{
-													$variations[] = $variation;
-												}
-												else
-												{
-													$this->parentChildSorting($variations, $settings);
-
-													$variations = array();
-													$variations[] = $variation;
-													$previousItemId = $variation['data']['item']['id'];
-												}
-											}
-										}
-
-										if(strlen($resultList['error']))
-										{
-											$this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.esError', [
-												'error message' => $resultList['error'],
-											]);
-										}
-
-									} while ($elasticSearch->hasNext());
-
-									// Write the last batch of variations
-									if (is_array($variations) && count($variations) > 0)
-									{
-										$content = array();
-										$content['stock'] = 0;
-										$this->parentChildSorting($variations, $settings);
-
-										unset($variations);
-									}
-									
-									$this->client->writeLogs();
-								}
-							}
-						}
-					}
-				}
+			    return;
 			}
+
+            /** @var Credentials $rakutenCredential */
+            foreach($rakutenCredentialList->getResult() as $rakutenCredential)
+            {
+                if(!strlen(trim($rakutenCredential->data['key']))) {
+                    continue;
+                }
+
+                $successfulIteration = false;
+
+                /** @var Export $export */
+                foreach($exportList->getResult() as $export)
+                {
+                    if($export instanceof Export && $successfulIteration === false)
+                    {
+                        $settings = $export->formatSettings->all();
+                        $settings = pluginApp(ArrayHelper::class)->buildMapFromObjectList($settings, 'key', 'value');
+                        $this->stockHelper->setAdditionalStockInformation($settings);
+
+                        if($rakutenCredential instanceof Credentials)
+                        {
+                            if((int)$rakutenCredential->id != (int)$settings->get('marketAccountId'))
+                            {
+                                continue;
+                            }
+                            
+                            $successfulIteration = true;
+                            $filters = $export->filters->toBase();
+
+                            $this->filterList = [];
+                            foreach($filters as $filter)
+                            {
+                                if(substr_count($filter['key'],'.') > 1)
+                                {
+                                    $lastPos = strrpos($filter['key'], '.');
+                                    $mainKey = substr($filter['key'], 0, $lastPos);
+                                    $subKey  = substr($filter['key'], $lastPos + 1);
+
+                                    $this->filterList[$mainKey][$subKey] = $filter['value'];
+                                }
+                                else
+                                {
+                                    $this->filterList[$filter['key']] = $filter['value'];
+                                }
+                            }
+
+                            $this->apiKey = $rakutenCredential->data['key'];
+
+                            if($this->priceUpdate == self::BOOL_TRUE || $this->stockUpdate == self::BOOL_TRUE)
+                            {
+                                $elasticSearch = $this->elasticSearchDataProvider->prepareElasticSearchSearch($elasticSearch, $rakutenCredential);
+
+                                do
+                                {
+                                    $resultList = $elasticSearch->execute();
+                                    $shardIterator++;
+
+                                    //log the amount of the elasticsearch result once
+                                    if($shardIterator == 1)
+                                    {
+                                        $this->getLogger(__METHOD__)
+                                            ->addReference('total', (int)$resultList['total'])
+                                            ->info('ElasticExportRakutenDE::log.esResultAmount');
+                                    }
+
+                                    if(count($resultList['error']) > 0)
+                                    {
+                                        $this->getLogger(__METHOD__)
+                                            ->addReference('failedShard', $shardIterator)
+                                            ->error('ElasticExportRakutenDE::log.occurredElasticSearchErrors', [
+                                                'error message' => $resultList['error'],
+                                            ]);
+                                    }
+
+                                    if(is_array($resultList['documents']) && count($resultList['documents']) > 0)
+                                    {
+                                        // preloads stock and price depending on settings by VariationExportServiceContract
+                                        $this->preload($resultList['documents']);
+                                        
+                                        foreach($resultList['documents'] as $variation)
+                                        {
+                                            if ($currentItemId === null)
+                                            {
+                                                $previousItemId = $variation['data']['item']['id'];
+                                            }
+
+                                            $currentItemId = $variation['data']['item']['id'];
+
+                                            // Check if it's the same item
+                                            if ($currentItemId == $previousItemId)
+                                            {
+                                                $variations[] = $variation;
+                                            }
+                                            else
+                                            {
+                                                $this->parentChildSorting($variations, $settings);
+
+                                                $variations = array();
+                                                $variations[] = $variation;
+                                                $previousItemId = $variation['data']['item']['id'];
+                                            }
+                                        }
+                                    }
+
+                                    if(strlen($resultList['error']))
+                                    {
+                                        $this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.esError', [
+                                            'error message' => $resultList['error'],
+                                        ]);
+                                    }
+
+                                } while ($elasticSearch->hasNext());
+
+                                // Write the last batch of variations
+                                if (is_array($variations) && count($variations) > 0)
+                                {
+                                    $content = array();
+                                    $content['stock'] = 0;
+                                    $this->parentChildSorting($variations, $settings);
+
+                                    unset($variations);
+                                }
+
+                                $this->skuHelper->finish();
+                                $this->client->writeLogs();
+                            }
+                        }
+                    }
+                }
+            }
 		}
 	}
 
@@ -359,7 +370,9 @@ class ItemUpdateService
 
 		if($this->stockUpdate == self::BOOL_TRUE && $stillActive === true)
 		{
-			$stockList = $this->stockHelper->getStockList($variation);
+            $data = $this->variationExportService->getData(VariationExportServiceContract::STOCK, $variation['id']);
+			$stockList = $this->stockHelper->getStockByPreloadedValue($variation, $data);
+			
 			if(count($stockList))
 			{
 				$content['stock'] = $stockList['stock'];
@@ -401,20 +414,15 @@ class ItemUpdateService
             }
 			
 			$this->transferData = true;
-
-			$skuRepositoryInformation = [
-				'status'			=> VariationSku::MARKET_STATUS_INACTIVE,
-				'updatedAt'			=> date("Y-m-d H:i:s"),
-			];
             
-			$this->variationSkuRepository->update($skuRepositoryInformation, $variation['data']['skus'][0]['id']);
-			
+			$this->skuHelper->updateStatus((int)$variation['data']['skus'][0]['id'], VariationSku::MARKET_STATUS_INACTIVE);
 			$this->statusWasUpdated = true;
 		}
 
 		if($this->priceUpdate == self::BOOL_TRUE && $stillActive === true)
 		{
 			$priceList = $this->priceHelper->getPriceList($variation, $settings);
+			
 			if (isset($priceList['price']) && $priceList['price'] > 0) {
 				$price = number_format((float)$priceList['price'], 2, '.', '');
 				$priceUpdateTime = strtotime($priceList['variationPriceUpdatedTimestamp']);
@@ -666,36 +674,44 @@ class ItemUpdateService
 			{
 				if($response->success == "1")
 				{
-				    $this->getLogger(__METHOD__)->info('ElasticExportRakutenDE::log.stockUpdatedSuccessfully', [
+				    $this->getLogger(__METHOD__)->alert('ElasticExportRakutenDE::log.apiError', [
                         'endpoint'          => $this->endpoint,
                         'request content'	=> $content
                     ]);
 
 				    if($this->statusWasUpdated === false)
 				    {
-						$skuRepositoryInformation = [
-							'stockUpdatedAt'	=> date("Y-m-d H:i:s"),
-							'status'			=> VariationSku::MARKET_STATUS_ACTIVE,
-							'updatedAt'			=> date("Y-m-d H:i:s"),
-						];
-
-						$this->variationSkuRepository->update($skuRepositoryInformation, $variation['data']['skus'][0]['id']);
+						$this->skuHelper->updateStatus($variation['data']['skus'][0]['id'], VariationSku::MARKET_STATUS_ACTIVE);
+                        $this->skuHelper->updateStockUpdatedAt($variation['data']['skus'][0]['id']);
 					}
 				}
 				//will only be set if the variation was not found at rakuten.
 				elseif(in_array($response->errors->error->code, $this->notFoundErrorCodes) && $this->statusWasUpdated === false)
 				{
-					$skuRepositoryInformation = [
-						'status'			=> VariationSku::MARKET_STATUS_INACTIVE,
-						'updatedAt'			=> date("Y-m-d H:i:s"),
-					];
-
-
-					$this->variationSkuRepository->update($skuRepositoryInformation, $variation['data']['skus'][0]['id']);
+                    $this->skuHelper->updateStatus($variation['data']['skus'][0]['id'], VariationSku::MARKET_STATUS_INACTIVE);
 				}
 			}
 		}
 		
 		$this->statusWasUpdated = false;
 	}
+
+    private function preload(array $documents)
+    {
+        $types = [];
+        if($this->stockUpdate == self::BOOL_TRUE) {
+            $types[] = VariationExportServiceContract::STOCK;
+        }
+        $this->variationExportService->addPreloadTypes($types);
+        
+        // collect item IDs and variation IDs for preload
+        $values = [];
+        foreach ($documents AS $variation) {
+            $values[] = pluginApp(ExportPreloadValue::class, [
+                0 => (int)$variation['data']['item']['id'],
+                1 => (int)$variation['id']
+            ]);
+        }
+        $this->variationExportService->preload($values);
+    }
 }

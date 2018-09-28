@@ -7,6 +7,11 @@ use Plenty\Modules\StockManagement\Stock\Models\Stock;
 use Plenty\Repositories\Models\PaginatedResult;
 use Plenty\Modules\Helper\Models\KeyValue;
 
+/**
+ * Class StockHelper
+ *
+ * @package ElasticExportRakutenDE\Helper
+ */
 class StockHelper
 {
 	private $stockBuffer = 0;
@@ -19,16 +24,16 @@ class StockHelper
 	 * @var StockRepositoryContract
 	 */
 	private $stockRepository;
-
-	/**
+	
+    /**
 	 * StockHelper constructor.
 	 * @param StockRepositoryContract $stockRepository
 	 */
 	public function __construct(StockRepositoryContract $stockRepository)
 	{
 		$this->stockRepository = $stockRepository;
-	}
-
+    }
+	
 	/**
 	 * Get all information that depend on stock settings and stock volume
 	 * (inventoryManagementActive, $variationAvailable, $stock)
@@ -164,4 +169,96 @@ class StockHelper
 			$this->stockForVariationsWithoutStockLimitation = $settings->get('stockForVariationsWithoutStockLimitation');
 		}
 	}
+	
+	public function getStockByPreloadedValue($item, $preloadedStockData)
+    {
+        $stockNet = 0;
+        
+        foreach($preloadedStockData as $data) {
+            $stockNet += $data['stockNet'];
+        }
+        
+        $stockUpdatedAt = '';
+        $inventoryManagementActive = 0;
+        $variationAvailable = 0;
+        $stock = 0;
+
+        // stock limitation do not stock inventory
+        if($item['data']['variation']['stockLimitation'] == 2)
+        {
+            $variationAvailable = 1;
+            $inventoryManagementActive = 0;
+
+            if(!is_null($this->stockForVariationsWithoutStockAdministration))
+            {
+                $stock = $this->stockForVariationsWithoutStockAdministration;
+            }
+            else
+            {
+                $stock = 999;
+            }
+        }
+
+        // stock limitation use nett stock
+        elseif($item['data']['variation']['stockLimitation'] == 1)
+        {
+            $inventoryManagementActive = 1;
+
+            if($stockNet > 0)
+            {
+                if($stockNet > 999)
+                {
+                    $stock = 999;
+                }
+                else
+                {
+                    $stock = $stockNet - $this->stockBuffer;
+                }
+
+                if($stock < 0)
+                {
+                    $stock = 0;
+                }
+                else
+                {
+                    $variationAvailable = 1;
+                }
+            }
+        }
+
+        // no limitation
+        elseif($item['data']['variation']['stockLimitation'] == 0)
+        {
+            $variationAvailable = 1;
+            $inventoryManagementActive = 0;
+
+            if($stockNet > 999)
+            {
+                $stock = 999;
+            }
+            else
+            {
+                if($stockNet > 0)
+                {
+                    $stock = $stockNet;
+                }
+                elseif(!is_null($this->stockForVariationsWithoutStockLimitation))
+                {
+                    $stock = $this->stockForVariationsWithoutStockLimitation;
+                }
+                else
+                {
+                    $stock = 999;
+                }
+            }
+        }
+
+        return array (
+            'updatedAt'					=>	$stockUpdatedAt,
+            'stock'                     =>  $stock,
+            'variationAvailable'        =>  $variationAvailable,
+            'inventoryManagementActive' =>  $inventoryManagementActive,
+        );
+    }
+        
 }

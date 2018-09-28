@@ -8,6 +8,7 @@ use ElasticExport\Helper\ElasticExportItemHelper;
 use ElasticExport\Services\FiltrationService;
 use ElasticExportRakutenDE\Helper\PriceHelper;
 use ElasticExport\Helper\ElasticExportStockHelper;
+use ElasticExportRakutenDE\Helper\SkuHelper;
 use ElasticExportRakutenDE\Helper\StockHelper;
 use ElasticExportRakutenDE\Validators\GeneratorValidator;
 use Plenty\Legacy\Repositories\Item\SalesPrice\SalesPriceSearchRepository;
@@ -121,17 +122,24 @@ class RakutenDE extends CSVPluginGenerator
 	 * @var int
 	 */
 	private $errorIterator = 0;
+	
+    /**
+     * @var SkuHelper
+     */
+    private $skuHelper;
 
-	/**
-	 * RakutenDE constructor.
-	 * @param ArrayHelper $arrayHelper
-	 * @param MarketPropertyHelperRepositoryContract $marketPropertyHelperRepository
-	 * @param SalesPriceSearchRepository $salesPriceSearchRepository
-	 * @param PriceHelper $priceHelper
-	 * @param VariationSkuRepositoryContract $variationSkuRepository
-	 * @param ConfigRepository $configRepository
-	 * @param StockHelper $stockHelper
-	 */
+    /**
+     * RakutenDE constructor.
+     *
+     * @param ArrayHelper $arrayHelper
+     * @param MarketPropertyHelperRepositoryContract $marketPropertyHelperRepository
+     * @param SalesPriceSearchRepository $salesPriceSearchRepository
+     * @param PriceHelper $priceHelper
+     * @param VariationSkuRepositoryContract $variationSkuRepository
+     * @param ConfigRepository $configRepository
+     * @param StockHelper $stockHelper
+     * @param SkuHelper $skuHelper
+     */
     public function __construct(
         ArrayHelper $arrayHelper,
         MarketPropertyHelperRepositoryContract $marketPropertyHelperRepository,
@@ -139,7 +147,8 @@ class RakutenDE extends CSVPluginGenerator
 		PriceHelper $priceHelper,
 		VariationSkuRepositoryContract $variationSkuRepository,
 		ConfigRepository $configRepository,
-		StockHelper $stockHelper
+		StockHelper $stockHelper,
+        SkuHelper $skuHelper
     )
     {
         $this->arrayHelper = $arrayHelper;
@@ -149,7 +158,8 @@ class RakutenDE extends CSVPluginGenerator
 		$this->variationSkuRepository = $variationSkuRepository;
 		$this->configRepository = $configRepository;
 		$this->stockHelper = $stockHelper;
-	}
+        $this->skuHelper = $skuHelper;
+    }
 
     /**
      * @param VariationElasticSearchScrollRepositoryContract $elasticSearch
@@ -399,6 +409,8 @@ class RakutenDE extends CSVPluginGenerator
 			unset($variations);
 		}
 		
+		$this->skuHelper->finish();
+		
 		if(is_array($this->errorBatch) && count($this->errorBatch['rowError']))
 		{
 			$this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.buildRowError', [
@@ -570,7 +582,9 @@ class RakutenDE extends CSVPluginGenerator
 	    if(is_null($skuData))
 	    {
 		    return;
-	    }
+	    } elseif($skuData->status != VariationSku::MARKET_STATUS_ACTIVE) {
+	        $this->skuHelper->updateStatus($skuData->id, VariationSku::MARKET_STATUS_ACTIVE);
+        }
 
         $vat = $this->getVatClassId($priceList['vatValue']);
 
