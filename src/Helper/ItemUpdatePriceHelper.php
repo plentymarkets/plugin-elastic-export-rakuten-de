@@ -105,12 +105,11 @@ class ItemUpdatePriceHelper
     /**
      * Get a List of price, reduced price and the reference for the reduced price.
      *
-     * @param array $item
      * @param KeyValue $settings
      * @param array $preloadedPrices
      * @return array
      */
-    public function getPriceData(array $item, KeyValue $settings, array $preloadedPrices):array
+    public function getPriceData(KeyValue $settings, array $preloadedPrices):array
     {
         $rrpUpdatedTimestamp = '';
         $specialPriceUpdatedTimestamp = '';

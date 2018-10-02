@@ -429,7 +429,7 @@ class ItemUpdateService
 		if($this->priceUpdate == self::BOOL_TRUE && $stillActive === true)
 		{
 		    $preloadedPrices = $this->variationExportService->getData(VariationExportServiceContract::SALES_PRICE, $variation['id']);
-			$priceList = $this->priceHelper->getPriceData($variation, $settings, $preloadedPrices);
+			$priceList = $this->priceHelper->getPriceData($settings, $preloadedPrices);
 			
 			if (isset($priceList['price']) && $priceList['price'] > 0) {
 				$price = number_format((float)$priceList['price'], 2, '.', '');
