@@ -705,9 +705,11 @@ class ItemUpdateService
         if($this->stockUpdate == self::BOOL_TRUE) {
             $types[] = VariationExportServiceContract::STOCK;
         }
+        
         if($this->priceUpdate == self::BOOL_TRUE) {
             $types[] = VariationExportServiceContract::SALES_PRICE;
         }
+        
         $this->variationExportService->addPreloadTypes($types);
         
         // collect item IDs and variation IDs for preload

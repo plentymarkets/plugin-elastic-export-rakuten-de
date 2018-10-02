@@ -23,11 +23,6 @@ class ItemUpdatePriceHelper
     const GROSS_PRICE = 'grossPrice';
 
     /**
-     * @var SalesPriceSearchRepositoryContract
-     */
-    private $salesPriceSearchRepositoryContract;
-
-    /**
      * @var CurrencyRepositoryContract
      */
     private $currencyRepositoryContract;
@@ -70,18 +65,15 @@ class ItemUpdatePriceHelper
     /**
      * ItemUpdatePriceHelper constructor.
      *
-     * @param SalesPriceSearchRepositoryContract $salesPriceSearchRepositoryContract
      * @param CurrencyRepositoryContract $currencyRepositoryContract
      * @param SalesPriceRepositoryContract $salesPriceRepository
      * @param CurrencyConversionSettingsRepositoryContract $currencyConversionSettingsRepositoryContract
      */
     public function __construct(
-        SalesPriceSearchRepositoryContract $salesPriceSearchRepositoryContract,
         CurrencyRepositoryContract $currencyRepositoryContract,
         SalesPriceRepositoryContract $salesPriceRepository,
         CurrencyConversionSettingsRepositoryContract $currencyConversionSettingsRepositoryContract)
     {
-        $this->salesPriceSearchRepositoryContract = $salesPriceSearchRepositoryContract;
         $this->currencyRepositoryContract = $currencyRepositoryContract;
         $this->salesPriceRepository = $salesPriceRepository;
 
@@ -122,6 +114,7 @@ class ItemUpdatePriceHelper
     {
         $rrpUpdatedTimestamp = '';
         $specialPriceUpdatedTimestamp = '';
+        
         if($this->preload == true) {
             $this->preload($settings);
             $this->preload = false;
