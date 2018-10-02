@@ -18,8 +18,6 @@ class PriceHelper
 	const NET_PRICE = 'netPrice';
 	const GROSS_PRICE = 'grossPrice';
 
-	const RAKUTEN_DE = 106.00;
-	
 	/**
 	 * @var SalesPriceSearchRepositoryContract
 	 */

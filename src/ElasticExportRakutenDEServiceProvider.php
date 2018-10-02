@@ -16,6 +16,8 @@ use Plenty\Plugin\ServiceProvider as ServiceProvider;
  */
 class ElasticExportRakutenDEServiceProvider extends ServiceProvider
 {
+    const ORDER_REFERRER_RAKUTEN_DE = 106.00;
+    
     public function register()
     {
         $this->getApplication()->singleton(GeneratorValidator::class);
