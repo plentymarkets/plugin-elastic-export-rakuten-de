@@ -5,6 +5,7 @@ namespace ElasticExportRakutenDE\Services;
 use ElasticExport\Helper\ElasticExportCoreHelper;
 use ElasticExportRakutenDE\Api\Client;
 use ElasticExportRakutenDE\DataProvider\ElasticSearchDataProvider;
+use ElasticExportRakutenDE\Helper\ItemUpdatePriceHelper;
 use ElasticExportRakutenDE\Helper\PriceHelper;
 use ElasticExportRakutenDE\Helper\SkuHelper;
 use ElasticExportRakutenDE\Helper\StockHelper;
@@ -56,7 +57,7 @@ class ItemUpdateService
 	private $credentialsRepositoryContract;
 
 	/**
-	 * @var PriceHelper
+	 * @var ItemUpdatePriceHelper
 	 */
 	private $priceHelper;
 
@@ -143,7 +144,7 @@ class ItemUpdateService
      *
      * @param MarketAttributeHelperRepositoryContract $marketAttributeHelperRepositoryContract
      * @param ElasticSearchDataProvider $elasticSearchDataProvider
-     * @param PriceHelper $priceHelper
+     * @param ItemUpdatePriceHelper $priceHelper
      * @param Client $client
      * @param CredentialsRepositoryContract $credentialsRepositoryContract
      * @param ExportRepositoryContract $exportRepositoryContract
@@ -153,7 +154,7 @@ class ItemUpdateService
 	public function __construct(
 		MarketAttributeHelperRepositoryContract $marketAttributeHelperRepositoryContract,
 		ElasticSearchDataProvider $elasticSearchDataProvider,
-		PriceHelper $priceHelper,
+		ItemUpdatePriceHelper $priceHelper,
 		Client $client,
 		CredentialsRepositoryContract $credentialsRepositoryContract,
 		ExportRepositoryContract $exportRepositoryContract,
@@ -320,6 +321,9 @@ class ItemUpdateService
                                 $this->client->writeLogs();
                             }
                         }
+                        
+                        // Reset internal price helper info that these info can be preloaded again by the next exports settings.
+                        $this->priceHelper->reset();
                     }
                 }
             }
@@ -364,7 +368,10 @@ class ItemUpdateService
 		}
 		else
 		{
-			$this->getLogger(__METHOD__)->addReference('variationId', $variation['id'])->error('ElasticExportRakutenDE::log.missingEndpoint');
+			$this->getLogger(__METHOD__)
+                ->addReference('variationId', $variation['id'])
+                ->error('ElasticExportRakutenDE::log.missingEndpoint');
+			
 			return null;
 		}
 
@@ -421,7 +428,8 @@ class ItemUpdateService
 
 		if($this->priceUpdate == self::BOOL_TRUE && $stillActive === true)
 		{
-			$priceList = $this->priceHelper->getPriceList($variation, $settings);
+		    $preloadedPrices = $this->variationExportService->getData(VariationExportServiceContract::SALES_PRICE, $variation['id']);
+			$priceList = $this->priceHelper->getPriceData($settings, $preloadedPrices);
 			
 			if (isset($priceList['price']) && $priceList['price'] > 0) {
 				$price = number_format((float)$priceList['price'], 2, '.', '');
@@ -697,6 +705,11 @@ class ItemUpdateService
         if($this->stockUpdate == self::BOOL_TRUE) {
             $types[] = VariationExportServiceContract::STOCK;
         }
+        
+        if($this->priceUpdate == self::BOOL_TRUE) {
+            $types[] = VariationExportServiceContract::SALES_PRICE;
+        }
+        
         $this->variationExportService->addPreloadTypes($types);
         
         // collect item IDs and variation IDs for preload

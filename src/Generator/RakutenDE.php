@@ -6,6 +6,7 @@ use ElasticExport\Helper\ElasticExportCategoryHelper;
 use ElasticExport\Helper\ElasticExportCoreHelper;
 use ElasticExport\Helper\ElasticExportItemHelper;
 use ElasticExport\Services\FiltrationService;
+use ElasticExportRakutenDE\ElasticExportRakutenDEServiceProvider;
 use ElasticExportRakutenDE\Helper\PriceHelper;
 use ElasticExport\Helper\ElasticExportStockHelper;
 use ElasticExportRakutenDE\Helper\SkuHelper;
@@ -26,7 +27,7 @@ class RakutenDE extends CSVPluginGenerator
 {
     use Loggable;
 
-    const RAKUTEN_DE = 106.00;
+    const RAKUTEN_DE = ElasticExportRakutenDEServiceProvider::ORDER_REFERRER_RAKUTEN_DE;
     const PROPERTY_TYPE_ENERGY_CLASS       = 'energy_efficiency_class';
     const PROPERTY_TYPE_ENERGY_CLASS_GROUP = 'energy_efficiency_class_group';
     const PROPERTY_TYPE_ENERGY_CLASS_UNTIL = 'energy_efficiency_class_until';

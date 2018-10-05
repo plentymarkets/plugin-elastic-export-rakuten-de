@@ -2,6 +2,7 @@
 
 namespace ElasticExportRakutenDE\ResultField;
 
+use ElasticExportRakutenDE\ElasticExportRakutenDEServiceProvider;
 use Plenty\Modules\Cloud\ElasticSearch\Lib\ElasticSearch;
 use Plenty\Modules\DataExchange\Contracts\ResultFields;
 use Plenty\Modules\Helper\Services\ArrayHelper;
@@ -21,7 +22,6 @@ class RakutenDE extends ResultFields
 {
 	use Loggable;
 
-    const RAKUTEN_DE = 106.00;
     /*
      * @var ArrayHelper
      */
@@ -51,7 +51,7 @@ class RakutenDE extends ResultFields
 			'order' => ElasticSearch::SORTING_ORDER_ASC]);
 
 		$accountId = (int) $settings->get('marketAccountId');
-        $reference = $settings->get('referrerId') ? $settings->get('referrerId') : self::RAKUTEN_DE;
+        $reference = $settings->get('referrerId') ? $settings->get('referrerId') : ElasticExportRakutenDEServiceProvider::ORDER_REFERRER_RAKUTEN_DE;
 
         //Mutator
 

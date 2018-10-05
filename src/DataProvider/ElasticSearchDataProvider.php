@@ -2,6 +2,7 @@
 
 namespace ElasticExportRakutenDE\DataProvider;
 
+use ElasticExportRakutenDE\ElasticExportRakutenDEServiceProvider;
 use Plenty\Modules\Cloud\ElasticSearch\Lib\ElasticSearch;
 use Plenty\Modules\Cloud\ElasticSearch\Lib\Search\Document\DocumentSearch;
 use Plenty\Modules\Cloud\ElasticSearch\Lib\Processor\DocumentProcessor;
@@ -17,8 +18,6 @@ use Plenty\Modules\Market\Credentials\Models\Credentials;
 
 class ElasticSearchDataProvider
 {
-	const RAKUTEN_DE = 106.00;
-
 	/**
 	 * @param VariationElasticSearchScrollRepositoryContract $elasticSearch
 	 * @param Credentials $rakutenCredential
@@ -58,7 +57,7 @@ class ElasticSearchDataProvider
 		if($skuMutator instanceof SkuMutator)
 		{
 			$skuMutator->setAccount($accountId);
-			$skuMutator->setMarket((int)self::RAKUTEN_DE);
+			$skuMutator->setMarket((int)ElasticExportRakutenDEServiceProvider::ORDER_REFERRER_RAKUTEN_DE);
 
 			if($documentProcessor instanceof DocumentProcessor)
 			{
@@ -97,7 +96,7 @@ class ElasticSearchDataProvider
 		$skuFilter = pluginApp(SkuFilter::class);
 		if($skuFilter instanceof SkuFilter)
 		{
-			$skuFilter->hasMarketId(self::RAKUTEN_DE);
+			$skuFilter->hasMarketId(ElasticExportRakutenDEServiceProvider::ORDER_REFERRER_RAKUTEN_DE);
 			$skuFilter->hasAccountId($accountId);
             $skuFilter->hasStatus(VariationSku::MARKET_STATUS_ACTIVE);
 
