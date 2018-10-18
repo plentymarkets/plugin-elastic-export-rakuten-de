@@ -3,6 +3,7 @@
 namespace ElasticExportRakutenDE\Api;
 
 use Plenty\Plugin\Log\Loggable;
+use ElasticExportRakutenDE\Exceptions\EmptyResponseException;
 
 /**
  * @class Client
@@ -32,6 +33,11 @@ class Client
 	 * @var int
 	 */
 	private $errorIterator = 0;
+
+    /**
+     * @var int
+     */
+	private $emptyResponseErrorIterator = 0;
 
 	/**
 	 * ApiClient constructor.
@@ -66,9 +72,19 @@ class Client
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
 			$response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
 
-			curl_close($ch);
-
+            if($httpCode == 0) {
+                $this->emptyResponseErrorIterator++;
+            } else {
+                $this->emptyResponseErrorIterator = 0;
+            }
+            
+            if($this->emptyResponseErrorIterator == 5) {
+                throw new EmptyResponseException();
+            }
+            
 			$response = pluginApp(\SimpleXMLElement::class, [0 => $response, 1 => 0, 2 => false, 3 => "", 4 => false]);
 
 			if($response->success == "-1" && count($response->errors))
@@ -89,9 +105,11 @@ class Client
 			}
 
 		}
-		catch (\Throwable $throwable)
-		{
-			if($this->errorIterator == 100)
+		catch (EmptyResponseException $exception) {
+		    // forward the exception to abort the complete cron job
+            throw $exception;
+        } catch (\Throwable $throwable) {
+            if ($this->errorIterator == 100)
 			{
 				$this->writeLogs();
 			}
@@ -99,6 +117,7 @@ class Client
 			$this->errorBatch[] = [
 				'message'	=> $throwable->getMessage(),
 				'line'	=> $throwable->getLine(),
+                'response' => $response
 			];
 
 			$this->errorIterator++;
