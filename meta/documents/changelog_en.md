@@ -3,7 +3,7 @@
 ## v1.3.16 (2018-10-18)
 
 ### Changed
-- Stability improvements for stock and price export.
+- Stability improvements for stock and price synchronisation.
 
 ## v1.3.15 (2018-10-02)
 
