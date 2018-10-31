@@ -2,11 +2,11 @@
 
 namespace ElasticExportRakutenDE;
 
+use ElasticExportRakutenDE\Crons\RakutenItemUpdateCron;
 use ElasticExportRakutenDE\Helper\SkuHelper;
 use ElasticExportRakutenDE\Validators\GeneratorValidator;
 use Plenty\Modules\Cron\Services\CronContainer;
 use Plenty\Modules\DataExchange\Services\ExportPresetContainer;
-use ElasticExportRakutenDE\Crons\ItemUpdateCron;
 use Plenty\Plugin\ServiceProvider as ServiceProvider;
 
 /**
@@ -42,6 +42,6 @@ class ElasticExportRakutenDEServiceProvider extends ServiceProvider
         );
 
 		// Adds crons to the cron list.
-		$cronContainer->add(CronContainer::HOURLY, ItemUpdateCron::class);
+		$cronContainer->add(CronContainer::HOURLY, RakutenItemUpdateCron::class);
 	}
 }

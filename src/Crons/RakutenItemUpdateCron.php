@@ -8,18 +8,13 @@ use Plenty\Plugin\Log\Loggable;
 use ElasticExportRakutenDE\Exceptions\EmptyResponseException;
 
 /**
- * @class ItemUpdateCron
+ * Class RakutenItemUpdateCron
+ *
+ * @package ElasticExportRakutenDE\Crons
  */
-class ItemUpdateCron
+class RakutenItemUpdateCron
 {
     use Loggable;
-
-    /**
-     * ItemUpdateCron constructor.
-     */
-    public function __construct()
-    {
-    }
 
     /**
      * @param ItemUpdateService $itemUpdateService
