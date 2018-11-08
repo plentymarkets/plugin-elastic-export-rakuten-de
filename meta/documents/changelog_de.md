@@ -1,5 +1,9 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## v1.3.18 (2018-11-08)
+
+- FIX Beim Bestandsupdate wurde der Nettowarenbestand der einzelnen Lager zu dem virtuellen Lagerbestand hinzugefügt.
+
 ## v1.3.17 (2018-10-31)
 
 ### Geändert
