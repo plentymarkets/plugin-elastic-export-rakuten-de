@@ -175,6 +175,10 @@ class StockHelper
         $stockNet = 0;
         
         foreach($preloadedStockData as $data) {
+        	if($data['warehouseId'] == 0) {
+        		$stockNet = $data['stockNet'];
+        		break;
+			}
             $stockNet += $data['stockNet'];
         }
         
