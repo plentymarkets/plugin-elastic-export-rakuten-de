@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.3.19 (2019-01-11)
+
+### Changed
+- Stability improvements for stock and price synchronisation.
+
 ## v1.3.18 (2018-11-08)
 
 - FIX The net stock of each individual warehouse was added to the virtual stock when stock was updated.
