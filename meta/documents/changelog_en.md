@@ -7,6 +7,7 @@
 
 ## v1.3.18 (2018-11-08)
 
+### Fixed
 - FIX The net stock of each individual warehouse was added to the virtual stock when stock was updated.
 
 ## v1.3.17 (2018-10-31)
