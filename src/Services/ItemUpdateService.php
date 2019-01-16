@@ -346,7 +346,7 @@ class ItemUpdateService
 		
 		$lastStockUpdateTimestamp = strtotime($variation['data']['skus'][0]['stockUpdatedAt']);
 
-		if($stillActive === false && $variation['data']['skus'][0]['status'] == VariationSku::MARKET_STATUS_INACTIVE)
+		if ($variation['data']['skus'][0]['status'] == VariationSku::MARKET_STATUS_INACTIVE)
 		{
 			return $content;
 		}
@@ -451,9 +451,11 @@ class ItemUpdateService
 				$reducedPriceUpdateTime = strtotime($priceList['reducedPriceUpdatedTimestamp']);
 				$referenceReducedPrice = $priceList['referenceReducedPrice'];
 
-				if(!is_null($reducedPriceUpdateTime) &&
+				if (!is_null($reducedPriceUpdateTime) &&
 					($reducedPriceUpdateTime > $lastStockUpdateTimestamp ||
-						is_null($variation['data']['skus'][0]['stockUpdatedAt']))) {
+						is_null($variation['data']['skus'][0]['stockUpdatedAt'])) && 
+					$reducedPrice < $priceList['price']) {
+					
 					$this->transferData = true;
 					$content['price_reduced'] = $reducedPrice;
 					$content['price_reduced_type'] = $referenceReducedPrice;

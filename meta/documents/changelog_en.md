@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.3.20 (2019-01-16)
+
+### Fixed
+- Removed the transmission of unnecessary data within the item update.
+
 ## v1.3.19 (2019-01-11)
 
 ### Changed
