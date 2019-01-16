@@ -1,5 +1,10 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## v1.3.20 (2019-01-16)
+
+### Behoben
+- Übermittlung von überflüssigen Daten im Bestandsabgleich entfernt.
+
 ## v1.3.19 (2019-01-11)
 
 ### Geändert
