@@ -11,7 +11,7 @@ Items are sold on the market Rakuten.de. For further information about this mark
 
 By installing this plugin you will receive the export format **RakutenDE-Plugin**. Use this format to exchange data between plentymarkets and Rakuten. It is required to install the Plugin **Elastic export** from the plentyMarketplace first before you can use the format **RakutenDE-Plugin** in plentymarkets.
 
-Once both plugins are installed, you can create the export format **RakutenDE-Plugin**. Refer to the [Exporting data with the dynamic import](https://knowledge.plentymarkets.com/en/basics/data-exchange/export-import/exporting-data#30) page of the manual for further details about the individual format settings.
+Once both plugins are installed, you can create the export format **RakutenDE-Plugin**. Refer to the [Elastic Export](https://knowledge.plentymarkets.com/en/basics/data-exchange/elastic-export) page of the manual for further details about the individual format settings.
 
 Creating a new export format:
 
