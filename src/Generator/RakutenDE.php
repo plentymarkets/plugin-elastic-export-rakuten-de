@@ -2,6 +2,7 @@
 
 namespace ElasticExportRakutenDE\Generator;
 
+use ElasticExport\Helper\AbstractElasticExportHelper;
 use ElasticExport\Helper\ElasticExportCategoryHelper;
 use ElasticExport\Helper\ElasticExportCoreHelper;
 use ElasticExport\Helper\ElasticExportItemHelper;
@@ -123,7 +124,7 @@ class RakutenDE extends CSVPluginGenerator
 	 * @var int
 	 */
 	private $errorIterator = 0;
-	
+
     /**
      * @var SkuHelper
      */
@@ -176,9 +177,9 @@ class RakutenDE extends CSVPluginGenerator
 
         $settings = $this->arrayHelper->buildMapFromObjectList($formatSettings, 'key', 'value');
 		$this->filtrationService = pluginApp(FiltrationService::class, ['settings' => $settings, 'filterSettings' => $filter]);
-		
+
 		$this->stockHelper->setAdditionalStockInformation($settings);
-        
+
         $this->setDelimiter(";");
 
         $this->addCSVContent([
@@ -255,7 +256,7 @@ class RakutenDE extends CSVPluginGenerator
         if($elasticSearch instanceof VariationElasticSearchScrollRepositoryContract)
         {
         	$elasticSearch->setNumberOfDocumentsPerShard(250);
-        	
+
             do
             {
                 if($limitReached === true)
@@ -351,22 +352,25 @@ class RakutenDE extends CSVPluginGenerator
 									'file' => $exception->getFile(),
                                     'line' => $exception->getLine(),
                                     'stack trace' => $exception->getTrace(),
-								]; 
-								
+								];
+
 								$this->errorIterator++;
-								
+
 								if($this->errorIterator == 100)
 								{
 									$this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.buildRowError', [
 										'errorList'	=> $this->errorBatch['rowError']
 									]);
-									
+
 									$this->errorIterator = 0;
 								}
 							}
 
                             $variations = array();
                             $variations[] = $variation;
+
+                            $this->clearAttributeCaches();
+
                             $previousItemId = $variation['data']['item']['id'];
                         }
                     }
@@ -376,6 +380,9 @@ class RakutenDE extends CSVPluginGenerator
                     ]);
                 }
 
+                if($shardIterator % 4 == 0) {
+                    $this->clearHelperCache();
+                }
             } while ($elasticSearch->hasNext());
         }
 
@@ -394,7 +401,7 @@ class RakutenDE extends CSVPluginGenerator
 					'line' => $exception->getLine(),
                     'stack trace' => $exception->getTrace(),
 				];
-				
+
 				$this->errorIterator++;
 
 				if($this->errorIterator == 100)
@@ -409,9 +416,9 @@ class RakutenDE extends CSVPluginGenerator
 
 			unset($variations);
 		}
-		
+
 		$this->skuHelper->finish();
-		
+
 		if(is_array($this->errorBatch) && count($this->errorBatch['rowError']))
 		{
 			$this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.buildRowError', [
@@ -566,7 +573,7 @@ class RakutenDE extends CSVPluginGenerator
     private function buildParentWithoutChildrenRow($item, KeyValue $settings)
     {
 		$this->parentSku = '';
-    	
+
         $priceList = $this->priceHelper->getPriceList($item, $settings);
 
 		if(isset($priceList['price']) && $priceList['price'] > 0)
@@ -592,7 +599,7 @@ class RakutenDE extends CSVPluginGenerator
         $stockList = $this->stockHelper->getStockList($item);
 
         $basePriceComponentList = $this->getBasePriceComponentList($item);
-        
+
         $categories = $this->getCategories($item, $settings);
 
         $data = [
@@ -766,7 +773,7 @@ class RakutenDE extends CSVPluginGenerator
 	    {
 		    return;
 	    }
-    	
+
         $stockList = $this->stockHelper->getStockList($item);
 
         $priceList = $this->priceHelper->getPriceList($item, $settings);
@@ -1009,7 +1016,7 @@ class RakutenDE extends CSVPluginGenerator
 
     /**
      * Get necessary components to enable Rakuten to calculate a base price for the variation.
-	 * 
+	 *
      * @param array $item
      * @return array
      */
@@ -1033,20 +1040,20 @@ class RakutenDE extends CSVPluginGenerator
 
 	/**
 	 * Get all category paths in one string, separated by || .
-	 * 
+	 *
 	 * @param $variation
 	 * @param $settings
-	 * 
+	 *
 	 * @return string
 	 */
     private function getCategories($variation, $settings)
 	{
 		$allCategories = '';
-		
+
 		foreach($variation['data']['ids']['categories']['branches'] as $categoryId)
 		{
 			$categoryPath = $this->elasticExportCategoryHelper->getCategoryPath($categoryId, $settings, '>');
-			
+
 			if(strlen($categoryPath) > 0)
 			{
 				if(strlen($allCategories) > 0)
@@ -1059,7 +1066,7 @@ class RakutenDE extends CSVPluginGenerator
 				}
 			}
 		}
-		
+
 		return $allCategories;
 	}
 
@@ -1140,4 +1147,20 @@ class RakutenDE extends CSVPluginGenerator
 
 		return null;
 	}
+
+    private function clearAttributeCaches()
+    {
+        $this->attributeName = [];
+        $this->attributeNameCombination = [];
+    }
+
+    /**
+     * Clears cache of helpers which supports the clearCache() function.
+     * @see AbstractElasticExportHelper
+     */
+    private function clearHelperCache()
+    {
+        $this->elasticExportCategoryHelper->clearCache();
+        $this->elasticExportItemHelper->clearCache();
+    }
 }
