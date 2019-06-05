@@ -1,5 +1,10 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## v1.3.22 (2019-06-05)
+
+### Geändert
+- Um unnötigen Resourcenverbrauch zu vermeiden werden Caches für Attribute, Kategorien und Freitextfelder regelmäßig bereinigt.
+
 ## v1.3.21 (2019-01-23)
 
 ### Geändert
@@ -18,7 +23,7 @@
 ## v1.3.18 (2018-11-08)
 
 ### Behoben
-- FIX Beim Bestandsupdate wurde der Nettowarenbestand der einzelnen Lager zu dem virtuellen Lagerbestand hinzugefügt.
+- Beim Bestandsupdate wurde der Nettowarenbestand der einzelnen Lager zu dem virtuellen Lagerbestand hinzugefügt.
 
 ## v1.3.17 (2018-10-31)
 

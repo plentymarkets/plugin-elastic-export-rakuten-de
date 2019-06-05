@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.3.22 (2019-06-05)
+
+### Changed
+- Caches for attributes, categories and free text fields will be cleaned regularly in order to avoid unnecessary resource usage.
+
 ## v1.3.21 (2019-01-23)
 
 ### Changed
