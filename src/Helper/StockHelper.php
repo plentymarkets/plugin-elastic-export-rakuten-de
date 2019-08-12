@@ -19,12 +19,12 @@ class StockHelper
 	private $stockForVariationsWithoutStockLimitation = null;
 
 	private $stockForVariationsWithoutStockAdministration = null;
-	
+
 	/**
 	 * @var StockRepositoryContract
 	 */
 	private $stockRepository;
-	
+
     /**
 	 * StockHelper constructor.
 	 * @param StockRepositoryContract $stockRepository
@@ -33,11 +33,11 @@ class StockHelper
 	{
 		$this->stockRepository = $stockRepository;
     }
-	
+
 	/**
 	 * Get all information that depend on stock settings and stock volume
 	 * (inventoryManagementActive, $variationAvailable, $stock)
-     * 
+     *
 	 * @param array $item
 	 * @return array
 	 */
@@ -76,7 +76,7 @@ class StockHelper
 		{
 			$variationAvailable = 1;
 			$inventoryManagementActive = 0;
-			
+
 			if(!is_null($this->stockForVariationsWithoutStockAdministration))
 			{
 				$stock = $this->stockForVariationsWithoutStockAdministration;
@@ -86,7 +86,7 @@ class StockHelper
 				$stock = 999;
 			}
 		}
-		
+
 		// stock limitation use nett stock
 		elseif($item['data']['variation']['stockLimitation'] == 1)
 		{
@@ -113,7 +113,7 @@ class StockHelper
 				}
 			}
 		}
-		
+
 		// no limitation
 		elseif($item['data']['variation']['stockLimitation'] == 0)
 		{
@@ -123,7 +123,7 @@ class StockHelper
 			if($stockNet > 999)
 			{
 				$stock = 999;
-			}	
+			}
 			else
 			{
 				if($stockNet > 0)
@@ -169,20 +169,26 @@ class StockHelper
 			$this->stockForVariationsWithoutStockLimitation = $settings->get('stockForVariationsWithoutStockLimitation');
 		}
 	}
-	
+
+    /**
+     * @param array $item
+     * @param array $preloadedStockData
+     * @return array
+     */
 	public function getStockByPreloadedValue($item, $preloadedStockData)
     {
         $stockNet = 0;
-        
-        foreach($preloadedStockData as $data) {
-        	if($data['warehouseId'] == 0) {
-        		$stockNet = $data['stockNet'];
+        $stockUpdatedAt = '';
+
+        foreach($preloadedStockData as $warehouse) {
+        	if($warehouse['warehouseId'] == 0) {
+        		$stockNet = $warehouse['stockNet'];
+                $stockUpdatedAt = $warehouse['updatedAt'];
+
         		break;
 			}
-            $stockNet += $data['stockNet'];
         }
-        
-        $stockUpdatedAt = '';
+
         $inventoryManagementActive = 0;
         $variationAvailable = 0;
         $stock = 0;
@@ -258,11 +264,11 @@ class StockHelper
         }
 
         return array (
-            'updatedAt'					=>	$stockUpdatedAt,
+            'updatedAt'					=>	strtotime($stockUpdatedAt),
             'stock'                     =>  $stock,
             'variationAvailable'        =>  $variationAvailable,
             'inventoryManagementActive' =>  $inventoryManagementActive,
         );
     }
-        
+
 }
