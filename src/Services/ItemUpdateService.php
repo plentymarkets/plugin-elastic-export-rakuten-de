@@ -32,10 +32,10 @@ class ItemUpdateService
 	use Loggable;
 
 	const RAKUTEN_DE = 106.00;
-	
+
 	const BOOL_TRUE = 'true';
 	const BOOL_FALSE = 'false';
-	
+
 	/**
 	 * @var MarketAttributeHelperRepositoryContract $marketAttributeHelperRepositoryContract
 	 */
@@ -128,12 +128,12 @@ class ItemUpdateService
 	 * @var bool
 	 */
 	private $statusWasUpdated = false;
-	
+
     /**
      * @var SkuHelper
      */
     private $skuHelper;
-    
+
     /**
      * @var VariationExportServiceContract
      */
@@ -179,7 +179,7 @@ class ItemUpdateService
 	public function generateContent()
 	{
 		$this->elasticExportHelper = pluginApp(ElasticExportCoreHelper::class);
-		
+
 		$currentItemId = null;
 		$previousItemId = null;
 		$variations = array();
@@ -219,7 +219,7 @@ class ItemUpdateService
                             {
                                 continue;
                             }
-                            
+
                             $successfulIteration = true;
                             $filters = $export->filters->toBase();
 
@@ -272,7 +272,7 @@ class ItemUpdateService
                                     {
                                         // preloads data depending on settings by VariationExportServiceContract
                                         $this->preload($resultList['documents']);
-                                        
+
                                         foreach($resultList['documents'] as $variation)
                                         {
                                             if ($currentItemId === null)
@@ -321,7 +321,7 @@ class ItemUpdateService
                                 $this->client->writeLogs();
                             }
                         }
-                        
+
                         // Reset internal price helper info that these info can be preloaded again by the next exports settings.
                         $this->priceHelper->reset();
                     }
@@ -332,7 +332,7 @@ class ItemUpdateService
 
 	/**
      * Prepares the content for the request and selects the URL endpoint.
-     * 
+     *
 	 * @param array $variation
 	 * @param string $itemLevel
 	 * @param KeyValue $settings
@@ -343,14 +343,18 @@ class ItemUpdateService
 		$content = null;
 		$stillActive = $this->stillActive($variation);
 		$sku = $variation['data']['skus'][0]['sku'];
-		
+
 		$lastStockUpdateTimestamp = strtotime($variation['data']['skus'][0]['stockUpdatedAt']);
+
+		if($lastStockUpdateTimestamp === false) {
+            $lastStockUpdateTimestamp = 0;
+        }
 
 		if ($variation['data']['skus'][0]['status'] == VariationSku::MARKET_STATUS_INACTIVE)
 		{
 			return $content;
 		}
-		
+
 		if(!is_null($itemLevel) && strlen($itemLevel) && $itemLevel == Client::EDIT_PRODUCT_VARIANT)
 		{
 			$content[Client::VARIANT_ART_NO] = $sku;
@@ -371,7 +375,7 @@ class ItemUpdateService
 			$this->getLogger(__METHOD__)
                 ->addReference('variationId', $variation['id'])
                 ->error('ElasticExportRakutenDE::log.missingEndpoint');
-			
+
 			return null;
 		}
 
@@ -379,7 +383,7 @@ class ItemUpdateService
 		{
             $data = $this->variationExportService->getData(VariationExportServiceContract::STOCK, $variation['id']);
 			$stockList = $this->stockHelper->getStockByPreloadedValue($variation, $data);
-			
+
 			if(count($stockList))
 			{
 				$content['stock'] = $stockList['stock'];
@@ -402,11 +406,9 @@ class ItemUpdateService
 					}
 				}
 
-				if(!is_null($stockList['updatedAt']) && 
-					($stockList['updatedAt'] > $lastStockUpdateTimestamp ||
-					is_null($variation['data']['skus'][0]['stockUpdatedAt'])))
-				{
-					$this->transferData = true;
+				if((strlen($stockList['updatedAt']) && $stockList['updatedAt'] > $lastStockUpdateTimestamp) ||
+                        is_null($variation['data']['skus'][0]['stockUpdatedAt'])) {
+                    $this->transferData = true;
 				}
 			}
 		}
@@ -419,9 +421,9 @@ class ItemUpdateService
             {
                 $content['stock_policy'] = 1;
             }
-			
+
 			$this->transferData = true;
-            
+
 			$this->skuHelper->updateStatus((int)$variation['data']['skus'][0]['id'], VariationSku::MARKET_STATUS_INACTIVE);
 			$this->statusWasUpdated = true;
 		}
@@ -434,7 +436,7 @@ class ItemUpdateService
             } else {
                 $priceList = [];
             }
-			
+
 			if (isset($priceList['price']) && $priceList['price'] > 0) {
 				$price = number_format((float)$priceList['price'], 2, '.', '');
 				$priceUpdateTime = strtotime($priceList['variationPriceUpdatedTimestamp']);
@@ -453,9 +455,9 @@ class ItemUpdateService
 
 				if (!is_null($reducedPriceUpdateTime) &&
 					($reducedPriceUpdateTime > $lastStockUpdateTimestamp ||
-						is_null($variation['data']['skus'][0]['stockUpdatedAt'])) && 
+						is_null($variation['data']['skus'][0]['stockUpdatedAt'])) &&
 					$reducedPrice < $priceList['price']) {
-					
+
 					$this->transferData = true;
 					$content['price_reduced'] = $reducedPrice;
 					$content['price_reduced_type'] = $referenceReducedPrice;
@@ -669,7 +671,7 @@ class ItemUpdateService
 
 	/**
      * Sends the product or variant request.
-     * 
+     *
 	 * @param array $variation
 	 * @param string $itemLevel
 	 * @param KeyValue|null $settings
@@ -701,7 +703,7 @@ class ItemUpdateService
 				}
 			}
 		}
-		
+
 		$this->statusWasUpdated = false;
 	}
 
@@ -711,13 +713,13 @@ class ItemUpdateService
         if($this->stockUpdate == self::BOOL_TRUE) {
             $types[] = VariationExportServiceContract::STOCK;
         }
-        
+
         if($this->priceUpdate == self::BOOL_TRUE) {
             $types[] = VariationExportServiceContract::SALES_PRICE;
         }
-        
+
         $this->variationExportService->addPreloadTypes($types);
-        
+
         // collect item IDs and variation IDs for preload
         $values = [];
         foreach ($documents AS $variation) {
