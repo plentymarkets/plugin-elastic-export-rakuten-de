@@ -590,9 +590,7 @@ class RakutenDE extends CSVPluginGenerator
 	    if(is_null($skuData))
 	    {
 		    return;
-	    } elseif($skuData->status != VariationSku::MARKET_STATUS_ACTIVE) {
-	        $this->skuHelper->updateStatus($skuData->id, VariationSku::MARKET_STATUS_ACTIVE);
-        }
+	    }
 
         $vat = $this->getVatClassId($priceList['vatValue']);
 
@@ -1071,11 +1069,11 @@ class RakutenDE extends CSVPluginGenerator
 	}
 
 	/**
-	 * @param $item
-	 * @param $settings
+	 * @param array $variation
+	 * @param KeyValue $settings
 	 * @return array|null|VariationSku
 	 */
-	private function setSku($item, $settings)
+	private function setSku(array $variation, KeyValue $settings)
 	{
 		$parentSku = null;
 
@@ -1088,7 +1086,7 @@ class RakutenDE extends CSVPluginGenerator
 		$parentSuffix = $this->configRepository->get('ElasticExportRakutenDE.parent_sku.suffix');
 
 		$skuDataList = $this->variationSkuRepository->search([
-			'variationId' => $item['id'],
+			'variationId' => $variation['id'],
 			'marketId' => self::RAKUTEN_DE,
 			'accountId' => (int) $settings->get('marketAccountId')
 		]);
@@ -1099,7 +1097,7 @@ class RakutenDE extends CSVPluginGenerator
 			{
 				if(strlen($skuData->sku) == 0)
 				{
-					$skuData->sku = $item['id'];
+					$skuData->sku = $variation['id'];
 				}
 
 				if(strlen($skuData->parentSku) == 0)
@@ -1110,36 +1108,37 @@ class RakutenDE extends CSVPluginGenerator
 					}
 					else
 					{
-						$skuData->parentSku = $parentPrefix . $item['data']['item']['id'] . $parentSuffix;
+						$skuData->parentSku = $parentPrefix . $variation['data']['item']['id'] . $parentSuffix;
 					}
 				}
 
 				$skuData->exportedAt = date("Y-m-d H:i:s");
+                $skuData->status = VariationSku::MARKET_STATUS_ACTIVE;
 
 				$skuData = $this->variationSkuRepository->update($skuData->toArray(), $skuData->id);
 
 				return $skuData;
-
-				break;
 			}
 		}
 		else
 		{
 			if(is_null($parentSku))
 			{
-				$parentSku = $parentPrefix . $item['data']['item']['id'] . $parentSuffix;
+				$parentSku = $parentPrefix . $variation['data']['item']['id'] . $parentSuffix;
 			}
 
 			$skuData = [
-				'variationId' => $item['id'],
+				'variationId' => $variation['id'],
 				'marketId' => self::RAKUTEN_DE,
 				'accountId' => (int) $settings->get('marketAccountId'),
-				'initialSku' => $item['id'],
-				'sku' => $item['id'],
+				'initialSku' => $variation['id'],
+				'sku' => $variation['id'],
 				'parentSku' => $parentSku,
+                'status' => VariationSku::MARKET_STATUS_ACTIVE,
 				'createdAt' => date("Y-m-d H:i:s"),
 				'exportedAt' => date("Y-m-d H:i:s")
 			];
+
 			$skuData = $this->variationSkuRepository->create($skuData);
 
 			return $skuData;

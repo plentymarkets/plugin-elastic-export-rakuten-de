@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.3.24 (2019-08-15)
+
+### Fixed
+- The internal flag at the variation for the stock update was not set.
+
 ## v1.3.23 (2019-08-12)
 
 ### Fixed
