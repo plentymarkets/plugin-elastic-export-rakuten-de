@@ -1,5 +1,10 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## v1.3.24 (2019-08-15)
+
+### Behoben
+- Die interne Markierung an der Variante zur Bestandsaktualisierung wurde nicht gesetzt.
+
 ## v1.3.23 (2019-08-12)
 
 ### Behoben

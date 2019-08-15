@@ -46,12 +46,13 @@ class Client
 	{
 	}
 
-	/**
-	 * @param string $endPoint
-	 * @param string $httpRequestMethod
-	 * @param array $content
-	 * @return \SimpleXMLElement
-	 */
+    /**
+     * @param string $endPoint
+     * @param string $httpRequestMethod
+     * @param array $content
+     * @return \SimpleXMLElement
+     * @throws EmptyResponseException
+     */
 	public function call($endPoint, $httpRequestMethod, $content = [])
 	{
 		$response = '';
@@ -80,11 +81,11 @@ class Client
             } else {
                 $this->emptyResponseErrorIterator = 0;
             }
-            
+
             if($this->emptyResponseErrorIterator == 5) {
                 throw new EmptyResponseException();
             }
-            
+
 			$response = pluginApp(\SimpleXMLElement::class, [0 => $response, 1 => 0, 2 => false, 3 => "", 4 => false]);
 
 			if($response->success == "-1" && count($response->errors))
@@ -93,14 +94,14 @@ class Client
 				{
 					$this->writeLogs();
 				}
-				
+
 				$this->errorBatch[] = [
 					'endpoint'          => $endPoint,
 					'error code' 		=> $response->errors->error->code,
 					'message'			=> $response->errors->error->message,
 					'request content'	=> $content
 				];
-				
+
 				$this->errorIterator++;
 			}
 
@@ -113,7 +114,7 @@ class Client
 			{
 				$this->writeLogs();
 			}
-			
+
 			$this->errorBatch[] = [
 				'message'	=> $throwable->getMessage(),
 				'line'	=> $throwable->getLine(),
@@ -125,7 +126,7 @@ class Client
 
 		return $response;
 	}
-	
+
 	public function writeLogs()
 	{
 		if(is_array($this->errorBatch) && count($this->errorBatch))
