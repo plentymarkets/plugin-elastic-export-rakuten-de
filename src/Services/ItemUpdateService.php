@@ -49,7 +49,7 @@ class ItemUpdateService
 	/**
 	 * @var Client
 	 */
-	private $client;
+	public $client;
 
 	/**
 	 * @var CredentialsRepositoryContract

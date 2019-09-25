@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.3.25 (2019-09-26)
+
+### Fixed
+- Multiple curl sessions were opened instead of reusing already open sessions. This could cause cross-system issues, if too many sessions were open simultaneously.
+
 ## v1.3.24 (2019-08-15)
 
 ### Fixed

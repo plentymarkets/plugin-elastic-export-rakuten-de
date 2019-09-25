@@ -38,12 +38,19 @@ class Client
      * @var int
      */
 	private $emptyResponseErrorIterator = 0;
+	
+	private $curlHandles = [
+	    self::EDIT_PRODUCT => null,
+        self::EDIT_PRODUCT_VARIANT => null,
+        self::EDIT_PRODUCT_MULTI_VARIANT => null,
+    ];
 
 	/**
 	 * ApiClient constructor.
 	 */
 	public function __construct()
 	{
+	    
 	}
 
     /**
@@ -56,14 +63,11 @@ class Client
 	public function call($endPoint, $httpRequestMethod, $content = [])
 	{
 		$response = '';
-		$url = self::URL.$endPoint;
+		
+		try {
+			$ch = $this->getCurlHandle($endPoint);
 
-		try
-		{
-			$ch = curl_init($url);
-
-			switch($httpRequestMethod)
-			{
+			switch ($httpRequestMethod) {
 				case self::POST:
 					curl_setopt($ch, CURLOPT_POST, true);
 					curl_setopt($ch, CURLOPT_POSTFIELDS, $content);
@@ -74,24 +78,20 @@ class Client
 
 			$response = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
-
-            if($httpCode == 0) {
+            if ($httpCode == 0) {
                 $this->emptyResponseErrorIterator++;
             } else {
                 $this->emptyResponseErrorIterator = 0;
             }
 
-            if($this->emptyResponseErrorIterator == 5) {
+            if ($this->emptyResponseErrorIterator == 5) {
                 throw new EmptyResponseException();
             }
 
 			$response = pluginApp(\SimpleXMLElement::class, [0 => $response, 1 => 0, 2 => false, 3 => "", 4 => false]);
 
-			if($response->success == "-1" && count($response->errors))
-			{
-				if($this->errorIterator == 100)
-				{
+			if ($response->success == "-1" && count($response->errors)) {
+				if ($this->errorIterator == 100) {
 					$this->writeLogs();
 				}
 
@@ -104,14 +104,11 @@ class Client
 
 				$this->errorIterator++;
 			}
-
-		}
-		catch (EmptyResponseException $exception) {
+		} catch (EmptyResponseException $exception) {
 		    // forward the exception to abort the complete cron job
             throw $exception;
         } catch (\Throwable $throwable) {
-            if ($this->errorIterator == 100)
-			{
+            if ($this->errorIterator == 100) {
 				$this->writeLogs();
 			}
 
@@ -127,10 +124,43 @@ class Client
 		return $response;
 	}
 
+    /**
+     * @param string
+     * @return resource|false
+     */
+    private function getCurlHandle($endPoint)
+    {
+        $url = self::URL.$endPoint;
+        if (array_key_exists($endPoint, $this->curlHandles)) {
+            if (!isset($this->curlHandles[$endPoint])) {
+                $this->curlHandles[$endPoint] = curl_init($url);
+            }
+            
+            return $this->curlHandles[$endPoint];
+        }
+        
+        return false;
+    }
+	
+	public function closeAll() {
+	    try {
+	        foreach ($this->curlHandles as $key => $curlHandle) {
+	            if (!is_null($curlHandle)) {
+	                curl_close($curlHandle);
+                }
+	            
+	            if (!is_null($this->curlHandles[$key])) {
+                    curl_close($this->curlHandles[$key]);
+                }
+            }
+        } catch (\Throwable $throwable) {
+	        $this->getLogger(__METHOD__)->logException($throwable);
+        }
+    }
+	
 	public function writeLogs()
 	{
-		if(is_array($this->errorBatch) && count($this->errorBatch))
-		{
+		if(is_array($this->errorBatch) && count($this->errorBatch)) {
 			$this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.apiError', [
 				'errorList'	=> $this->errorBatch
 			]);
