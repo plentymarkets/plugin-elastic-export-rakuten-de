@@ -49,7 +49,7 @@ class ItemUpdateService
 	/**
 	 * @var Client
 	 */
-	public $client;
+	private $client;
 
 	/**
 	 * @var CredentialsRepositoryContract
@@ -330,6 +330,14 @@ class ItemUpdateService
 		}
 	}
 
+    /**
+     * @return Client
+     */
+    public function getClient(): Client
+    {
+        return $this->client;
+    }
+	
 	/**
      * Prepares the content for the request and selects the URL endpoint.
      *

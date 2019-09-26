@@ -142,7 +142,7 @@ class Client
         return false;
     }
 	
-	public function closeAll() {
+	public function closeConnections() {
 	    try {
 	        foreach ($this->curlHandles as $key => $curlHandle) {
 	            if (!is_null($curlHandle)) {
