@@ -175,6 +175,7 @@ class ItemUpdateService
 
 	/**
 	 * Generates the content for updating stock and price of multiple items and variations.
+     * @throws \Exception
 	 */
 	public function generateContent()
 	{
@@ -330,6 +331,14 @@ class ItemUpdateService
 		}
 	}
 
+    /**
+     * @return Client
+     */
+    public function getClient(): Client
+    {
+        return $this->client;
+    }
+	
 	/**
      * Prepares the content for the request and selects the URL endpoint.
      *
@@ -524,6 +533,7 @@ class ItemUpdateService
 	 * @param array $variations
 	 * @param KeyValue|null $settings
 	 * @return void
+     * @throws \Exception
 	 */
 	private function parentChildSorting($variations, $settings = null)
 	{
@@ -675,6 +685,7 @@ class ItemUpdateService
 	 * @param array $variation
 	 * @param string $itemLevel
 	 * @param KeyValue|null $settings
+     * @throws \Exception
 	 */
 	private function sendRequest($variation, $itemLevel, $settings)
 	{

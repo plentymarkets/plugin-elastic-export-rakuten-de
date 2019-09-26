@@ -45,5 +45,6 @@ class RakutenItemUpdateCron
                 'line' => $throwable->getLine(),
             ]);
         }
+        $itemUpdateService->getClient()->closeConnections();
     }
 }
