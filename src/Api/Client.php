@@ -151,10 +151,6 @@ class Client
 	public function closeConnections() {
 	    try {
 	        foreach ($this->curlHandles as $key => $curlHandle) {
-	            if (!is_null($curlHandle)) {
-	                curl_close($curlHandle);
-                }
-	            
 	            if (!is_null($this->curlHandles[$key])) {
                     curl_close($this->curlHandles[$key]);
                 }
