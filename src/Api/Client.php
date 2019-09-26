@@ -2,8 +2,10 @@
 
 namespace ElasticExportRakutenDE\Api;
 
-use Plenty\Plugin\Log\Loggable;
 use ElasticExportRakutenDE\Exceptions\EmptyResponseException;
+use ElasticExportRakutenDE\Exceptions\FailedApiConnectionException;
+use Plenty\Plugin\Log\Loggable;
+
 
 /**
  * @class Client
@@ -58,7 +60,7 @@ class Client
      * @param string $httpRequestMethod
      * @param array $content
      * @return \SimpleXMLElement
-     * @throws EmptyResponseException
+     * @throws EmptyResponseException|FailedApiConnectionException
      */
 	public function call($endPoint, $httpRequestMethod, $content = [])
 	{
@@ -107,6 +109,9 @@ class Client
 		} catch (EmptyResponseException $exception) {
 		    // forward the exception to abort the complete cron job
             throw $exception;
+        }  catch (FailedApiConnectionException $exception) {
+            // forward the exception to abort the complete cron job
+            throw $exception;
         } catch (\Throwable $throwable) {
             if ($this->errorIterator == 100) {
 				$this->writeLogs();
@@ -126,7 +131,8 @@ class Client
 
     /**
      * @param string
-     * @return resource|false
+     * @return resource
+     * @throws FailedApiConnectionException
      */
     private function getCurlHandle($endPoint)
     {
@@ -139,7 +145,7 @@ class Client
             return $this->curlHandles[$endPoint];
         }
         
-        return false;
+        throw new FailedApiConnectionException();
     }
 	
 	public function closeConnections() {
