@@ -126,11 +126,13 @@ class Client
 	}
 
     /**
+     * Create one curl handle for each endpoint to reduce open sessions
+     * 
      * @param string
      * @return resource
      * @throws FailedApiConnectionException
      */
-    private function getCurlHandle($endPoint)
+    private function getCurlHandle(string $endPoint)
     {
         $url = self::URL.$endPoint;
         if (!isset($this->curlHandles[$endPoint])) {
@@ -144,7 +146,10 @@ class Client
         }
         return $this->curlHandles[$endPoint];
     }
-	
+
+    /**
+     * Close all connections that were opened in the process
+     */
 	public function closeConnections() {
 	    try {
 	        while (is_array($this->curlHandles) && count($this->curlHandles)) {
