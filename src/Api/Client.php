@@ -41,11 +41,7 @@ class Client
      */
 	private $emptyResponseErrorIterator = 0;
 	
-	private $curlHandles = [
-	    self::EDIT_PRODUCT => null,
-        self::EDIT_PRODUCT_VARIANT => null,
-        self::EDIT_PRODUCT_MULTI_VARIANT => null,
-    ];
+	private $curlHandles = [];
 
 	/**
 	 * ApiClient constructor.
@@ -137,23 +133,23 @@ class Client
     private function getCurlHandle($endPoint)
     {
         $url = self::URL.$endPoint;
-        if (array_key_exists($endPoint, $this->curlHandles)) {
-            if (!isset($this->curlHandles[$endPoint])) {
-                $this->curlHandles[$endPoint] = curl_init($url);
-            }
+        if (!isset($this->curlHandles[$endPoint])) {
+            $ch = curl_init($url);
             
-            return $this->curlHandles[$endPoint];
+            if ($ch === false) {
+                throw new FailedApiConnectionException(); 
+            } else {
+                $this->curlHandles[$endPoint] = $ch;
+            }
         }
-        
-        throw new FailedApiConnectionException();
+        return $this->curlHandles[$endPoint];
     }
 	
 	public function closeConnections() {
 	    try {
-	        foreach ($this->curlHandles as $key => $curlHandle) {
-	            if (!is_null($this->curlHandles[$key])) {
-                    curl_close($this->curlHandles[$key]);
-                }
+	        while (is_array($this->curlHandles) && count($this->curlHandles)) {
+                $ch = array_shift($this->curlHandles);
+                curl_close($ch);
             }
         } catch (\Throwable $throwable) {
 	        $this->getLogger(__METHOD__)->logException($throwable);
