@@ -5,20 +5,20 @@
 
 ## 1 Registering with Rakuten.de
 
-Items are sold on the market Rakuten.de. For further information about this market, refer to the [Setting up Rakuten](https://knowledge.plentymarkets.com/en/omni-channel/multi-channel/rakuten/rakuten-setup) page of the manual.
+Items are sold on the market Rakuten.de. For further information about this market, refer to the [Setting up Rakuten](https://knowledge.plentymarkets.com/en/markets/rakuten/rakuten-setup) page of the manual.
 
 ## 2 Setting up the data format RakutenDE-Plugin in plentymarkets
 
 By installing this plugin you will receive the export format **RakutenDE-Plugin**. Use this format to exchange data between plentymarkets and Rakuten. It is required to install the Plugin **Elastic export** from the plentyMarketplace first before you can use the format **RakutenDE-Plugin** in plentymarkets.
 
-Once both plugins are installed, you can create the export format **RakutenDE-Plugin**. Refer to the [Elastic Export](https://knowledge.plentymarkets.com/en/basics/data-exchange/elastic-export) page of the manual for further details about the individual format settings.
+Once both plugins are installed, you can create the export format **RakutenDE-Plugin**. Refer to the [Elastic Export](https://knowledge.plentymarkets.com/en/data/exporting-data/elastic-export) page of the manual for further details about the individual format settings.
 
 Creating a new export format:
 
 1. Go to **Data » Elastic export**.
 2. Click on **New export**.
 3. Carry out the settings as desired. Pay attention to the information given in table 1.
-4. **Save** the settings.
+4. **Save** the settings.<br/>
 → The export format is given an ID and it appears in the overview within the **Exports** tab.
 
 The following table lists details for settings, format settings and recommended item filters for the format **RakutenDE-Plugin**.
@@ -40,8 +40,8 @@ The following table lists details for settings, format settings and recommended 
 | **Product URL**                                       | This option does not affect this format. |
 | **Client**                                            | Select a client. This setting is used for the URL structure. |
 | **URL parameter**                                     | This option does not affect this format. |
-| **Order referrer**                                    | Choose the order referrer that should be assigned during the order import from the drop-down list. |
-| **Marketplace account**                               | Select the market account from the drop-down list. The selected referrer is added to the product URL so that sales can be analysed later. |
+| **Order referrer**                                    | Choose the order referrer that should be assigned during the order import from the drop-down list. The selected referrer is added to the product URL so that sales can be analysed later. |
+| **Marketplace account**                               | Select the market account from the drop-down list. |
 | **Language**                                          | Select the language from the drop-down list. |
 | **Item name**                                         | Select **Name 1**, **Name 2**, or **Name 3**. These names are saved in the **Texts** tab of the item.<br/> Enter a number into the **Maximum number of characters (def. text)** field if desired. This specifies how many characters are exported for the item name. |
 | **Preview text**                                      | Select the text that you want to transfer as preview text.<br/> Enter a number into the **Maximum number of characters (def. text)** field if desired. This specifies how many characters should be exported for the preview text. Activate the option **Remove HTML tags** if you want HTML tags to be removed during the export.<br/> If you only want to allow specific HTML tags to be exported, then enter these tages into the field **Permitted HTML tags, separated by comma (def. text)**. Use commas to separate multiple tags. |
@@ -72,7 +72,7 @@ _Tab. 1: Settings for the data format **RakutenDE-Plugin**_
 | artikelnummer            | **Required** <br />**Limitation**: max. 30 characters <br /> The **SKU** of the item. For parent rows the parent SKU will be exported. |
 | produkt_bestellbar       | **Required** <br /> **1** if the variation has stock and is not limited to net stock. Otherwise **0**. |
 | produktname              | **Required** <br />**Limitation**: max. 100 characters <br /> According to the format setting **Item name**. |
-| hersteller               | **Limitation**: max. 30 characters <br /> The **name of the manufacturer** of the item. The **external name** within **Settings » Items » Manufacturer** will be preferred if existing. |
+| hersteller               | **Limitation**: max. 30 characters <br /> The **name of the manufacturer** of the item. The **external name** within **Setup » Item » Manufacturer** will be preferred if existing. |
 | beschreibung             | **Required** <br /> According to the format setting **Description**. |
 | variante                 | **Required** for variations <br /> The **names of the attributes** linked to the item. |
 | variantenwert            | **Required** for variations <br /> The **names of the attribute values** linked to the variation. |
@@ -94,9 +94,9 @@ _Tab. 1: Settings for the data format **RakutenDE-Plugin**_
 | free_var_1-20            | The corresponding **Free text field**. |
 | MPN                      | The **model** of the variations. |
 | technical_data           | The **technical data** of the item. |
-| energie_klassen_gruppe   | **Limitation**: Fixed value as given for the property link. <br /> Value is set through a property of type **No**. The value has to be set in the menu **Settings » Item » Properties » Open property** through the option **Rakuten.de property**. |
-| energie_klasse           | **Limitation**: Fixed value as given for the property link. <br /> Value is set through a property of type **No**. The value has to be set in the menu **Settings » Item » Properties » Open property** through the option **Rakuten.de property**. |
-| energie_klasse_bis       | **Limitation**: Fixed value as given for the property link. <br /> Value is set through a property of type **No**. The value has to be set in the menu **Settings » Item » Properties » Open property** through the option **Rakuten.de property**. |
+| energie_klassen_gruppe   | **Limitation**: Fixed value as given for the property link. <br /> Value is set through a property of type **No**. The value has to be set in the menu **Setup » Item » Properties » Open property** through the option **Rakuten.de property**. |
+| energie_klasse           | **Limitation**: Fixed value as given for the property link. <br /> Value is set through a property of type **No**. The value has to be set in the menu **Setup » Item » Properties » Open property** through the option **Rakuten.de property**. |
+| energie_klasse_bis       | **Limitation**: Fixed value as given for the property link. <br /> Value is set through a property of type **No**. The value has to be set in the menu **Setup » Item » Properties » Open property** through the option **Rakuten.de property**. |
 | energie_klassen_bild     | The image with the position corresponding to the format settings **Image position of the energy efficiency label** if given. |
 
 ## 4 Licence
