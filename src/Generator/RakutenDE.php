@@ -11,7 +11,6 @@ use ElasticExportRakutenDE\ElasticExportRakutenDEServiceProvider;
 use ElasticExportRakutenDE\Helper\AttributeHelper;
 use ElasticExportRakutenDE\Helper\PriceHelper;
 use ElasticExport\Helper\ElasticExportStockHelper;
-use ElasticExportRakutenDE\Helper\SkuHelper;
 use ElasticExportRakutenDE\Validators\GeneratorValidator;
 use Plenty\Legacy\Repositories\Item\SalesPrice\SalesPriceSearchRepository;
 use Plenty\Modules\DataExchange\Contracts\CSVPluginGenerator;
@@ -120,12 +119,7 @@ class RakutenDE extends CSVPluginGenerator
 	 * @var int
 	 */
 	private $errorIterator = 0;
-
-    /**
-     * @var SkuHelper
-     */
-    private $skuHelper;
-
+	
     /**
      * RakutenDE constructor.
      *
@@ -137,7 +131,6 @@ class RakutenDE extends CSVPluginGenerator
      * @param VariationExportServiceContract $variationExportService
      * @param ConfigRepository $configRepository
      * @param AttributeHelper $attributeHelper
-     * @param SkuHelper $skuHelper
      */
     public function __construct(
         ArrayHelper $arrayHelper,
@@ -147,8 +140,7 @@ class RakutenDE extends CSVPluginGenerator
 		VariationSkuRepositoryContract $variationSkuRepository,
         VariationExportServiceContract $variationExportService,
 		ConfigRepository $configRepository,
-		AttributeHelper $attributeHelper,
-        SkuHelper $skuHelper
+		AttributeHelper $attributeHelper
     )
     {
         $this->arrayHelper = $arrayHelper;
@@ -159,7 +151,6 @@ class RakutenDE extends CSVPluginGenerator
 		$this->variationExportService = $variationExportService;
 		$this->configRepository = $configRepository;
 		$this->attributeHelper = $attributeHelper;
-        $this->skuHelper = $skuHelper;
     }
 
     /**
@@ -417,8 +408,6 @@ class RakutenDE extends CSVPluginGenerator
 
 			unset($variations);
 		}
-
-		$this->skuHelper->finish();
 
 		if(is_array($this->errorBatch) && count($this->errorBatch['rowError']))
 		{
