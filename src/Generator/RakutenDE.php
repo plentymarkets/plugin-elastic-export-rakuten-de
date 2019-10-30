@@ -12,13 +12,13 @@ use ElasticExportRakutenDE\Helper\AttributeHelper;
 use ElasticExportRakutenDE\Helper\PriceHelper;
 use ElasticExport\Helper\ElasticExportStockHelper;
 use ElasticExportRakutenDE\Helper\SkuHelper;
-use ElasticExportRakutenDE\Helper\StockHelper;
 use ElasticExportRakutenDE\Validators\GeneratorValidator;
 use Plenty\Legacy\Repositories\Item\SalesPrice\SalesPriceSearchRepository;
 use Plenty\Modules\DataExchange\Contracts\CSVPluginGenerator;
 use Plenty\Modules\Helper\Services\ArrayHelper;
 use Plenty\Modules\Helper\Models\KeyValue;
 use Plenty\Modules\Item\Search\Contracts\VariationElasticSearchScrollRepositoryContract;
+use Plenty\Modules\Item\Variation\Contracts\VariationExportServiceContract;
 use Plenty\Modules\Item\VariationSku\Contracts\VariationSkuRepositoryContract;
 use Plenty\Modules\Item\VariationSku\Models\VariationSku;
 use Plenty\Modules\Market\Helper\Contracts\MarketPropertyHelperRepositoryContract;
@@ -86,6 +86,11 @@ class RakutenDE extends CSVPluginGenerator
 	 */
 	private $variationSkuRepository;
 
+    /**
+     * @var VariationExportServiceContract
+     */
+	private $variationExportService;
+	
 	/**
 	 * @var ConfigRepository
 	 */
@@ -105,11 +110,6 @@ class RakutenDE extends CSVPluginGenerator
 	 * @var string
 	 */
 	private $parentSku = '';
-
-	/**
-	 * @var StockHelper
-	 */
-	private $stockHelper;
 
 	/**
 	 * @var array
@@ -134,9 +134,9 @@ class RakutenDE extends CSVPluginGenerator
      * @param SalesPriceSearchRepository $salesPriceSearchRepository
      * @param PriceHelper $priceHelper
      * @param VariationSkuRepositoryContract $variationSkuRepository
+     * @param VariationExportServiceContract $variationExportService
      * @param ConfigRepository $configRepository
      * @param AttributeHelper $attributeHelper
-     * @param StockHelper $stockHelper
      * @param SkuHelper $skuHelper
      */
     public function __construct(
@@ -145,9 +145,9 @@ class RakutenDE extends CSVPluginGenerator
         SalesPriceSearchRepository $salesPriceSearchRepository,
 		PriceHelper $priceHelper,
 		VariationSkuRepositoryContract $variationSkuRepository,
+        VariationExportServiceContract $variationExportService,
 		ConfigRepository $configRepository,
 		AttributeHelper $attributeHelper,
-		StockHelper $stockHelper,
         SkuHelper $skuHelper
     )
     {
@@ -156,9 +156,9 @@ class RakutenDE extends CSVPluginGenerator
         $this->salesPriceSearchRepository = $salesPriceSearchRepository;
         $this->priceHelper = $priceHelper;
 		$this->variationSkuRepository = $variationSkuRepository;
+		$this->variationExportService = $variationExportService;
 		$this->configRepository = $configRepository;
 		$this->attributeHelper = $attributeHelper;
-		$this->stockHelper = $stockHelper;
         $this->skuHelper = $skuHelper;
     }
 
@@ -294,6 +294,8 @@ class RakutenDE extends CSVPluginGenerator
 
                 if(is_array($resultList['documents']) && count($resultList['documents']) > 0)
                 {
+                    $this->elasticExportStockHelper->preloadStockAndPrice($resultList['documents']);
+                    
                     foreach($resultList['documents'] as $variation)
                     {
                         if($validateOnce === false)
@@ -467,14 +469,11 @@ class RakutenDE extends CSVPluginGenerator
     {
 		$this->parentSku = '';
 
-        $priceList = $this->priceHelper->getPriceList($item, $settings);
-
-		if(isset($priceList['price']) && $priceList['price'] > 0)
-		{
+        $priceList = $this->getPriceList($item, $settings);
+        
+		if (isset($priceList['price']) && $priceList['price'] > 0) {
 			$price = number_format((float)$priceList['price'], 2, '.', '');
-		}
-		else
-		{
+		} else {
 			$price = '';
 		}
 
@@ -487,7 +486,7 @@ class RakutenDE extends CSVPluginGenerator
 
         $vat = $this->getVatClassId($priceList['vatValue']);
 
-        $stockList = $this->stockHelper->getStockList($item);
+        $stockList = $this->getStockList($item);
 
         $basePriceComponentList = $this->getBasePriceComponentList($item);
 
@@ -577,11 +576,11 @@ class RakutenDE extends CSVPluginGenerator
 
 	    $this->parentSku = $skuData->parentSku;
 
-        $priceList = $this->priceHelper->getPriceList($item, $settings);
+        $priceList = $this->getPriceList($item, $settings);
 
         $vat = $this->getVatClassId($priceList['vatValue']);
 
-        $stockList = $this->stockHelper->getStockList($item);
+        $stockList = $this->getStockList($item);
 
 		$categories = $this->getCategories($item, $settings);
 
@@ -664,9 +663,9 @@ class RakutenDE extends CSVPluginGenerator
 		    return;
 	    }
 
-        $stockList = $this->stockHelper->getStockList($item);
+        $stockList = $this->getStockList($item);
 
-        $priceList = $this->priceHelper->getPriceList($item, $settings);
+        $priceList = $this->getPriceList($item, $settings);
 
         if(isset($priceList['price']) && $priceList['price'] > 0)
         {
@@ -1038,6 +1037,39 @@ class RakutenDE extends CSVPluginGenerator
 
 		return null;
 	}
+
+    /**
+     * @param array $variation
+     * @param KeyValue $settings
+     * @return array
+     */
+	private function getPriceList(array $variation, KeyValue $settings):array
+    {
+        $data = $this->variationExportService->getData(VariationExportServiceContract::SALES_PRICE, $variation['id']);
+        $priceList = $this->priceHelper->getPriceData($settings, $data);
+        
+        if (is_array($priceList)) {
+            return $priceList;
+        } 
+        
+        return [];
+    }
+
+    /**
+     * @param array $variation
+     * @return array
+     */
+    private function getStockList(array $variation):array
+    {
+        $data = $this->variationExportService->getData(VariationExportServiceContract::STOCK, $variation['id']);
+        $stockList = $this->elasticExportStockHelper->getStockByPreloadedValue($variation, $data);
+
+        if (is_array($stockList)) {
+            return $stockList;
+        }
+        
+        return [];
+    }
 
     /**
      * Clears cache of helpers which supports the clearCache() function.
