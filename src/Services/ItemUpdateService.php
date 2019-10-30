@@ -7,7 +7,7 @@ use ElasticExport\Helper\ElasticExportStockHelper;
 use ElasticExportRakutenDE\Api\Client;
 use ElasticExportRakutenDE\DataProvider\ElasticSearchDataProvider;
 use ElasticExportRakutenDE\Helper\AttributeHelper;
-use ElasticExportRakutenDE\Helper\ItemUpdatePriceHelper;
+use ElasticExportRakutenDE\Helper\PriceHelper;
 use ElasticExportRakutenDE\Helper\SkuHelper;
 use Exception;
 use Illuminate\Support\Collection;
@@ -54,7 +54,7 @@ class ItemUpdateService
 	private $credentialsRepositoryContract;
 
 	/**
-	 * @var ItemUpdatePriceHelper
+	 * @var PriceHelper
 	 */
 	private $priceHelper;
 
@@ -131,7 +131,7 @@ class ItemUpdateService
      * ItemUpdateService constructor.
      *
      * @param ElasticSearchDataProvider $elasticSearchDataProvider
-     * @param ItemUpdatePriceHelper $priceHelper
+     * @param PriceHelper $priceHelper
      * @param Client $client
      * @param CredentialsRepositoryContract $credentialsRepositoryContract
      * @param ExportRepositoryContract $exportRepositoryContract
@@ -142,7 +142,7 @@ class ItemUpdateService
      */
 	public function __construct(
 		ElasticSearchDataProvider $elasticSearchDataProvider,
-		ItemUpdatePriceHelper $priceHelper,
+		PriceHelper $priceHelper,
 		Client $client,
 		CredentialsRepositoryContract $credentialsRepositoryContract,
 		ExportRepositoryContract $exportRepositoryContract,
