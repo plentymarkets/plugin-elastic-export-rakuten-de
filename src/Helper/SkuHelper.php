@@ -62,7 +62,7 @@ class SkuHelper
 
         if(count($this->statusStack)) {
             foreach($this->statusStack as $status => $ids) {
-                $this->variationSkuBulkRepository->updateStatus($this->statusStack, $status);
+                $this->variationSkuBulkRepository->updateStatus($ids, $status);
                 $this->statusStack = [];
             }
         }
@@ -84,12 +84,12 @@ class SkuHelper
      */
     public function updateStatus(int $id, string $status)
     {
-        $this->statusStack[$status] = $id;
+        $this->statusStack[$status][$id] = $id;
         if(count($this->statusStack) == self::LIMIT) {
             foreach($this->statusStack as $status => $ids) {
-                $this->variationSkuBulkRepository->updateStatus($this->statusStack, $status);
+                $this->variationSkuBulkRepository->updateStatus($ids, $status);
             }
-            $this->createStack = [];
+            $this->statusStack = [];
         }
     }
 
@@ -98,7 +98,7 @@ class SkuHelper
      */
     public function updateExportedAt(int $id)
     {
-        $this->exportedAtStack[] = $id;
+        $this->exportedAtStack[$id] = $id;
         if(count($this->exportedAtStack) == self::LIMIT) {
             $this->variationSkuBulkRepository->updateExportedAt($this->exportedAtStack, date('Y-m-d H:i:s'));
             $this->exportedAtStack = [];
@@ -110,7 +110,7 @@ class SkuHelper
      */
     public function updateStockUpdatedAt(int $id)
     {
-        $this->stockUpdatedAtStack[] = $id;
+        $this->stockUpdatedAtStack[$id] = $id;
         if(count($this->stockUpdatedAtStack) == self::LIMIT) {
             $this->variationSkuBulkRepository->updateStockUpdatedAt($this->stockUpdatedAtStack, date('Y-m-d H:i:s'));
             $this->stockUpdatedAtStack = [];
