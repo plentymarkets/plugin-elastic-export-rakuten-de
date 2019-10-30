@@ -24,14 +24,17 @@ class RakutenItemUpdateCron
         try {
             $configRepository = pluginApp(ConfigRepository::class);
 
-            $priceUpdate = $configRepository->get('ElasticExportRakutenDE.update_settings.price_update');
-            $stockUpdate = $configRepository->get('ElasticExportRakutenDE.update_settings.stock_update');
+            $itemUpdateService->exportPrice = (bool)filter_var(
+                $configRepository->get('ElasticExportRakutenDE.update_settings.price_update'), 
+                FILTER_VALIDATE_BOOLEAN
+            );
+            $itemUpdateService->exportStock =  (bool)filter_var(
+                $configRepository->get('ElasticExportRakutenDE.update_settings.stock_update'),
+                FILTER_VALIDATE_BOOLEAN
+            );
 
-            if ($priceUpdate == 'true' || $stockUpdate == 'true') {
-                $itemUpdateService->stockUpdate = $stockUpdate;
-                $itemUpdateService->priceUpdate = $priceUpdate;
-
-                $itemUpdateService->generateContent();
+            if ($itemUpdateService->exportStock || $itemUpdateService->exportPrice) {
+                $itemUpdateService->export();
             }
         }
         catch (EmptyResponseException $exception) {
