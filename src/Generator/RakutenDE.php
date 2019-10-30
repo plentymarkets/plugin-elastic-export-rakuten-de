@@ -501,7 +501,7 @@ class RakutenDE extends CSVPluginGenerator
             'produktname'				=> $this->elasticExportHelper->getMutatedName($item, $settings, 150),
             'hersteller'				=> $this->elasticExportHelper->getExternalManufacturerName((int)$item['data']['item']['manufacturer']['id']),
             'beschreibung'				=> $this->elasticExportHelper->getMutatedDescription($item, $settings, 5000),
-            'variante'					=> isset($this->attributeHelper->getAttributeNames()[$variation['data']['item']['id']]) ? $this->attributeHelper->getAttributeNames()[$variation['data']['item']['id']] : '',
+            'variante'					=> isset($this->attributeHelper->getAttributeNames()[$item['data']['item']['id']]) ? $this->attributeHelper->getAttributeNames()[$item['data']['item']['id']] : '',
             'variantenwert'				=> '',
             'isbn_ean'					=> $this->elasticExportHelper->getBarcodeByType($item, $settings->get('barcode')),
             'lagerbestand'				=> $stockList['stock'],
