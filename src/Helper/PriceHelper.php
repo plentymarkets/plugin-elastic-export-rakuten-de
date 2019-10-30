@@ -113,7 +113,7 @@ class PriceHelper
         $rrpUpdatedTimestamp = '';
         $specialPriceUpdatedTimestamp = '';
         
-        if($this->preload == true) {
+        if ($this->preload == true) {
             $this->preload($settings);
             $this->preload = false;
         }
@@ -205,16 +205,9 @@ class PriceHelper
      */
     private function getPriceByRetailPriceSettings(array $priceData, KeyValue $settings)
     {
-        if(isset($priceData['price']) &&
-            ($settings->get('retailPrice') == self::GROSS_PRICE || is_null($settings->get('retailPrice'))))
-        {
+        if (isset($priceData['price'])) {
             $price = $this->calculatePriceByCurrency($priceData, $priceData['price'], $settings);
             return $price;
-        }
-        elseif(isset($priceData['priceNet']) && $settings->get('retailPrice') == self::NET_PRICE)
-        {
-            $priceNet = $this->calculatePriceByCurrency($priceData, $priceData['priceNet'], $settings);
-            return $priceNet;
         }
 
         return '';
