@@ -8,6 +8,7 @@ use ElasticExport\Helper\ElasticExportCoreHelper;
 use ElasticExport\Helper\ElasticExportItemHelper;
 use ElasticExport\Services\FiltrationService;
 use ElasticExportRakutenDE\ElasticExportRakutenDEServiceProvider;
+use ElasticExportRakutenDE\Helper\AttributeHelper;
 use ElasticExportRakutenDE\Helper\PriceHelper;
 use ElasticExport\Helper\ElasticExportStockHelper;
 use ElasticExportRakutenDE\Helper\SkuHelper;
@@ -91,14 +92,9 @@ class RakutenDE extends CSVPluginGenerator
 	private $configRepository;
 
     /**
-     * @var array
+     * @var AttributeHelper
      */
-    private $attributeName = array();
-
-    /**
-     * @var array
-     */
-    private $attributeNameCombination = array();
+	private $attributeHelper;
 
     /**
      * @var array
@@ -139,6 +135,7 @@ class RakutenDE extends CSVPluginGenerator
      * @param PriceHelper $priceHelper
      * @param VariationSkuRepositoryContract $variationSkuRepository
      * @param ConfigRepository $configRepository
+     * @param AttributeHelper $attributeHelper
      * @param StockHelper $stockHelper
      * @param SkuHelper $skuHelper
      */
@@ -149,6 +146,7 @@ class RakutenDE extends CSVPluginGenerator
 		PriceHelper $priceHelper,
 		VariationSkuRepositoryContract $variationSkuRepository,
 		ConfigRepository $configRepository,
+		AttributeHelper $attributeHelper,
 		StockHelper $stockHelper,
         SkuHelper $skuHelper
     )
@@ -159,6 +157,7 @@ class RakutenDE extends CSVPluginGenerator
         $this->priceHelper = $priceHelper;
 		$this->variationSkuRepository = $variationSkuRepository;
 		$this->configRepository = $configRepository;
+		$this->attributeHelper = $attributeHelper;
 		$this->stockHelper = $stockHelper;
         $this->skuHelper = $skuHelper;
     }
@@ -368,8 +367,8 @@ class RakutenDE extends CSVPluginGenerator
 
                             $variations = array();
                             $variations[] = $variation;
-
-                            $this->clearAttributeCaches();
+                            
+                            $this->attributeHelper->resetAttributeCache();
 
                             $previousItemId = $variation['data']['item']['id'];
                         }
@@ -439,129 +438,23 @@ class RakutenDE extends CSVPluginGenerator
      */
     private function buildRows($settings, $variations)
     {
-    	$potentialParent = null;
-    	$parentWithoutChildren = array();
-
-        if (is_array($variations) && count($variations) > 0)
-        {
-            $primaryVariationKey = null;
+        if (is_array($variations) && count($variations)) {
+            $variations = $this->attributeHelper->getPreparedVariantItem($variations, $settings);
 
             foreach($variations as $key => $variation)
             {
-                /**
-                 * Select and save the attribute name order for the first variation of each item with attributes,
-                 * if the variation has attributes
-                 */
-                if (is_array($variation['data']['attributes']) &&
-                    count($variation['data']['attributes']) > 0 &&
-                    !array_key_exists($variation['data']['item']['id'], $this->attributeName) &&
-                    !array_key_exists($variation['data']['item']['id'], $this->attributeNameCombination))
-                {
-                    $this->attributeName[$variation['data']['item']['id']] = $this->elasticExportHelper->getAttributeName($variation, $settings);
-                    foreach ($variation['data']['attributes'] as $attribute)
-                    {
-                        if(array_key_exists('attributeId', $attribute) && !is_null($attribute['attributeId']))
-                        {
-                            $this->attributeNameCombination[$variation['data']['item']['id']][] = $attribute['attributeId'];
-                        }
+                $attributeValue = $this->attributeHelper->getRakutenAttributeValueString($variation, $settings);
+                
+                if (strlen($attributeValue)) {
+                    if ($key == 0) {
+                        $this->buildParentWithChildrenRow($variation, $settings);
                     }
-                    if(strlen($this->attributeName[$variation['data']['item']['id']]) == 0)
-                    {
-                        unset($this->attributeName[$variation['data']['item']['id']]);
-                    }
-                }
-
-                // note key of primary variation
-                if(array_key_exists('isMain', $variation['data']['variation']) && $variation['data']['variation']['isMain'] === true)
-                {
-                    $primaryVariationKey = $key;
+                    
+                    $this->buildChildRow($variation, $settings, $attributeValue);
+                } else {
+                    $this->buildParentWithoutChildrenRow($variation, $settings);
                 }
             }
-
-            // change sort of array and add primary variation as first entry
-            if(!is_null($primaryVariationKey))
-            {
-                $primaryVariation = $variations[$primaryVariationKey];
-                unset($variations[$primaryVariationKey]);
-                array_unshift($variations, $primaryVariation);
-            }
-
-            $i = 1;
-
-            foreach($variations as $key => $variation)
-            {
-                /**
-                 * gets the attribute value name of each attribute value which is linked with the variation in a specific order,
-                 * which depends on the $attributeNameCombination
-                 */
-                $attributeValue = $this->elasticExportHelper->getAttributeValueSetShortFrontendName($variation, $settings, '|', $this->attributeNameCombination[$variation['data']['item']['id']], '/');
-
-
-                if(!is_null($potentialParent) && strlen($attributeValue))
-                {
-					$this->buildParentWithChildrenRow($potentialParent, $settings, $this->attributeName);
-					$this->buildChildRow($variation, $settings, $attributeValue);
-
-					unset($potentialParent);
-				}
-
-				//isMain can be true or false, this does not matter in this case
-				elseif(strlen($attributeValue) == 0 && count($variations) == 1)
-				{
-					$this->buildParentWithoutChildrenRow($variation, $settings);
-				}
-
-				//isMain can be true or false, this does not matter in this case
-				elseif(count($variations) == 1 && strlen($attributeValue) > 0)
-				{
-					$this->buildParentWithChildrenRow($variation, $settings, $this->attributeName);
-					$this->buildChildRow($variation, $settings, $attributeValue);
-				}
-
-				/**
-				 * only if this is the first iteration
-				 * && count($variations) > 1
-				 * isMain can be true or false, this does not matter in this case
-				 */
-				elseif($i == 1 && strlen($attributeValue) > 0)
-				{
-					$this->buildParentWithChildrenRow($variation, $settings, $this->attributeName);
-					$this->buildChildRow($variation, $settings, $attributeValue);
-				}
-
-				//&& count($variations) > 1
-				elseif($variation['data']['variation']['isMain'] === true && strlen($attributeValue) == 0)
-				{
-					$potentialParent = $variation;
-				}
-
-				//no attributeValue, not Main and count($variations) > 1
-				elseif(strlen($attributeValue) == 0 && $i == 1)
-				{
-					$this->buildParentWithChildrenRow($variation, $settings, $this->attributeName);
-				}
-
-				//count($variations) > 1 && isMain = false
-				elseif(strlen($attributeValue) == 0)
-				{
-					$parentWithoutChildren[] = $variation;
-				}
-
-				else
-				{
-					$this->buildChildRow($variation, $settings, $attributeValue);
-				}
-
-                $i++;
-            }
-
-            if(count($parentWithoutChildren) > 0)
-            {
-            	foreach($parentWithoutChildren as $variation)
-            	{
-					$this->buildParentWithoutChildrenRow($variation, $settings);
-				}
-			}
         }
     }
 
@@ -608,7 +501,7 @@ class RakutenDE extends CSVPluginGenerator
             'produktname'				=> $this->elasticExportHelper->getMutatedName($item, $settings, 150),
             'hersteller'				=> $this->elasticExportHelper->getExternalManufacturerName((int)$item['data']['item']['manufacturer']['id']),
             'beschreibung'				=> $this->elasticExportHelper->getMutatedDescription($item, $settings, 5000),
-            'variante'					=> isset($this->attributeName[$item['data']['item']['id']]) ? $this->attributeName[$item['data']['item']['id']] : '',
+            'variante'					=> isset($this->attributeHelper->getAttributeNames()[$variation['data']['item']['id']]) ? $this->attributeHelper->getAttributeNames()[$variation['data']['item']['id']] : '',
             'variantenwert'				=> '',
             'isbn_ean'					=> $this->elasticExportHelper->getBarcodeByType($item, $settings->get('barcode')),
             'lagerbestand'				=> $stockList['stock'],
@@ -669,10 +562,9 @@ class RakutenDE extends CSVPluginGenerator
     /**
      * @param array $item
      * @param KeyValue $settings
-     * @param array $attributeName
      * @return void
      */
-    private function buildParentWithChildrenRow($item, KeyValue $settings, array $attributeName)
+    private function buildParentWithChildrenRow($item, KeyValue $settings)
     {
 	    $this->parentSku = '';
 
@@ -701,7 +593,7 @@ class RakutenDE extends CSVPluginGenerator
             'produktname'				=> $this->elasticExportHelper->getMutatedName($item, $settings, 150),
             'hersteller'				=> $this->elasticExportHelper->getExternalManufacturerName((int)$item['data']['item']['manufacturer']['id']),
             'beschreibung'				=> $this->elasticExportHelper->getMutatedDescription($item, $settings, 5000),
-            'variante'					=> $attributeName[$item['data']['item']['id']],
+            'variante'					=> $this->attributeHelper->getAttributeNames()[$item['data']['item']['id']],
             'variantenwert'				=> '',
             'isbn_ean'					=> '',
             'lagerbestand'				=> '',
@@ -1146,12 +1038,6 @@ class RakutenDE extends CSVPluginGenerator
 
 		return null;
 	}
-
-    private function clearAttributeCaches()
-    {
-        $this->attributeName = [];
-        $this->attributeNameCombination = [];
-    }
 
     /**
      * Clears cache of helpers which supports the clearCache() function.

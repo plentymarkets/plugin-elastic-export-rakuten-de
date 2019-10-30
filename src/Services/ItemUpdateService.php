@@ -5,6 +5,7 @@ namespace ElasticExportRakutenDE\Services;
 use ElasticExport\Helper\ElasticExportCoreHelper;
 use ElasticExportRakutenDE\Api\Client;
 use ElasticExportRakutenDE\DataProvider\ElasticSearchDataProvider;
+use ElasticExportRakutenDE\Helper\AttributeHelper;
 use ElasticExportRakutenDE\Helper\ItemUpdatePriceHelper;
 use ElasticExportRakutenDE\Helper\PriceHelper;
 use ElasticExportRakutenDE\Helper\SkuHelper;
@@ -18,7 +19,6 @@ use Plenty\Modules\Item\Variation\Services\ExportPreloadValue\ExportPreloadValue
 use Plenty\Modules\Item\VariationSku\Models\VariationSku;
 use Plenty\Modules\Market\Credentials\Contracts\CredentialsRepositoryContract;
 use Plenty\Modules\Market\Credentials\Models\Credentials;
-use Plenty\Modules\Market\Helper\Contracts\MarketAttributeHelperRepositoryContract;
 use Plenty\Plugin\Log\Loggable;
 use Plenty\Repositories\Models\PaginatedResult;
 use Plenty\Modules\Helper\Models\KeyValue;
@@ -70,6 +70,10 @@ class ItemUpdateService
 	 * @var StockHelper
 	 */
 	private $stockHelper;
+    /**
+     * @var AttributeHelper
+     */
+    private $attributeHelper;
 
 	/**
 	 * @var bool
@@ -95,16 +99,6 @@ class ItemUpdateService
 	 * @var string
 	 */
 	public $priceUpdate = '';
-
-	/**
-	 * @var array
-	 */
-	private $attributeName = array();
-
-	/**
-	 * @var array
-	 */
-	private $attributeNameCombination = array();
 
 	/**
 	 * @var array
@@ -142,13 +136,13 @@ class ItemUpdateService
     /**
      * ItemUpdateService constructor.
      *
-     * @param MarketAttributeHelperRepositoryContract $marketAttributeHelperRepositoryContract
      * @param ElasticSearchDataProvider $elasticSearchDataProvider
      * @param ItemUpdatePriceHelper $priceHelper
      * @param Client $client
      * @param CredentialsRepositoryContract $credentialsRepositoryContract
      * @param ExportRepositoryContract $exportRepositoryContract
      * @param StockHelper $stockHelper
+     * @param AttributeHelper $attributeHelper
      * @param SkuHelper $skuHelper
      */
 	public function __construct(
@@ -159,6 +153,7 @@ class ItemUpdateService
 		CredentialsRepositoryContract $credentialsRepositoryContract,
 		ExportRepositoryContract $exportRepositoryContract,
 		StockHelper $stockHelper,
+		AttributeHelper $attributeHelper,
         SkuHelper $skuHelper,
         VariationExportServiceContract $variationExportServiceContract)
 	{
@@ -169,6 +164,7 @@ class ItemUpdateService
 		$this->priceHelper = $priceHelper;
 		$this->exportRepositoryContract = $exportRepositoryContract;
 		$this->stockHelper = $stockHelper;
+		$this->attributeHelper = $attributeHelper;
         $this->skuHelper = $skuHelper;
         $this->variationExportService = $variationExportServiceContract;
     }
@@ -531,150 +527,30 @@ class ItemUpdateService
 
 	/**
 	 * @param array $variations
-	 * @param KeyValue|null $settings
+	 * @param KeyValue $settings
 	 * @return void
-     * @throws \Exception
+     * @throws Exception
 	 */
-	private function parentChildSorting($variations, $settings = null)
+	private function exportItem(array $variations, KeyValue $settings)
 	{
-		$potentialParent = null;
-		$parentWithoutChildren = array();
-
 		if (is_array($variations) && count($variations) > 0)
 		{
-			$primaryVariationKey = null;
-
-			foreach($variations as $key => $variation)
-			{
-				/**
-				 * Select and save the attribute name order for the first variation of each item with attributes,
-				 * if the variation has attributes
-				 */
-				if (is_array($variation['data']['attributes']) &&
-					count($variation['data']['attributes']) > 0 &&
-					!array_key_exists($variation['data']['item']['id'], $this->attributeName) &&
-					!array_key_exists($variation['data']['item']['id'], $this->attributeNameCombination))
-				{
-					$this->attributeName[$variation['data']['item']['id']] = $this->elasticExportHelper->getAttributeName($variation, $settings);
-					foreach ($variation['data']['attributes'] as $attribute)
-					{
-						if(array_key_exists('attributeId', $attribute) && !is_null($attribute['attributeId']))
-						{
-							$this->attributeNameCombination[$variation['data']['item']['id']][] = $attribute['attributeId'];
-						}
-					}
-					if(strlen($this->attributeName[$variation['data']['item']['id']]) == 0)
-					{
-						unset($this->attributeName[$variation['data']['item']['id']]);
-					}
-				}
-
-				// note key of primary variation
-				if(array_key_exists('isMain', $variation['data']['variation']) && $variation['data']['variation']['isMain'] === true)
-				{
-					$primaryVariationKey = $key;
-				}
-			}
-
-			// change sort of array and add primary variation as first entry
-			if(!is_null($primaryVariationKey))
-			{
-				$primaryVariation = $variations[$primaryVariationKey];
-				unset($variations[$primaryVariationKey]);
-				array_unshift($variations, $primaryVariation);
-			}
-
-			$i = 1;
-
-			foreach($variations as $key => $variation)
-			{
+            $variations = $this->attributeHelper->getPreparedVariantItem($variations, $settings);
+            
+			foreach ($variations as $key => $variation) {
 				/**
 				 * gets the attribute value name of each attribute value which is linked with the variation in a specific order,
 				 * which depends on the $attributeNameCombination
 				 */
-				$attributeValue = $this->elasticExportHelper->getAttributeValueSetShortFrontendName($variation, $settings, '|', $this->attributeNameCombination[$variation['data']['item']['id']]);
+				$attributeValue = $this->attributeHelper->getRakutenAttributeValueString($variation, $settings);
 
-				if(!is_null($potentialParent) && strlen($attributeValue) && count($variations) == 2)
-				{
-					$itemLevel = Client::EDIT_PRODUCT_VARIANT;
-					$this->sendRequest($variation, $itemLevel, $settings);
+				if (strlen($attributeValue)) {
+                    $itemLevel = Client::EDIT_PRODUCT_MULTI_VARIANT;
+                } else {
+				    $itemLevel = Client::EDIT_PRODUCT;
+                }
 
-					unset($potentialParent);
-				}
-
-				if(!is_null($potentialParent) && strlen($attributeValue) && count($variations) > 2)
-				{
-					$itemLevel = Client::EDIT_PRODUCT_MULTI_VARIANT;
-					$this->sendRequest($variation, $itemLevel, $settings);
-
-					unset($potentialParent);
-				}
-
-				//isMain can be true or false, this does not matter in this case
-				elseif(strlen($attributeValue) == 0 && count($variations) == 1)
-				{
-					$itemLevel = Client::EDIT_PRODUCT;
-					$this->sendRequest($variation, $itemLevel, $settings);
-				}
-
-				//isMain can be true or false, this does not matter in this case
-				elseif(count($variations) == 1 && strlen($attributeValue) > 0)
-				{
-					$itemLevel = Client::EDIT_PRODUCT_VARIANT;
-					$this->sendRequest($variation, $itemLevel, $settings);
-				}
-
-				/**
-				 * only if this is the first iteration
-				 * && count($variations) > 1
-				 * isMain can be true or false, this does not matter in this case
-				 */
-				elseif($i == 1 && strlen($attributeValue) > 0)
-				{
-					$itemLevel = Client::EDIT_PRODUCT_MULTI_VARIANT;
-					$this->sendRequest($variation, $itemLevel, $settings);
-				}
-
-				//&& count($variations) > 1
-				elseif($variation['data']['variation']['isMain'] === true && strlen($attributeValue) == 0)
-				{
-					$potentialParent = $variation;
-				}
-
-				//no attributeValue, not Main and count($variations) > 1
-				elseif(strlen($attributeValue) == 0 && $i == 1)
-				{
-					continue;
-				}
-
-				//count($variations) > 1 && isMain = false
-				elseif(strlen($attributeValue) == 0)
-				{
-					$parentWithoutChildren[] = $variation;
-				}
-
-				elseif(strlen($attributeValue) > 0 && count($variations) > 2)
-				{
-					$itemLevel = Client::EDIT_PRODUCT_MULTI_VARIANT;
-					$this->sendRequest($variation, $itemLevel, $settings);
-				}
-
-				else
-				{
-					$itemLevel = Client::EDIT_PRODUCT_VARIANT;
-					$this->sendRequest($variation, $itemLevel, $settings);
-				}
-
-				$i++;
-			}
-
-			if(count($parentWithoutChildren) > 0)
-			{
-				foreach($parentWithoutChildren as $variation)
-				{
-					$itemLevel = Client::EDIT_PRODUCT;
-					$this->sendRequest($variation, $itemLevel, $settings);
-				}
+                $this->sendRequest($variation, $itemLevel, $settings);
 			}
 		}
 	}
