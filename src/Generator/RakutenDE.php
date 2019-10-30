@@ -177,7 +177,7 @@ class RakutenDE extends CSVPluginGenerator
         $settings = $this->arrayHelper->buildMapFromObjectList($formatSettings, 'key', 'value');
 		$this->filtrationService = pluginApp(FiltrationService::class, ['settings' => $settings, 'filterSettings' => $filter]);
 
-		$this->stockHelper->setAdditionalStockInformation($settings);
+		$this->elasticExportStockHelper->setAdditionalStockInformation($settings);
 
         $this->setDelimiter(";");
 

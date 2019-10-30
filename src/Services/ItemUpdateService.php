@@ -3,13 +3,13 @@
 namespace ElasticExportRakutenDE\Services;
 
 use ElasticExport\Helper\ElasticExportCoreHelper;
+use ElasticExport\Helper\ElasticExportStockHelper;
 use ElasticExportRakutenDE\Api\Client;
 use ElasticExportRakutenDE\DataProvider\ElasticSearchDataProvider;
 use ElasticExportRakutenDE\Helper\AttributeHelper;
 use ElasticExportRakutenDE\Helper\ItemUpdatePriceHelper;
 use ElasticExportRakutenDE\Helper\PriceHelper;
 use ElasticExportRakutenDE\Helper\SkuHelper;
-use ElasticExportRakutenDE\Helper\StockHelper;
 use Plenty\Modules\DataExchange\Contracts\ExportRepositoryContract;
 use Plenty\Modules\DataExchange\Models\Export;
 use Plenty\Modules\Helper\Services\ArrayHelper;
@@ -66,16 +66,17 @@ class ItemUpdateService
 	 */
 	private $exportRepositoryContract;
 
-	/**
-	 * @var StockHelper
-	 */
-	private $stockHelper;
     /**
      * @var AttributeHelper
      */
     private $attributeHelper;
 
-	/**
+    /**
+     * @var ElasticExportStockHelper
+     */
+    private $elasticExportStockHelper;
+    
+    /**
 	 * @var bool
 	 */
 	private $transferData = false;
@@ -141,8 +142,8 @@ class ItemUpdateService
      * @param Client $client
      * @param CredentialsRepositoryContract $credentialsRepositoryContract
      * @param ExportRepositoryContract $exportRepositoryContract
-     * @param StockHelper $stockHelper
      * @param AttributeHelper $attributeHelper
+     * @param ElasticExportStockHelper $elasticExportStockHelper
      * @param SkuHelper $skuHelper
      */
 	public function __construct(
@@ -152,8 +153,8 @@ class ItemUpdateService
 		Client $client,
 		CredentialsRepositoryContract $credentialsRepositoryContract,
 		ExportRepositoryContract $exportRepositoryContract,
-		StockHelper $stockHelper,
 		AttributeHelper $attributeHelper,
+        ElasticExportStockHelper $elasticExportStockHelper,
         SkuHelper $skuHelper,
         VariationExportServiceContract $variationExportServiceContract)
 	{
@@ -163,7 +164,7 @@ class ItemUpdateService
 		$this->credentialsRepositoryContract = $credentialsRepositoryContract;
 		$this->priceHelper = $priceHelper;
 		$this->exportRepositoryContract = $exportRepositoryContract;
-		$this->stockHelper = $stockHelper;
+		$this->elasticExportStockHelper = $elasticExportStockHelper;
 		$this->attributeHelper = $attributeHelper;
         $this->skuHelper = $skuHelper;
         $this->variationExportService = $variationExportServiceContract;
