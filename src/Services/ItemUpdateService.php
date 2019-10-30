@@ -108,12 +108,6 @@ class ItemUpdateService
 
     /** @var bool */
 	public $exportPrice = false;
-
-    /** @var array */
-	private $variationContentBatch = [];
-
-    /** @var array */
-    private $variationStateBatch = [];
 	
 	/**
 	 * @var array
@@ -561,24 +555,22 @@ class ItemUpdateService
             $stockList = $this->elasticExportStockHelper->getStockByPreloadedValue($variation, $data);
 
             //stock update is not necessary
-            if (!isset($stockList['updatedAt']) || (int)$stockList['updatedAt'] < $lastStockUpdateTimestamp) {
-                return [];
-            }
-            
-            if (is_array($stockList) && count($stockList)) {
-                $content['stock'] = $stockList['stock'] > 0 ? $stockList['stock'] : 0;
+            if (!$this->isStockUpdateNecessary($stockList, $lastStockUpdateTimestamp)) {
+                if (is_array($stockList) && count($stockList)) {
+                    $content['stock'] = $stockList['stock'] > 0 ? $stockList['stock'] : 0;
 
-                if ($stockList['stock'] > 0) {
-                    $content['available'] = 1;
-                } else {
-                    $content['available'] = 0;
-                }
-
-                if ($endPoint == Client::EDIT_PRODUCT) {
-                    if ($stockList['inventoryManagementActive'] == 1) {
-                        $content['stock_policy'] = 1;
+                    if ($stockList['stock'] > 0) {
+                        $content['available'] = 1;
                     } else {
-                        $content['stock_policy'] = 0;
+                        $content['available'] = 0;
+                    }
+
+                    if ($endPoint == Client::EDIT_PRODUCT) {
+                        if ($stockList['inventoryManagementActive'] == 1) {
+                            $content['stock_policy'] = 1;
+                        } else {
+                            $content['stock_policy'] = 0;
+                        }
                     }
                 }
             }
@@ -597,6 +589,26 @@ class ItemUpdateService
     }
 
     /**
+     * @param array $stockList
+     * @param int $lastStockUpdateTimestamp
+     * @return bool
+     */
+    private function isStockUpdateNecessary(array $stockList, int $lastStockUpdateTimestamp):bool
+    {
+        if (isset($stockList['updatedAt']) && strlen($stockList['updatedAt'])) {
+            if (strtotime($stockList['updatedAt']) > $lastStockUpdateTimestamp) {
+                return true;
+            }
+        } else {
+            if ($stockList['inventoryManagementActive'] != 1) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    /**
      * @param array $content
      * @param array $variation
      * @param KeyValue $settings
@@ -612,43 +624,45 @@ class ItemUpdateService
         } else {
             $priceList = [];
         }
-
         //price update is not necessary
-        if (!isset($priceList['variationPriceUpdatedTimestamp']) ||
-            (int)strtotime($priceList['variationPriceUpdatedTimestamp']) < $lastStockUpdateTimestamp)
-        {
-            return [];
-        }
-        
-        if (isset($priceList['price']) && $priceList['price'] > 0) {
-            $price = number_format((float)$priceList['price'], 2, '.', '');
-            $priceUpdateTime = strtotime($priceList['variationPriceUpdatedTimestamp']);
-
-            if(!is_null($priceUpdateTime) &&
-                ($priceUpdateTime > $lastStockUpdateTimestamp ||
-                    is_null($variation['data']['skus'][0]['stockUpdatedAt']))) {
-                $this->transferData = true;
-                $content['price'] = $price;
+        if ($this->isPriceUpdateNecessary($priceList, $lastStockUpdateTimestamp)) {
+            if (isset($priceList['price']) && $priceList['price'] > 0) {
+                $content['price'] = number_format((float)$priceList['price'], 2, '.', '');
             }
-        }
-        
-        if (isset($priceList['reducedPrice']) && $priceList['reducedPrice'] > 0) {
-            $reducedPrice = number_format((float)$priceList['reducedPrice'], 2, '.', '');
-            $reducedPriceUpdateTime = strtotime($priceList['reducedPriceUpdatedTimestamp']);
-            $referenceReducedPrice = $priceList['referenceReducedPrice'];
 
-            if (!is_null($reducedPriceUpdateTime) &&
-                ($reducedPriceUpdateTime > $lastStockUpdateTimestamp ||
-                    is_null($variation['data']['skus'][0]['stockUpdatedAt'])) &&
-                $reducedPrice < $priceList['price']) {
-
-                $this->transferData = true;
-                $content['price_reduced'] = $reducedPrice;
-                $content['price_reduced_type'] = $referenceReducedPrice;
+            if (isset($priceList['reducedPrice']) && $priceList['reducedPrice'] > 0) {
+                $content['price_reduced'] = number_format((float)$priceList['reducedPrice'], 2, '.', '');
+                $content['price_reduced_type'] = $priceList['referenceReducedPrice'];
             }
         }
         
         return $content;
+    }
+
+    /**
+     * @param array $priceList
+     * @param int $lastStockUpdateTimestamp
+     * @return bool
+     */
+    private function isPriceUpdateNecessary(array $priceList, int $lastStockUpdateTimestamp):bool
+    {
+        if (isset($priceList['variationPriceUpdatedTimestamp']) &&
+            $priceList['variationPriceUpdatedTimestamp'] > $lastStockUpdateTimestamp)
+        {
+            return true;
+        }
+
+        if (isset($priceList['reducedPrice']) && strlen($priceList['reducedPrice']) &&
+            isset($priceList['referenceReducedPrice']) && strlen($priceList['referenceReducedPrice']) )
+        {
+            if (isset($priceList['reducedPriceUpdatedTimestamp']) &&
+                strtotime($priceList['reducedPriceUpdatedTimestamp']) > $lastStockUpdateTimestamp)
+            {
+                return true;
+            }
+        }
+        
+        return false;
     }
 
 	/**

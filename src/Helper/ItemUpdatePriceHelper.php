@@ -141,7 +141,7 @@ class ItemUpdatePriceHelper
         {
             $specialPrice = $this->priceDetectionService->getPriceByPreloadList($preloadedPrices, PriceDetectionService::SPECIAL_PRICE);
             $variationSpecialPrice = $this->getPriceByRetailPriceSettings($specialPrice, $settings);
-            $specialPriceUpdatedTimestamp = $specialPrice['updatedAt'];
+            $specialPriceUpdatedTimestamp = isset($specialPrice['updatedAt']) ? $specialPrice['updatedAt'] : 0;
         }
         else
         {
