@@ -8,7 +8,7 @@ use ElasticExportRakutenDE\Api\Client;
 use ElasticExportRakutenDE\DataProvider\ElasticSearchDataProvider;
 use ElasticExportRakutenDE\Helper\AttributeHelper;
 use ElasticExportRakutenDE\Helper\PriceHelper;
-use ElasticExportRakutenDE\Helper\SkuHelper;
+use ElasticExport\Helper\ElasticExportSkuHelper;
 use Exception;
 use Illuminate\Support\Collection;
 use Plenty\Modules\DataExchange\Contracts\ExportRepositoryContract;
@@ -118,9 +118,9 @@ class ItemUpdateService
 	];
 	
     /**
-     * @var SkuHelper
+     * @var ElasticExportSkuHelper
      */
-    private $skuHelper;
+    private $elasticExportSkuHelper;
 
     /**
      * @var VariationExportServiceContract
@@ -137,7 +137,7 @@ class ItemUpdateService
      * @param ExportRepositoryContract $exportRepositoryContract
      * @param AttributeHelper $attributeHelper
      * @param ElasticExportStockHelper $elasticExportStockHelper
-     * @param SkuHelper $skuHelper
+     * @param ElasticExportSkuHelper $elasticExportSkuHelper
      * @param VariationExportServiceContract $variationExportServiceContract
      */
 	public function __construct(
@@ -148,7 +148,7 @@ class ItemUpdateService
 		ExportRepositoryContract $exportRepositoryContract,
 		AttributeHelper $attributeHelper,
         ElasticExportStockHelper $elasticExportStockHelper,
-        SkuHelper $skuHelper,
+        ElasticExportSkuHelper $elasticExportSkuHelper,
         VariationExportServiceContract $variationExportServiceContract)
 	{
 		$this->elasticSearchDataProvider = $elasticSearchDataProvider;
@@ -158,7 +158,7 @@ class ItemUpdateService
 		$this->exportRepositoryContract = $exportRepositoryContract;
 		$this->elasticExportStockHelper = $elasticExportStockHelper;
 		$this->attributeHelper = $attributeHelper;
-        $this->skuHelper = $skuHelper;
+        $this->elasticExportSkuHelper = $elasticExportSkuHelper;
         $this->variationExportService = $variationExportServiceContract;
     }
 
@@ -249,7 +249,7 @@ class ItemUpdateService
                 $this->exportItem($itemVariations, $accountData[self::KEY_ELASTIC_EXPORT_SETTINGS]);
             }
             
-            $this->skuHelper->finish();
+            $this->elasticExportSkuHelper->finish();
             $this->client->writeLogs();
             // Reset internal price helper info that these info can be preloaded again by the next exports settings.
             $this->priceHelper->reset();
@@ -582,7 +582,9 @@ class ItemUpdateService
                 $content['stock_policy'] = 1;
             }
 
-            $this->skuHelper->updateStatus((int)$variation['data']['skus'][0]['id'], VariationSku::MARKET_STATUS_INACTIVE);
+            $this->elasticExportSkuHelper->updateStatus(
+                (int)$variation['data']['skus'][0]['id'], VariationSku::MARKET_STATUS_INACTIVE
+            );
         }
         
         return $content;
@@ -720,10 +722,12 @@ class ItemUpdateService
 			$response = $this->client->call($endPoint, Client::POST, $content);
 			if ($response instanceof \SimpleXMLElement) {
 				if ($response->{'success'} == "1") {
-				    $this->skuHelper->updateStockUpdatedAt($variation['data']['skus'][0]['id']);
+				    $this->elasticExportSkuHelper->updateStockUpdatedAt($variation['data']['skus'][0]['id']);
                 //will only be set if the variation was not found at rakuten.
 				} elseif (in_array($response->{'errors'}->error->code, $this->notFoundErrorCodes)) {
-                    $this->skuHelper->updateStatus($variation['data']['skus'][0]['id'], VariationSku::MARKET_STATUS_INACTIVE);
+                    $this->elasticExportSkuHelper->updateStatus(
+                        $variation['data']['skus'][0]['id'], VariationSku::MARKET_STATUS_INACTIVE
+                    );
 				}
 			}
 		}
