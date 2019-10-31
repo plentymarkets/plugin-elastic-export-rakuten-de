@@ -3,7 +3,6 @@
 namespace ElasticExportRakutenDE;
 
 use ElasticExportRakutenDE\Crons\RakutenItemUpdateCron;
-use ElasticExportRakutenDE\Helper\SkuHelper;
 use ElasticExportRakutenDE\Validators\GeneratorValidator;
 use Plenty\Modules\Cron\Services\CronContainer;
 use Plenty\Modules\DataExchange\Services\ExportPresetContainer;
@@ -21,7 +20,6 @@ class ElasticExportRakutenDEServiceProvider extends ServiceProvider
     public function register()
     {
         $this->getApplication()->singleton(GeneratorValidator::class);
-        $this->getApplication()->singleton(SkuHelper::class);
     }
 
 	/**

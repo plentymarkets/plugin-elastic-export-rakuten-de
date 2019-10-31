@@ -54,7 +54,7 @@ The following table lists details for settings, format settings and recommended 
 | **Stock for variations without stock limitation**     | The stock for variations without stock limitation.|
 | **Stock for variations without stock administration** | The stock for variations without stock administration. |
 | **Live currency conversion**                          | Activate this option to convert the price into the currency of the selected country of delivery. The price has to be released for the corresponding currency. |
-| **Retail price**                                      | Select the gross price or net price from the drop-down list. |
+| **Retail price**                                      | This option does not affect this format. The gross price is exported every time. |
 | **Offer price**                                       | Activate to transfer the offer price. |
 | **RRP**                                               | Activate to transfer the RRP. |
 | **Shipping costs**                                    | This option does not affect this format. |
