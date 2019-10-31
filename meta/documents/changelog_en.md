@@ -3,8 +3,8 @@
 ## v1.3.27 (2019-10-31)
 
 ### Changed
-- The price and stock update got a performance upgrades.
-**Attention!** This version requires the plugin Elastic Export version 1.6.3 or higher.
+- The price and stock update got a performance upgrade.
+**Attention!** This version requires the Elastic Export plugin version 1.6.3 or higher.
 
 ## v1.3.26 (2019-10-08)
 
