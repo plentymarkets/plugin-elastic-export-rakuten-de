@@ -223,7 +223,7 @@ class PriceHelper
      */
     private function calculatePriceByCurrency(array $priceData, $price, KeyValue $settings)
     {
-        if((bool)$settings->get('liveConversion') == true && count($this->currencyConversionList) > 0 && $price > 0) {
+        if ($settings->get('liveConversion', false) == true && count($this->currencyConversionList) > 0 && $price > 0) {
             if (array_key_exists($priceData['salesPriceId'],
                     $this->salesPriceCurrencyList) && $this->salesPriceCurrencyList[$priceData['salesPriceId']] === true) 
             {

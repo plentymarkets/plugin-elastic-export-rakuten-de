@@ -49,18 +49,18 @@ class AttributeHelper
      */
     public function getPreparedVariantItem(array $variations, KeyValue $settings):array
     {
-        $attributesBuild = false;
+        $attributesBuilt = false;
 
         foreach($variations as $key => $variation) {
-            if ($attributesBuild === false) {
-                $attributesBuild = $this->buildRakutenAttributeData($variation, $settings);
+            if ($attributesBuilt === false) {
+                $attributesBuilt = $this->buildRakutenAttributeData($variation, $settings);
             } else {
                 break;
             }
         }
 
         // remove main variations without attributes because they are not to be exported
-        if ($attributesBuild === true) {
+        if ($attributesBuilt === true) {
             $variations = $this->removeMainVariationsWithoutAttributes($variations);
         }
 
