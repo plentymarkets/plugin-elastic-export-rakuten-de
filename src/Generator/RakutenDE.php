@@ -285,7 +285,13 @@ class RakutenDE extends CSVPluginGenerator
 
                 if(is_array($resultList['documents']) && count($resultList['documents']) > 0)
                 {
-                    $this->elasticExportStockHelper->preloadStockAndPrice($resultList['documents']);
+                    if (count($variations)) {
+                        $preloadingDocuments = array_merge($variations, $resultList['documents']);
+                        $this->elasticExportStockHelper->preloadStockAndPrice($preloadingDocuments);
+                        unset($preloadingDocuments);
+                    } else {
+                        $this->elasticExportStockHelper->preloadStockAndPrice($resultList['documents']);
+                    }
                     
                     foreach($resultList['documents'] as $variation)
                     {

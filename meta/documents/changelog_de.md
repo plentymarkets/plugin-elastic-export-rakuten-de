@@ -1,5 +1,10 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## v1.3.28 (2019-11-15)
+
+### Behoben
+- Der letzte Artikel in jedem verarbeiteten ES-Stapel wird nicht mehr entfernt oder ohne Preis und Bestand exportiert.
+
 ## v1.3.27 (2019-10-31)
 
 ### Geändert
