@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.3.28 (2019-11-15)
+
+### Fixed
+- The last item in every processed ES-Stack is no longer removed or exported without price and stock.
+
 ## v1.3.27 (2019-10-31)
 
 ### Changed
