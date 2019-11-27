@@ -3,7 +3,7 @@
 ## v1.3.29 (2019-11-27)
 
 ### Behoben
-- Die Spalte "energie_klassen_gruppe" wird bei Varianten-Artikeln nur noch in den Eltern-Zeile und nicht mehr in den Kind-Zeilen übertragen.
+- Die Spalte "energie_klassen_gruppe" wird bei Varianten-Artikeln nur noch in den Eltern-Zeilen und nicht mehr in den Kind-Zeilen übertragen.
 
 ## v1.3.28 (2019-11-15)
 
