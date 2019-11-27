@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.3.29 (2019-11-27)
+
+### Fixed
+- The column "energie_klassen_gruppe" for items with variants will now only be exported in the parent rows and not in the child rows.
+
 ## v1.3.28 (2019-11-15)
 
 ### Fixed
