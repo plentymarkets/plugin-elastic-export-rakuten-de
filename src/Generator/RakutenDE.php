@@ -1082,18 +1082,15 @@ class RakutenDE extends CSVPluginGenerator
      */
     private function getVatClassId(string $vatValue):int
     {
-        $vat = $vatValue;
-
-        if ($vat == '10.70') {
-            $vat = 4;
-        } elseif($vat == '7.00') {
-            $vat = 2;
-        } elseif($vat == '0.00') {
-            $vat = 3;
-        } else {
-            $vat = 1;
+        switch ($vatValue) {
+            case '10.70':
+                return 4;
+            case '7.00':
+                return 2;
+            case '0.00':
+                return 3;
+            default:
+                return 1;
         }
-
-        return $vat;
     }
 }
