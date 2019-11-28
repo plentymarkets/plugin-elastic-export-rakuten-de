@@ -1,5 +1,10 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## v1.3.30 (2019-11-28)
+
+### Fixed
+- Die Mehrwertsteuerklasse wurde immer mit der ID 1 exportiert, was 19% auf Rakuten.de entspricht.
+
 ## v1.3.29 (2019-11-27)
 
 ### Behoben

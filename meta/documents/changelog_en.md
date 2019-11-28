@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.3.30 (2019-11-28)
+
+### Fixed
+- The VAT class was always exported with id 1 which is equivalent to 19% on Rakuten.de.
+
 ## v1.3.29 (2019-11-27)
 
 ### Fixed

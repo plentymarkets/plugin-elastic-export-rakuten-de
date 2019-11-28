@@ -12,7 +12,11 @@ use ElasticExportRakutenDE\Helper\AttributeHelper;
 use ElasticExportRakutenDE\Helper\PriceHelper;
 use ElasticExport\Helper\ElasticExportStockHelper;
 use ElasticExportRakutenDE\Validators\GeneratorValidator;
+use Illuminate\Support\Collection;
 use Plenty\Legacy\Repositories\Item\SalesPrice\SalesPriceSearchRepository;
+use Plenty\Modules\Accounting\Vat\Contracts\VatRepositoryContract;
+use Plenty\Modules\Accounting\Vat\Models\Vat;
+use Plenty\Modules\Accounting\Vat\Models\VatRate;
 use Plenty\Modules\DataExchange\Contracts\CSVPluginGenerator;
 use Plenty\Modules\Helper\Services\ArrayHelper;
 use Plenty\Modules\Helper\Models\KeyValue;
@@ -89,6 +93,8 @@ class RakutenDE extends CSVPluginGenerator
      * @var VariationExportServiceContract
      */
 	private $variationExportService;
+    
+    private $vatCache = [];
 	
 	/**
 	 * @var ConfigRepository
@@ -166,6 +172,9 @@ class RakutenDE extends CSVPluginGenerator
         $this->elasticExportCategoryHelper = pluginApp(ElasticExportCategoryHelper::class);
 
         $settings = $this->arrayHelper->buildMapFromObjectList($formatSettings, 'key', 'value');
+
+        $this->preloadVatCache((int)$settings->get('plentyId'));
+        
 		$this->filtrationService = pluginApp(FiltrationService::class, ['settings' => $settings, 'filterSettings' => $filter]);
 
 		$this->elasticExportStockHelper->setAdditionalStockInformation($settings);
@@ -479,8 +488,6 @@ class RakutenDE extends CSVPluginGenerator
 		    return;
 	    }
 
-        $vat = $this->getVatClassId($priceList['vatValue']);
-
         $stockList = $this->getStockList($item);
 
         $basePriceComponentList = $this->getBasePriceComponentList($item);
@@ -506,7 +513,7 @@ class RakutenDE extends CSVPluginGenerator
             'reduzierter_preis'			=> $priceList['reducedPrice'] > 0 ?
                 number_format((float)$priceList['reducedPrice'], 2, '.', '') : '',
             'bezug_reduzierter_preis'	=> $priceList['referenceReducedPrice'],
-            'mwst_klasse'				=> $vat,
+            'mwst_klasse'				=> $this->vatCache[$item['data']['variation']['vatId']],
             'bestandsverwaltung_aktiv'	=> $stockList['inventoryManagementActive'],
             'bild1'						=> $this->getImageByPosition($item, $settings, 0),
             'bild2'						=> $this->getImageByPosition($item, $settings, 1),
@@ -570,11 +577,7 @@ class RakutenDE extends CSVPluginGenerator
 	    }
 
 	    $this->parentSku = $skuData->parentSku;
-
-        $priceList = $this->getPriceList($item, $settings);
-
-        $vat = $this->getVatClassId($priceList['vatValue']);
-
+        
         $stockList = $this->getStockList($item);
 
 		$categories = $this->getCategories($item, $settings);
@@ -596,7 +599,7 @@ class RakutenDE extends CSVPluginGenerator
             'grundpreis_einheit'		=> '',
             'reduzierter_preis'			=> '',
             'bezug_reduzierter_preis'	=> '',
-            'mwst_klasse'				=> $vat,
+            'mwst_klasse'				=> $this->vatCache[$item['data']['variation']['vatId']],
             'bestandsverwaltung_aktiv'	=> $stockList['inventoryManagementActive'],
             'bild1'						=> $this->getImageByPosition($item, $settings, 0),
             'bild2'						=> $this->getImageByPosition($item, $settings, 1),
@@ -830,36 +833,6 @@ class RakutenDE extends CSVPluginGenerator
     }
 
     /**
-     * Get id for vat
-     * @param int $vatValue
-     * @return int
-     */
-    private function getVatClassId($vatValue):int
-    {
-        $vat = $vatValue;
-
-        if($vat == '10,7')
-        {
-            $vat = 4;
-        }
-        else if($vat == '7')
-        {
-            $vat = 2;
-        }
-        else if($vat == '0')
-        {
-            $vat = 3;
-        }
-        else
-        {
-            //bei anderen Steuersaetzen immer 19% nehmen
-            $vat = 1;
-        }
-
-        return $vat;
-    }
-
-    /**
      * Get item characters that match referrer from settings and a given component id.
      * @param  array    $item
      * @param  float    $marketId
@@ -1074,5 +1047,53 @@ class RakutenDE extends CSVPluginGenerator
     {
         $this->elasticExportCategoryHelper->clearCache();
         $this->elasticExportItemHelper->clearCache();
+    }
+    
+    private function preloadVatCache(int $plentyId)
+    {
+        /** @var VatRepositoryContract $vatRepo */
+        $vatRepo = pluginApp(VatRepositoryContract::class);
+        $standardVat = $vatRepo->getStandardVat($plentyId);
+        
+        if ($standardVat instanceof Vat) {
+            $vatRates = $standardVat->vatRates;
+            if ($vatRates instanceof Collection) {
+                foreach ($vatRates as $vatRate) {
+                    $this->vatCache[$vatRate->id] = $this->getVatClassId((string)$vatRate->vatRate);
+                }
+            }
+        }
+        
+        //Fallback
+        if (!count($this->vatCache)) {
+            $this->vatCache = [
+                0 => 1,
+                1 => 2,
+                2 => 3,
+                3 => 3
+            ];
+        }
+    }
+
+    /**
+     * Get id for vat
+     * @param string $vatValue
+     * @return int
+     */
+    private function getVatClassId(string $vatValue):int
+    {
+        $vat = $vatValue;
+
+        if ($vat == '10.70') {
+            $vat = 4;
+        } elseif($vat == '7.00') {
+            $vat = 2;
+        } elseif($vat == '0.00') {
+            $vat = 3;
+        } else {
+            $vat = 1;
+        }
+
+        return $vat;
     }
 }
