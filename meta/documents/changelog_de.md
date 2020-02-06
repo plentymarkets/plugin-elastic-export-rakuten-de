@@ -3,7 +3,7 @@
 ## v1.3.31 (2020-02-03)
 
 ### Geändert
-- Alle von Rakuten unterstützen Mehrwertsteuerklassen werden jetzt mit der richtigen ID exportiert. Korrekt unterstützt werden jetzt auch Mehrwertsteuersätze von 10% / 20% / 13% / 2,1% / 5% / 5,5%
+- Alle von Rakuten unterstützten Mehrwertsteuerklassen werden jetzt mit der richtigen ID exportiert. Korrekt unterstützt werden jetzt auch Mehrwertsteuersätze von 10% / 20% / 13% / 2,1% / 5% / 5,5%.
 
 ## v1.3.30 (2019-11-28)
 
