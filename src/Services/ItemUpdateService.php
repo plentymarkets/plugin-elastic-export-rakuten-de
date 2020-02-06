@@ -498,11 +498,7 @@ class ItemUpdateService
             if (is_array($marketIds)) {
                 foreach($marketIds as $key => $value) {
                     if (strlen($value)) {
-                        if (!strpos($value, '.')) {
-                            $this->marketFilter[] = $value.'.00';
-                        } else {
-                            $this->marketFilter[] = $value;
-                        }
+                        $this->marketFilter[] = (float)$value;
                     }
                 }
             }
@@ -649,7 +645,7 @@ class ItemUpdateService
     private function isPriceUpdateNecessary(array $priceList, int $lastStockUpdateTimestamp):bool
     {
         if (isset($priceList['variationPriceUpdatedTimestamp']) &&
-            $priceList['variationPriceUpdatedTimestamp'] > $lastStockUpdateTimestamp)
+            strtotime($priceList['variationPriceUpdatedTimestamp']) > $lastStockUpdateTimestamp)
         {
             return true;
         }
