@@ -1,6 +1,6 @@
 # Release Notes for Elastic Export Rakuten.de
 
-## v1.3.31 (2020-02-03)
+## v1.3.31 (2020-02-06)
 
 ### Changed
 - All VAT classes supported by Rakuten are now exported with the correct IDs. Now the VAT classes for 10% / 20% / 13% / 2,1% / 5% / 5,5% are supported too.
