@@ -123,8 +123,10 @@ class AttributeHelper
      */
     public function getRakutenAttributeValueString(array $variation, KeyValue $settings):string 
     {
+        $attributeNameCombination = $this->attributeNameCombination[$variation['data']['item']['id']] ?? null;
+        
         return $this->elasticExportCoreHelper->getAttributeValueSetShortFrontendName(
-            $variation, $settings, '|', $this->attributeNameCombination[$variation['data']['item']['id']]
+            $variation, $settings, '|', $attributeNameCombination
         );
     }
 
