@@ -1076,7 +1076,7 @@ class RakutenDE extends CSVPluginGenerator
     }
 
     /**
-     * Get id for vat
+     * Get rakuten tax id for vat value
      * @param string $vatValue
      * @return int
      */
@@ -1089,7 +1089,20 @@ class RakutenDE extends CSVPluginGenerator
                 return 2;
             case '0.00':
                 return 3;
+            case '10.00':
+                return 10;
+            case '20.00':
+                return 12;
+            case '13.00':
+                return 13;
+            case '2.10':
+                return 14;
+            case '5.00':
+                return 14;
+            case '5.50':
+                return 16;
             default:
+		// 19%
                 return 1;
         }
     }
