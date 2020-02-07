@@ -3,7 +3,7 @@
 ## v1.3.32 (2020-02-07)
 
 ### Fixed
-- The stock update only deactivates variants on Rakuten, that were really deactivated.
+- The stock update only deactivates variations on Rakuten that were actually deactivated.
 
 ## v1.3.31 (2020-02-06)
 
