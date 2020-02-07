@@ -498,11 +498,7 @@ class ItemUpdateService
             if (is_array($marketIds)) {
                 foreach($marketIds as $key => $value) {
                     if (strlen($value)) {
-                        if (!strpos($value, '.')) {
-                            $this->marketFilter[] = $value.'.00';
-                        } else {
-                            $this->marketFilter[] = $value;
-                        }
+                        $this->marketFilter[] = (float)$value;
                     }
                 }
             }
@@ -555,7 +551,7 @@ class ItemUpdateService
             $stockList = $this->elasticExportStockHelper->getStockByPreloadedValue($variation, $data);
 
             //stock update is not necessary
-            if (!$this->isStockUpdateNecessary($stockList, $lastStockUpdateTimestamp)) {
+            if ($this->isStockUpdateNecessary($stockList, $lastStockUpdateTimestamp)) {
                 if (is_array($stockList) && count($stockList)) {
                     $content['stock'] = $stockList['stock'] > 0 ? $stockList['stock'] : 0;
 
@@ -597,12 +593,12 @@ class ItemUpdateService
      */
     private function isStockUpdateNecessary(array $stockList, int $lastStockUpdateTimestamp):bool
     {
-        if (isset($stockList['updatedAt']) && strlen($stockList['updatedAt'])) {
-            if (strtotime($stockList['updatedAt']) > $lastStockUpdateTimestamp) {
+        if (isset($stockList['updatedAt']) && $stockList['updatedAt'] > 0) {
+            if ($stockList['updatedAt'] > $lastStockUpdateTimestamp) {
                 return true;
             }
         } else {
-            if ($stockList['inventoryManagementActive'] != 1) {
+            if ($stockList['inventoryManagementActive'] == 1) {
                 return true;
             }
         }
@@ -649,7 +645,7 @@ class ItemUpdateService
     private function isPriceUpdateNecessary(array $priceList, int $lastStockUpdateTimestamp):bool
     {
         if (isset($priceList['variationPriceUpdatedTimestamp']) &&
-            $priceList['variationPriceUpdatedTimestamp'] > $lastStockUpdateTimestamp)
+            strtotime($priceList['variationPriceUpdatedTimestamp']) > $lastStockUpdateTimestamp)
         {
             return true;
         }

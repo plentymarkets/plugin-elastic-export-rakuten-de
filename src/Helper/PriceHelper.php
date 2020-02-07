@@ -104,7 +104,7 @@ class PriceHelper
         // Get the retail price
         $retailPrice = $this->priceDetectionService->getPriceByPreloadList($preloadedPrices);
         $variationPrice = $this->getPriceByRetailPriceSettings($retailPrice, $settings);
-        $variationPriceUpdatedTimestamp = $retailPrice['updatedAt'];
+        $variationPriceUpdatedTimestamp = $retailPrice['updatedAt'] ?? '';
 
         // Get the recommended retail price
         if ($settings->get('transferRrp') == self::TRANSFER_RRP_YES) {

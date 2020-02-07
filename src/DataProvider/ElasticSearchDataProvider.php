@@ -183,7 +183,6 @@ class ElasticSearchDataProvider
 				'sku',
 				'exportedAt',
 				'id'
-
 			],
 
 			'attributes'   => [

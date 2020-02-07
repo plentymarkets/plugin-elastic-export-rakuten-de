@@ -1,5 +1,10 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## v1.3.32 (2020-02-07)
+
+### Behoben
+- Der Bestandsabgleich beendet nur noch Varianten auf Rakuten, die wirklich deaktiviert wurden.
+
 ## v1.3.31 (2020-02-06)
 
 ### Geändert
