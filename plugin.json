@@ -19,5 +19,7 @@
     "de":"Rakuten.de",
     "en":"Rakuten.de"
   },
-  "require": ["ElasticExport"]
+  "require"           : {
+    "ElasticExport": ">= 1.6.5"
+  }
 }
