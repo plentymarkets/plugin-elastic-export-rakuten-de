@@ -1060,7 +1060,8 @@ class RakutenDE extends CSVPluginGenerator
             if ($vatRates instanceof Collection) {
                 foreach ($vatRates as $vatRate) {
                     // TODO remove getAlternativeVatClassId() after the economic stimulus package expired at 01.01.2021
-                    if (time() >= 1593561600 && time() < 1609459200) {
+                    // timestamps are GMT + 2 for start and GMT + 1 for end (winter time)
+                    if (time() >= 1593554400 && time() < 1609455600) {
                         $this->vatCache[$vatRate->id] = $this->getAlternativeVatClassId((string)$vatRate->vatRate);
                     } else {
                         $this->vatCache[$vatRate->id] = $this->getVatClassId((string)$vatRate->vatRate);
