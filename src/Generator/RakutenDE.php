@@ -1059,7 +1059,12 @@ class RakutenDE extends CSVPluginGenerator
             $vatRates = $standardVat->vatRates;
             if ($vatRates instanceof Collection) {
                 foreach ($vatRates as $vatRate) {
-                    $this->vatCache[$vatRate->id] = $this->getVatClassId((string)$vatRate->vatRate);
+                    // TODO remove getAlternativeVatClassId() after the economic stimulus package expired at 01.01.2021
+                    if (time() >= 1593561600 && time() < 1609459200) {
+                        $this->vatCache[$vatRate->id] = $this->getAlternativeVatClassId((string)$vatRate->vatRate);
+                    } else {
+                        $this->vatCache[$vatRate->id] = $this->getVatClassId((string)$vatRate->vatRate);
+                    }
                 }
             }
         }
@@ -1098,11 +1103,40 @@ class RakutenDE extends CSVPluginGenerator
             case '2.10':
                 return 14;
             case '5.00':
-                return 14;
+                return 15;
             case '5.50':
                 return 16;
             default:
 		// 19%
+                return 1;
+        }
+    }
+
+    /**
+     * @param string $vatValue
+     * @return int
+     */
+    private function getAlternativeVatClassId(string $vatValue):int
+    {
+        switch ($vatValue) {
+            case '10.70':
+                return 4;
+            case '5.00':
+                return 2;
+            case '0.00':
+                return 3;
+            case '10.00':
+                return 10;
+            case '20.00':
+                return 12;
+            case '13.00':
+                return 13;
+            case '2.10':
+                return 14;
+            case '5.50':
+                return 16;
+            default:
+                // 19%
                 return 1;
         }
     }
