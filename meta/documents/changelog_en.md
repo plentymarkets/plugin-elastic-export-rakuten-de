@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.3.33 (2020-06-15)
+
+### Changed
+- For the time period from 01.06.2020 till 31.12.2020 the mapping of tax classes of Rakuten.de based on the tax rate of the merchant will be adjusted. In this time period 16% will be mapped to tax class 1 and 5% to tax class 2.
+
 ## v1.3.32 (2020-02-07)
 
 ### Fixed

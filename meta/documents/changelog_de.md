@@ -1,5 +1,10 @@
 # Release Notes für Elastic Export Rakuten.de
 
+## v1.3.33 (2020-06-15)
+
+### Geändert
+- Für den Zeitraum vom 01.06.2020 bis zum 31.12.2020 wurde die Zuordnung der Steuerklasse von Rakuten.de auf Basis des Steuersatzes des Händlers angepasst. In diesem Zeitraum werden 16% der Steuerklasse 1 und 5% der Steuerklasse 2 zugeordnet.
+
 ## v1.3.32 (2020-02-07)
 
 ### Behoben
