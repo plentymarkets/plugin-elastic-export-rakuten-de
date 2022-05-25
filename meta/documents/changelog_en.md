@@ -1,5 +1,10 @@
 # Release Notes for Elastic Export Rakuten.de
 
+## v1.3.34 (2022-05-25)
+
+### Changed
+- UPDATE - Additional updates to ensure compatibility with PHP 8.
+
 ## v1.3.33 (2020-06-19)
 
 ### Changed
