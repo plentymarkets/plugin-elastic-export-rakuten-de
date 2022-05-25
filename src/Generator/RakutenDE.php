@@ -283,7 +283,7 @@ class RakutenDE extends CSVPluginGenerator
                     'Elastic Search duration' => microtime(true) - $esStartTime,
                 ]);
 
-                if(count($resultList['error']) > 0)
+                if(count($resultList['error'] ?? []) > 0)
                 {
                     $this->getLogger(__METHOD__)->addReference('failedShard', $shardIterator)->error('ElasticExportRakutenDE::log.occurredElasticSearchErrors', [
                         'error message' => $resultList['error'],
@@ -292,9 +292,9 @@ class RakutenDE extends CSVPluginGenerator
 
                 $buildRowStartTime = microtime(true);
 
-                if(is_array($resultList['documents']) && count($resultList['documents']) > 0)
+                if(is_array($resultList['documents']) && count($resultList['documents'] ?? []) > 0)
                 {
-                    if (count($variations)) {
+                    if (count($variations ?? [])) {
                         $preloadingDocuments = array_merge($variations, $resultList['documents']);
                         $this->elasticExportStockHelper->preloadStockAndPrice($preloadingDocuments);
                         unset($preloadingDocuments);
@@ -394,7 +394,7 @@ class RakutenDE extends CSVPluginGenerator
         }
 
 		// Write the last batch of variations
-		if (is_array($variations) && count($variations) > 0)
+		if (is_array($variations) && count($variations ?? []) > 0)
 		{
 			try
 			{
@@ -424,7 +424,7 @@ class RakutenDE extends CSVPluginGenerator
 			unset($variations);
 		}
 
-		if(is_array($this->errorBatch) && count($this->errorBatch['rowError']))
+		if(is_array($this->errorBatch) && count($this->errorBatch['rowError']) ?? [])
 		{
 			$this->getLogger(__METHOD__)->error('ElasticExportRakutenDE::log.buildRowError', [
 				'errorList'	=> $this->errorBatch['rowError']
@@ -444,7 +444,7 @@ class RakutenDE extends CSVPluginGenerator
      */
     private function buildRows($settings, $variations)
     {
-        if (is_array($variations) && count($variations)) {
+        if (is_array($variations) && count($variations ?? [])) {
             $variations = $this->attributeHelper->getPreparedVariantItem($variations, $settings);
 
             foreach($variations as $key => $variation)
@@ -760,7 +760,7 @@ class RakutenDE extends CSVPluginGenerator
         {
             $this->imageCache = [];
 
-            if(is_array($item['data']['images']['all']) && count($item['data']['images']['all']) > 0)
+            if(is_array($item['data']['images']['all']) && count($item['data']['images']['all'] ?? []) > 0)
             {
                 $count = 0;
                 $images = [];
@@ -843,7 +843,7 @@ class RakutenDE extends CSVPluginGenerator
     {
         $marketProperties = $this->marketPropertyHelperRepository->getMarketProperty($marketId);
 
-        if(is_array($item['data']['properties']) && count($item['data']['properties']) > 0)
+        if(is_array($item['data']['properties']) && count($item['data']['properties'] ?? []) > 0)
         {
             foreach($item['data']['properties'] as $property)
             {
@@ -851,7 +851,7 @@ class RakutenDE extends CSVPluginGenerator
                 {
                     if(array_key_exists('id', $property['property']))
                     {
-                        if(is_array($marketProperty) && count($marketProperty) > 0 && $marketProperty['character_item_id'] == $property['property']['id'])
+                        if(is_array($marketProperty) && count($marketProperty ?? []) > 0 && $marketProperty['character_item_id'] == $property['property']['id'])
                         {
                             if (strlen($externalComponent) > 0 && strpos($marketProperty['external_component'], $externalComponent) !== false)
                             {
@@ -950,7 +950,7 @@ class RakutenDE extends CSVPluginGenerator
 			'accountId' => (int) $settings->get('marketAccountId')
 		]);
 
-		if(count($skuDataList))
+		if(count($skuDataList ?? []))
 		{
 			foreach($skuDataList as $skuData)
 			{
@@ -1071,7 +1071,7 @@ class RakutenDE extends CSVPluginGenerator
         }
         
         //Fallback
-        if (!count($this->vatCache)) {
+        if (!count($this->vatCache ?? [])) {
             $this->vatCache = [
                 0 => 1,
                 1 => 2,
